@@ -1,172 +1,44 @@
 import requests
 import io
 
-BASE_URL = 'http://requestb.in/1g5erwn1'
-ADD_REQUEST = "add"
-QUOTE_REQUEST = "quote"
-BUY_REQUEST = "buy"
-COMMIT_BUY_REQUEST = "commit_buy"
-COMMIT_SELL_REQUEST = "commit_sell"
-DISPLAY_SUMMARY_REQUEST = "display_summary"
-CANCEL_BUY_REQUEST = "cancel_buy"
-CANCEL_SET_BUY_REQUEST = "cancel_set_buy"
-SET_BUY_AMOUNT_REQUEST = "set_buy_amount"
-SELL_REQUEST = "sell"
-CANCEL_SET_SELL_REQUEST = "cancel_set_sell"
-SET_SELL_TRIGGER_REQUEST = "set_sell_trigger"
-SET_SELL_AMOUNT_REQUEST = "set_sell_amount"
-DUMPLOG_REQUEST = "dumplog"
+WEB_SERVER_URL = 'http://requestb.in/yc78qnyc'
+ADD = "ADD"
+QUOTE = "QUOTE"
+BUY = "BUY"
+COMMIT_BUY = "COMMIT_BUY"
+COMMIT_SELL = "COMMIT_SELL"
+DISPLAY_SUMMARY = "DISPLAY_SUMMARY"
+CANCEL_BUY = "CANCEL_BUY"
+CANCEL_SET_BUY = "CANCEL_SET_BUY"
+SET_BUY_AMOUNT = "SET_BUY_AMOUNT"
+SELL = "SELL"
+CANCEL_SET_SELL = "CANCEL_SET_SELL"
+SET_SELL_TRIGGER = "SET_SELL_TRIGGER"
+SET_SELL_AMOUNT = "SET_SELL_AMOUNT"
+DUMPLOG = "DUMPLOG"
 
-		
-def request_add(user, amount):
+
+def make_request(request_type, user, stock_id=None, amount=None):
 	data = {
-		'user': user,
-		'amount': amount
-	}
-	url = BASE_URL
-	print url
-	r = requests.post(BASE_URL, data)
-
-	if 1 == 1:
-		print r.text
-		print "success"
-		return
-
-def request_quote(user, stock_id):
-	data = {
-		'user': user,
-		'stock_id': stock_id
-	}
-
-	r = requests.post(BASE_URL + QUOTE_REQUEST, data)
-
-	if 1 == 1:
-		print "success"
-		return
-
-def request_buy(user, stock_id, amount):
-	data = {
-		'user': user,
-		'stock_id': stock_id,
-		'amount': amount
-	}
-
-	r = requests.post(BASE_URL + BUY_REQUEST, data)
-
-	if 1 == 1:
-		print "success"
-		return
-
-def request_commit_buy(user):
-	data = {
+		'request_type': request_type,
 		'user': user
 	}
 
-	r = requests.post(BASE_URL + COMMIT_BUY_REQUEST, data)
+	if stock_id:
+		data['stock_id'] = stock_id
 
-	if 1 == 1:
+	if amount:
+		data['amount'] = amount
+
+	r = requests.post(WEB_SERVER_URL, data)
+
+	print r.text
+
+	if r.status_code:
 		print "success"
 		return
-
-def request_commit_sell(user):
-	data = {
-		'user': user
-	}
-
-	r = requests.post(BASE_URL + COMMIT_SELL_REQUEST, data)
-
-	if 1 == 1:
-		print "success"
-		return
-
-def request_display_summary(user):
-	data = {
-		'user': user
-	}
-
-	r = requests.post(BASE_URL + DISPLAY_SUMMARY_REQUEST, data)
-
-	if 1 == 1:
-		print "success"
-		return
-
-def request_cancel_buy(user):
-	data = {
-		'user': user
-	}
-
-	r = requests.post(BASE_URL + CANCEL_BUY_REQUEST, data)
-
-	if 1 == 1:
-		print "success"
-		return
-
-def request_set_buy_amount(user, stock_id=None, amount=None):
-	data = {
-		'user': user
-	}
-
-	r = requests.post(BASE_URL + SET_BUY_AMOUNT_REQUEST, data)
-
-	if 1 == 1:
-		print "success"
-		return
-	
-def request_sell(user, stock_id=None, amount=None):
-	data = {
-		'user': user
-	}
-
-	r = requests.post(BASE_URL + SELL_REQUEST, data)
-
-	if 1 == 1:
-		print "success"
-		return
-	
-def request_cancel_set_sell(user, stock_id=None):
-	data = {
-		'user': user
-	}
-
-	r = requests.post(BASE_URL + CANCEL_SET_SELL_REQUEST, data)
-
-	if 1 == 1:
-		print "success"
-		return
-	
-def request_set_sell_trigger(user, stock_id=None, amount=None):
-	data = {
-		'user': user
-	}
-
-	r = requests.post(BASE_URL + SET_SELL_TRIGGER_REQUEST, data)
-
-	if 1 == 1:
-		print "success"
-		return
-	
-def request_set_sell_amount(user, stock_id=None, amount=None):
-	data = {
-		'user': user,
-		'stock_id': stock_id,
-		'amount': amount
-	}
-
-	r = requests.post(BASE_URL + SET_SELL_AMOUNT_REQUEST, data)
-
-	if 1 == 1:
-		print "success"
-		return
-	
-def request_dumplog(filename, user=None):
-	data = {
-		'user': user
-	}
-
-	r = requests.post(BASE_URL + DUMPLOG_REQUEST, data)
-
-	if 1 == 1:
-		print "success"
+	else:
+		print "failure"
 		return
 
 f = open("1userWorkLoad", 'r')
@@ -175,79 +47,68 @@ for line in f:
 	cmdNum = tokens[0]
 	request = tokens[1].split(',')
 
-	if request[0].lower() == ADD_REQUEST:
-		user = request[1]
+	request_type = request[0]
+	user = request[1]
+
+	if request_type == ADD:
 		amount = request[2]
-		request_add(user, amount)
-		print request[0]
+		make_request(request_type, user, amount)
+		
 
-	elif request[0].lower() == QUOTE_REQUEST:
-		user = request[1]
+	elif request_type == QUOTE:
 		stock_id = request[2]
-		request_quote(user, stock_id)
-		print request[0]
+		make_request(request_type, user, stock_id)
+		
 
-	elif request[0].lower() == BUY_REQUEST:
-		user = request[1]
+	elif request_type == BUY:
 		stock_id = request[2]
 		amount = request[3]
-		request_buy(user, stock_id, amount)
-		print request[0]
+		make_request(request_type, user, stock_id, amount)
+		
 
-	elif request[0].lower() == COMMIT_BUY_REQUEST:
-		user = request[1]
-		request_commit_buy(user)
-		print request[0]
+	elif request_type == COMMIT_BUY:
+		make_request(request_type, user)
+		
 
-	elif request[0].lower() == COMMIT_SELL_REQUEST:
-		user = request[1]
-		request_commit_sell(user)
-		print request[0]
+	elif request_type == COMMIT_SELL:
+		make_request(request_type, user)
+		
 
-	elif request[0].lower() == DISPLAY_SUMMARY_REQUEST:
-		user = request[1]
-		request_display_summary(user)
-		print request[0]
+	elif request_type == DISPLAY_SUMMARY:
+		make_request(request_type, user)
+		
 
-	elif request[0].lower() == CANCEL_BUY_REQUEST:
-		user = request[1]
-		request_cancel_buy(user)
-		print request[0]
+	elif request_type == CANCEL_BUY:
+		make_request(request_type, user)
 		
-	elif request[0].lower() == CANCEL_SET_BUY_REQUEST:
-		user = request[1]
-		request_cancel_set_sell(user)
-		print request[0]
 		
-	elif request[0].lower() == SET_SELL_AMOUNT_REQUEST:
-		user = request[1]
-		request_set_sell_amount(user)
-		print request[0]
+	elif request_type == CANCEL_SET_BUY:
+		make_request(request_type, user)
 		
-	elif request[0].lower() == SELL_REQUEST:
-		user = request[1]
-		request_sell(user)
-		print request[0]
 		
-	elif request[0].lower() == CANCEL_SET_SELL_REQUEST:
-		user = request[1]
-		request_cancel_set_sell(user)
-		print request[0]
+	elif request_type == SET_SELL_AMOUNT:
+		make_request(request_type, user)
 		
-	elif request[0].lower() == SET_SELL_TRIGGER_REQUEST:
-		user = request[1]
-		request_set_sell_trigger(user)
-		print request[0]
 		
-	elif request[0].lower() == SET_SELL_AMOUNT_REQUEST:
-		user = request[1]
-		request_set_sell_amount(user)
-		print request[0]
+	elif request_type == SELL:
+		make_request(request_type, user)
 		
-	elif request[0].lower() == DUMPLOG_REQUEST:
-		user = request[1]
-		request_dumplog(user)
-		print request[0]
+		
+	elif request_type == CANCEL_SET_SELL:
+		make_request(request_type, user)
+		
+		
+	elif request_type == SET_SELL_TRIGGER:
+		make_request(request_type, user)
+		
+		
+	elif request_type == SET_SELL_AMOUNT:
+		make_request(request_type, user)
+		
+		
+	elif request_type == DUMPLOG:
+		make_request(request_type, user)
+		
 
 	else:
 		# INVALID REQUEST
