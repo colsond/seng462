@@ -1,7 +1,7 @@
 import requests
 import io
 
-WEB_SERVER_URL = 'http://requestb.in/yc78qnyc'
+WEB_SERVER_URL = 'http://localhost:8000/'
 ADD = "ADD"
 QUOTE = "QUOTE"
 BUY = "BUY"
