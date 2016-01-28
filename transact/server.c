@@ -10,12 +10,15 @@
 
 int main(){
   int welcomeSocket, newSocket;
-  char buffer[1024];
+  char in_buffer[20];
+  char out_buffer[20];
   struct sockaddr_in server;
   struct sockaddr_in client;
   socklen_t addr_size;
+
   char *client_ip;
   int client_port = 0;
+
   int bind_status = 0;
 
   welcomeSocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -50,23 +53,25 @@ int main(){
 
   addr_size = sizeof client;
   while(newSocket = accept(welcomeSocket, (struct sockaddr *) &client, &addr_size)) {
-  if (newSocket<0) {
-    fprintf(stderr,"Client is unacceptable.\n");
-    return(-1);
-  } else {
-    fprintf(stderr,"Client is accepted.\n");
-  }
+    if (newSocket<0) {
+      fprintf(stderr,"Client is unacceptable: %s\n",strerror(errno));
+      return(-1);
+    } else {
+      fprintf(stderr,"Client is accepted.\n");
+    }
 
-//  client_ip = inet_ntoa(client.sin_addr);
-//  client_port = ntohs(client.sin_port);
+//    client_ip = inet_ntoa(client.sin_addr);
+//    client_port = ntohs(client.sin_port);
 
-//  printf("Client connected from: %s (%d)\n",client_ip,client_port);
+//    fprintf(stderr,"Client connected from: %s (%d)\n",client_ip,client_port);
 
-  recv(newSocket,buffer,1024,0);
-  printf("-%s-\n",buffer);
+    while(recv(newSocket,in_buffer,1024,0)) {
+      printf("-%s-\n",in_buffer);
 
-  strcpy(buffer,"Hello World!");
-  send(newSocket,buffer,13,0);
+      strcpy(out_buffer,"Hello World!");
+      send(newSocket,out_buffer,13,0);
+    }
+    fprintf(stderr,"Connection closed.\n");
   }
   return 0;
 }

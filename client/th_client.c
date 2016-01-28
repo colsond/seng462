@@ -11,11 +11,12 @@
 struct sockaddr_in serverAddr;
 socklen_t addr_size;
 int msg_max = 1;
+int conn_num = 0;
 
 void *connector(void*);
 
 int main(int argc, char *argv[]){
-  int conn_num = 0;
+//  int conn_num = 0;
   int conn_max = 1;
   int msg_num = 0;
 //  int msg_max = 1;
@@ -97,10 +98,15 @@ void *connector(void *arg) {
 //    fprintf(stderr,"Type something: ");
 //    fgets(outBuffer,15,stdin);
 //    sprintf(outBuffer,"zYx,%5.1d\n\0",msg_num);
-    sprintf(outBuffer,"zYx,%dp\n\0",msg_num);
 //    sprintf(outBuffer,"zYx,abcdefghij\n\0",msg_num);
+    sprintf(outBuffer,"%cYx,a%d%c\n\0",conn_num+65,msg_num+1,65+msg_num);
     send_status = send(clientSocket, outBuffer, 16, 0);
     fprintf(stderr,"Sent -%s-\nBytes sent: %d\n",outBuffer,send_status);
+    if (send_status == 16) {
+      sprintf(outBuffer,"cleared");
+    } else {
+      fprintf(stderr,"send error\n");
+    }
 
     recv_status = recv(clientSocket, inBuffer, 1024, 0);
     fprintf(stderr,"Received -%s-\nBytes received: %d\n",inBuffer,recv_status);
