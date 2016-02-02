@@ -14,7 +14,7 @@ def process_request(data):
 	result = ""
 	if data_dict["request_type"] == "buy":
 		print "holy moly its a buy"
-	else if data_dict["request_type"] == "quote":
+	elif data_dict["request_type"] == "quote":
 		result = get_quote(data_dict)
 	return result
 
