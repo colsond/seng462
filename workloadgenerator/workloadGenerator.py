@@ -34,7 +34,7 @@ def make_request(request_type, user, stock_id=None, amount=None):
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 	# Connect the socket to the port where the server is listening
-	server_address = ('b142.seng.uvic.ca', 44421)
+	server_address = ('localhost', 44421)
 	print >>sys.stderr, 'connecting to %s port %s' % server_address
 	sock.connect(server_address)
 

@@ -20,17 +20,21 @@ def process_request(data):
 
 def get_quote(data):
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	s.connect(('quoteserve.seng.uvic.ca', 4445))
+	print '1'
+	server_address = ('quoteserve.seng.uvic.ca', 4445)
+	s.connect(server_address)
+	print '2'
 	s.send(data['user'])
+	print '3'
 	response = s.recv(1024)
 	print response
-	s.close
+	s.close()
 	return response
 
 
 
 
-host = ''
+host = 'localhost'
 port = 44421
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((host, port))
