@@ -27,7 +27,7 @@ while 1:
 		data = conn.recv(1024)
 		if (data):
 			print 'Received: ' + data
-			
+			conn.send('Received OK')
 			process_request(data)
 		else:
 			break

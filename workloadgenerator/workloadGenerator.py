@@ -50,7 +50,7 @@ def make_request(request_type, user, stock_id=None, amount=None):
 	    amount_expected = len(message)
 	    response = ""
 
-	    while amount_received < amount_expected:
+	    while amount_received < len("Received OK"):
 	        response_data = sock.recv(16)
 	        amount_received += len(response_data)
 	        response += response_data
