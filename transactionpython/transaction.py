@@ -4,7 +4,14 @@ import socket
 import string
 import sys
 
-host = 'b142.seng.uvic.ca'
+def process_request(data):
+	print "Gonna do some shit with this:"
+	print data
+
+	return
+
+
+host = ''
 port = 44421
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((host, port))
@@ -20,6 +27,7 @@ while 1:
 		data = conn.recv(1024)
 		if (data):
 			print 'Received: ' + data
-			conn.send('Squawk: ' + data)
+			
+			process_request(data)
 		else:
 			break
