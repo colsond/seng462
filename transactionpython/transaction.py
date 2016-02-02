@@ -11,10 +11,24 @@ def process_request(data):
 	data_dict = ast.literal_eval(data)
 	for key, value in data_dict.iteritems():
 		print key + " is " + value + "\n"
-
+	result = ""
 	if data_dict["request_type"] == "buy":
 		print "holy moly its a buy"
-	return
+	else if data_dict["request_type"] == "quote":
+		result = get_quote(data_dict)
+	return result
+
+def get_quote(data):
+	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	s.connect(('quoteserve.seng.uvic.ca', 4445))
+	s.send(data['user'])
+	response = s.recv(1024)
+	print response
+	s.close
+	return response
+
+
+
 
 host = ''
 port = 44421
