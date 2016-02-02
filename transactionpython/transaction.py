@@ -12,9 +12,9 @@ def process_request(data):
 	for key, value in data_dict.iteritems():
 		print key + " is " + value + "\n"
 	result = ""
-	if data_dict["request_type"] == "buy":
+	if data_dict["request_type"] == "BUY":
 		print "holy moly its a buy"
-	elif data_dict["request_type"] == "quote":
+	elif data_dict["request_type"] == "QUOTE":
 		result = get_quote(data_dict)
 	return result
 
