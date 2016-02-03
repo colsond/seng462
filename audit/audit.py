@@ -32,13 +32,13 @@ def clientthread(conn):
         #Receiving from client
 	#this is where all the logic for logging will go.
         data = conn.recv(1024)
-        f.write(data+"\n")
-	reply = 'Recieved: ' + data
 	#handle request here
         if not data: 
             f.close()
             break
      
+        f.write(data+"\n")
+	reply = 'Recieved: ' + data
         conn.sendall(reply)
      
     #came out of loop
