@@ -47,7 +47,7 @@ def process_request(data, cache):
 		
 		elif request_type == QUOTE:
 			result = get_quote(data_dict)
-			response = str(result[data_dict["stock_id"]])
+			response = str(result)
 			response += "\n"
 			
 		elif request_type == BUY:
@@ -172,15 +172,17 @@ def process_request(data, cache):
 
 # Request a Quote from the quote server
 def get_quote(data):
-	# s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-	# s.connect(('quoteserve.seng.uvic.ca', 4444))
-	# s.send(data['user'])
+	s.connect(('quoteserve.seng.uvic.ca', 4444))
+	user = data['user']
+	stock_id = data['stock_id']
+	request = user + ", " + stock_id + "\r"
+	s.send(request)
 
-	# response = s.recv(1024)
-	# print response
-	# s.close()
-	response = {data["stock_id"]: 100}
+	response = s.recv(1024)
+	print response
+	s.close()
 	return response
 
 ## Cache format:
@@ -204,7 +206,7 @@ def main():
 		"stocks": {}
 	}
 
-	host = 'localhost'
+	host = ''
 	port = 44421
 
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
