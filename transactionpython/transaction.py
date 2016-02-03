@@ -19,16 +19,16 @@ def process_request(data):
 	return result
 
 def get_quote(data):
-	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	q = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	print '1'
 	server_address = ('quoteserve.seng.uvic.ca', 4445)
-	s.connect(server_address)
+	q.connect(server_address)
 	print '2'
-	s.send(data['user'])
+	q.send(data['user'])
 	print '3'
 	response = s.recv(1024)
 	print response
-	s.close()
+	q.close()
 	return response
 
 
