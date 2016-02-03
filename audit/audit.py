@@ -1,5 +1,6 @@
 import socket
 import sys
+import io
 from thread import *
  
 HOST = ''   # Symbolic name meaning all available interfaces
@@ -24,24 +25,26 @@ print 'Socket now listening'
 #Function for handling connections. This will be used to create threads
 def clientthread(conn):
     #Sending message to connected client
-    conn.send('Welcome to the server. Type something and hit enter\n') #send only takes string
-     
+    f = open('logfile.txt', 'a')     
     #infinite loop so that function do not terminate and thread do not end.
     while True:
          
         #Receiving from client
-        data = conn.recv(1024)
-        reply = 'Recieved: ' + data
-	#handle request here
 	#this is where all the logic for logging will go.
+        data = conn.recv(1024)
+        f.write(data+"\n")
+	reply = 'Recieved: ' + data
+	#handle request here
         if not data: 
+            f.close()
             break
      
         conn.sendall(reply)
      
     #came out of loop
+    print "Ending transmission"
     conn.close()
- 
+    sys.exit(0) 
 #now keep talking with the client
 while 1:
     #wait to accept a connection - blocking call
