@@ -65,7 +65,7 @@ def process_request(data, cache):
 				response = "Please confirm your purchase within 60 seconds.\n"
 				
 			
-		elif request_type == COMMIT_BUY:
+		elif request_type == COMMIT_BUY: 
 			# Check if timestamp is still valid
 			if cache["users"][user]["pending_buy"]:
 				if time.time() - 60 <= cache["users"][user]["pending_buy"]["timestamp"]:
@@ -90,6 +90,25 @@ def process_request(data, cache):
 				else:
 					print "TIME WINDOW ELAPSED"
 			
+		elif request_type == CANCEL_BUY:
+			cache["users"][user]["pending_buy"] = {}
+			response = "Buy cancelled.\n"
+			
+		elif request_type == SELL:
+			# What stock and how much
+			amount = float(data_dict["amount"])
+			stock_id = data_dict["stock_id"]
+
+			# Check user stock amount
+			if amount > 0 and cache["users"][user]["stocks"].get(stock_id, 0) > amount:
+			# -- Should be acceptable if users stock is >= amount specified, not just >
+
+				# Set pending sell to new values (should overwrite existing entry)
+				cache["users"][user]["pending_sell"]["stock_id"] = stock_id
+				cache["users"][user]["pending_sell"]["amount"] = amount
+				cache["users"][user]["pending_sell"]["timestamp"] = time.time()
+				response = "Please confirm your sell within 60 seconds.\n"
+			
 		elif request_type == COMMIT_SELL:
 			# Check if timestamp is still valid
 			if cache["users"][user]["pending_sell"]:
@@ -112,56 +131,59 @@ def process_request(data, cache):
 				else:
 					print "TIME WINDOW ELAPSED"
 
-		elif request_type == DISPLAY_SUMMARY:
-			print "Not implemented"
-			# make_request(request_type, user)
-			
-		elif request_type == CANCEL_BUY:
-			cache["users"][user]["pending_buy"] = {}
-			response = "Buy cancelled.\n"
-
 		elif request_type == CANCEL_SELL:
 			cache["users"][user]["pending_sell"] = {}
 			response = "Sell cancelled.\n"
 			
+		elif request_type == SET_BUY_AMOUNT:
+			print "Not implemented"
+			# make_request(request_type, user)
+			# -- converted from apparent duplicate SET_SELL_AMOUNT
+			# -- Check if given user has given amount money
+			# -- if yes, set up buy trigger for user with stock and amount to buy
+			
 		elif request_type == CANCEL_SET_BUY:
 			print "Not implemented"
 			# make_request(request_type, user)
+			# -- check to see if user has a set buy trigger for given stock
+			# -- if yes, remove trigger entry and return funds to user
+			
+		elif request_type == SET_BUY_TRIGGER:
+			print "Not implemented"
+			# make_request(request_type, user)
+			# -- check if trigger is initialised with given user and stock
+			# -- if yes, set buy trigger price
 			
 		elif request_type == SET_SELL_AMOUNT:
 			print "Not implemented"
 			# make_request(request_type, user)
-			
-		elif request_type == SELL:
-			# What stock and how much
-			amount = float(data_dict["amount"])
-			stock_id = data_dict["stock_id"]
-
-			# Check user stock amount
-			if amount > 0 and cache["users"][user]["stocks"].get(stock_id, 0) > amount:
-
-				# Set pending sell to new values (should overwrite existing entry)
-				cache["users"][user]["pending_sell"]["stock_id"] = stock_id
-				cache["users"][user]["pending_sell"]["amount"] = amount
-				cache["users"][user]["pending_sell"]["timestamp"] = time.time()
-				response = "Please confirm your sell within 60 seconds.\n"
-			
-			
-		elif request_type == CANCEL_SET_SELL:
-			print "Not implemented"
-			# make_request(request_type, user)
+			# -- check if user has enough stock to set trigger
+			# -- create entry in trigger list: user, stock, amount to sell
 			
 		elif request_type == SET_SELL_TRIGGER:
 			print "Not implemented"
 			# make_request(request_type, user)
+			# -- check if trigger has been initialized for the given user/stock combination
+			# -- if yes, add given triggering price to trigger
 			
-		elif request_type == SET_SELL_AMOUNT:
+		elif request_type == CANCEL_SET_SELL:
 			print "Not implemented"
 			# make_request(request_type, user)
+			# -- Check if there is a trigger for the stock
+			# -- if yes, cancel it and return the stock to the active portfolio
 			
 		elif request_type == DUMPLOG:
 			print "Not implemented"
 			# make_request(request_type, user)
+			# -- two modes:
+			# --   userid, filename - print transactions for user to file
+			# --   filename - print all transactions to file
+
+		elif request_type == DISPLAY_SUMMARY:
+			print "Not implemented"
+			# make_request(request_type, user)
+			# -- for first run, only needs to touch log
+			# -- requires: transaction history, current balance, current stocks held, current triggers
 
 	print "Cache State: "
 	print cache
