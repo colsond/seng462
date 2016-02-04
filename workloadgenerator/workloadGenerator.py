@@ -3,7 +3,8 @@ import socket
 import sys
 import string
 
-web_server_address = 'b132.seng.uvic.ca'
+# web_server_address = 'b132.seng.uvic.ca'
+web_server_address = 'localhost'
 web_server_port = 44421
 
 ADD = "ADD"

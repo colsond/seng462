@@ -44,6 +44,157 @@ CANCEL_SET_SELL = "CANCEL_SET_SELL"
 DUMPLOG = "DUMPLOG"
 DISPLAY_SUMMARY = "DISPLAY_SUMMARY"
 
+def send_audit_entry(entry):
+	# Socket shit send the entry
+	return
+
+def audit_user_command_event(
+		timestamp, 
+		server, 
+		transactionNum, 
+		command, 
+		username="", 
+		stockSymbol="", 
+		filename="", 
+		funds=0):
+
+	audit_dict = {
+		"timestamp": timestamp,
+		"server": server,
+		"transactionNum": transactionNum,
+		"command": command,
+	}
+	if username:
+		audit_dict["username"] = username
+
+	if stockSymbol:
+		audit_dict["stockSymbol"] = stockSymbol
+
+	if filename:
+		audit_dict["filename"] = filename
+
+	if funds: 
+		audit_dict["funds"] = funds
+	
+	send_audit_entry(str(audit_dict))
+
+	return
+
+def audit_quote_server_event(
+		timestamp,
+		server,
+		transactionNum,
+		price,
+		stockSymbol,
+		username
+		quoteServerTime,
+		cryptokey):
+	
+	audit_dict = {
+		"timestamp": timestamp,
+		"server": server,
+		"transactionNum": transactionNum,
+		"price": price,
+		"stockSymbol": stockSymbol,
+		"username": username,
+		"quoteServerTime": quoteServerTime,
+		"cryptokey": cryptokey,
+	}
+
+	send_audit_entry(str(audit_dict))
+
+	return
+
+def audit_transaction_event(
+		timestamp,
+		server,
+		transactionNum,
+		action,
+		username,
+		funds):
+
+	audit_dict = {
+		"timestamp": timestamp,
+		"server": server,
+		"transactionNum": transactionNum,
+		"action": action,
+		"username": username,
+		"funds": funds,
+	}
+
+	send_audit_entry(str(audit_dict))
+
+	return
+	
+def audit_system_event(
+		timestamp,
+		server,
+		transactionNum,
+		command,
+		username,
+		stockSymbol,
+		filename,
+		funds):
+
+	audit_dict = {
+		"timestamp": timestamp,
+		"server": server,
+		"transactionNum": transactionNum,
+		"command": command,
+	}
+
+	if username:
+		audit_dict["username"] = username
+
+	if stockSymbol:
+		audit_dict["stockSymbol"] = stockSymbol
+
+	if filename:
+		audit_dict["filename"] = filename
+
+	if funds: 
+		audit_dict["funds"] = funds
+	
+	send_audit_entry(str(audit_dict))
+
+	return
+
+def audit_error_event(
+		timestamp,
+		server,
+		transactionNum,
+		command,
+		stockSymbol,
+		filename,
+		funds
+		errorMessage):
+
+	audit_dict = {
+		"timestamp": timestamp,
+		"server": server,
+		"transactionNum": transactionNum,
+		"command": command,
+	}
+
+	if username:
+		audit_dict["username"] = username
+
+	if stockSymbol:
+		audit_dict["stockSymbol"] = stockSymbol
+
+	if filename:
+		audit_dict["filename"] = filename
+
+	if funds: 
+		audit_dict["funds"] = funds
+
+	if errorMessage:
+		audit_dict["errorMessage"] = errorMessage
+	
+	send_audit_entry(str(audit_dict))
+
+	return
+
 def process_request(data, cache):
 	# Convert Data to Dict
 	data_dict = ast.literal_eval(data)
@@ -99,14 +250,14 @@ def process_request(data, cache):
 				# Set pending buy to new values (should overwrite existing entry)
 				cache["users"][user]["pending_buy"]["stock_id"] = stock_id
 				cache["users"][user]["pending_buy"]["amount"] = amount
-				cache["users"][user]["pending_buy"]["timestamp"] = time.time()
+				cache["users"][user]["pending_buy"]["timestamp"] = int(time.time())
 				response = "Please confirm your purchase within 60 seconds.\n"
 				
 			
 		elif request_type == COMMIT_BUY: 
 			# Check if timestamp is still valid
 			if cache["users"][user]["pending_buy"]:
-				if time.time() - 60 <= cache["users"][user]["pending_buy"]["timestamp"]:
+				if int(time.time()) - 60 <= cache["users"][user]["pending_buy"]["timestamp"]:
 					
 					# Get stock_id and amount from pending_buy entry
 					amount = float(cache["users"][user]["pending_buy"]["amount"])
@@ -150,13 +301,13 @@ def process_request(data, cache):
 				# Set pending sell to new values (should overwrite existing entry)
 				cache["users"][user]["pending_sell"]["stock_id"] = stock_id
 				cache["users"][user]["pending_sell"]["amount"] = amount
-				cache["users"][user]["pending_sell"]["timestamp"] = time.time()
+				cache["users"][user]["pending_sell"]["timestamp"] = int(time.time())
 				response = "Please confirm your sell within 60 seconds.\n"
 			
 		elif request_type == COMMIT_SELL:
 			# Check if timestamp is still valid
 			if cache["users"][user]["pending_sell"]:
-				if time.time() - 60 <= cache["users"][user]["pending_sell"]["timestamp"]:
+				if int(time.time()) - 60 <= cache["users"][user]["pending_sell"]["timestamp"]:
 					
 					# Get stock_id and amount from pending_buy entry
 					amount = float(cache["users"][user]["pending_sell"]["amount"])
