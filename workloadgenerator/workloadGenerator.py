@@ -3,7 +3,7 @@ import socket
 import sys
 import string
 
-web_server_address = 'b142.seng.uvic.ca'
+web_server_address = 'b132.seng.uvic.ca'
 web_server_port = 44421
 
 ADD = "ADD"
@@ -90,7 +90,7 @@ def main():
 		if request_type == ADD:
 			user = request[1]
 			amount = request[2]
-			make_request(transaction_id, request_type, user, amount)
+			make_request(transaction_id, request_type, user, amount=amount)
 
 		elif request_type == QUOTE:
 			user = request[1]
