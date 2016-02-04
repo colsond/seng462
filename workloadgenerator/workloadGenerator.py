@@ -37,6 +37,8 @@ def make_request(transaction_id, request_type, user, stock_id=None, amount=None)
 	if amount:
 		data['amount'] = amount
 
+	print str(data)
+		
 	# Create a TCP/IP socket
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -76,16 +78,12 @@ def main():
 	f = open("1userWorkLoad", 'r')
 	for line in f:
 
-		# partition returns a 3-tuple: part before seperator, seperator, 
-		# part after seperator - if it fails: original string, empty, empty
-		tokens = line.partition(' ')
-		#tokens = line.split()
+		tokens = line.split(' ')
 
 		transaction_id = tokens[0]
-		# quick way to nuke the brackets
 		transaction_id = transaction_id.translate(None, bad_chars)
 
-		request = tokens[2].split(',')
+		request = tokens[1].split(',')
 
 		request_type = request[0]
 
