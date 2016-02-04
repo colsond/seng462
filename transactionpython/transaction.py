@@ -10,23 +10,25 @@ ADD = "ADD"
 QUOTE = "QUOTE"
 BUY = "BUY"
 COMMIT_BUY = "COMMIT_BUY"
-COMMIT_SELL = "COMMIT_SELL"
-DISPLAY_SUMMARY = "DISPLAY_SUMMARY"
 CANCEL_BUY = "CANCEL_BUY"
-CANCEL_SELL = "CANCEL_SELL"
-CANCEL_SET_BUY = "CANCEL_SET_BUY"
-SET_BUY_AMOUNT = "SET_BUY_AMOUNT"
 SELL = "SELL"
-CANCEL_SET_SELL = "CANCEL_SET_SELL"
-SET_SELL_TRIGGER = "SET_SELL_TRIGGER"
+COMMIT_SELL = "COMMIT_SELL"
+CANCEL_SELL = "CANCEL_SELL"
+SET_BUY_AMOUNT = "SET_BUY_AMOUNT"
+CANCEL_SET_BUY = "CANCEL_SET_BUY"
+SET_BUY_TRIGGER = "SET_BUY_TRIGGER"
 SET_SELL_AMOUNT = "SET_SELL_AMOUNT"
+SET_SELL_TRIGGER = "SET_SELL_TRIGGER"
+CANCEL_SET_SELL = "CANCEL_SET_SELL"
 DUMPLOG = "DUMPLOG"
-
+DISPLAY_SUMMARY = "DISPLAY_SUMMARY"
 
 def process_request(data, cache):
 	# Convert Data to Dict
 	data_dict = ast.literal_eval(data)
 
+	# -- store userCommand in audit regardless of correctness
+	
 	response = "\n"
 	request_type = data_dict.get("request_type")
 	user = data_dict.get("user")
@@ -42,13 +44,19 @@ def process_request(data, cache):
 
 		if request_type == ADD:
 			amount = float(data_dict["amount"])
-			cache["users"][user]["balance"] = cache["users"][user]["balance"] + amount
-			response = "Added\n"
+			if amount < 0:
+				# -- store errorEvent in audit
+				response = "Attempting to add a negative amount\n"
+			else:
+				cache["users"][user]["balance"] = cache["users"][user]["balance"] + amount
+				response = "Added\n"
+				# -- store accountTransaction in audit
 		
 		elif request_type == QUOTE:
 			result = get_quote(data_dict)
 			response = str(result)
 			response += "\n"
+			# -- store quoteServer in audit
 			
 		elif request_type == BUY:
 			# What stock and how much
@@ -56,8 +64,13 @@ def process_request(data, cache):
 			stock_id = data_dict["stock_id"]
 
 			# Check user balance
-			if cache["users"][user]["balance"] > amount:
-
+			if cache["users"][user]["balance"] >= amount:
+				# get quote and send to user to confirm
+				result = get_quote(data_dict)
+				response = str(result)
+				response += "\n"
+				# -- store quoteServer in audit
+				
 				# Set pending buy to new values (should overwrite existing entry)
 				cache["users"][user]["pending_buy"]["stock_id"] = stock_id
 				cache["users"][user]["pending_buy"]["amount"] = amount
@@ -82,13 +95,14 @@ def process_request(data, cache):
 					
 					# Update user balance
 					cache["users"][user]["balance"] = cache["users"][user]["balance"] - amount
+					# -- store accountTransaction in audit
 					
 					# Remove the pending entry
 					cache["users"][user]["pending_buy"] = {}
 
-					response = "Buy committed.\n"
+					response = "Last buy order committed.\n"
 				else:
-					print "TIME WINDOW ELAPSED"
+					print "TIME WINDOW ELAPSED\n"
 			
 		elif request_type == CANCEL_BUY:
 			cache["users"][user]["pending_buy"] = {}
@@ -100,8 +114,13 @@ def process_request(data, cache):
 			stock_id = data_dict["stock_id"]
 
 			# Check user stock amount
-			if amount > 0 and cache["users"][user]["stocks"].get(stock_id, 0) > amount:
-			# -- Should be acceptable if users stock is >= amount specified, not just >
+			if amount > 0 and cache["users"][user]["stocks"].get(stock_id, 0) >= amount:
+				# get quote and send to user to confirm
+				result = get_quote(data_dict)
+				result = str(result)
+				result = result.split(',')
+				response = "Stock: " + result[1] + "  Current price: " + result[0] + "\n"
+				# -- store quoteServer in audit
 
 				# Set pending sell to new values (should overwrite existing entry)
 				cache["users"][user]["pending_sell"]["stock_id"] = stock_id
@@ -126,7 +145,8 @@ def process_request(data, cache):
 					
 					# Remove the pending entry
 					cache["users"][user]["pending_sell"] = {}
-
+					# -- store accountTransaction in audit
+					
 					response = "Sell committed.\n"
 				else:
 					print "TIME WINDOW ELAPSED"
