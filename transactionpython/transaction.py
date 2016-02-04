@@ -18,8 +18,10 @@ import time
 ##				"timestamp": 0,
 ##			},
 ##			"trigger_type": {
-##			 "stock_id": "id",
-##       "amount": 0
+##				"stock_id": "id"{
+##      		"amount": 0,
+##					"trigger": 0
+##				}
 ##			}
 ##		}
 ##	}
@@ -50,7 +52,10 @@ def process_request(data, cache):
 	
 	response = "\n"
 	request_type = data_dict.get("request_type")
-	user = data_dict.get("user")
+	try:
+		#dumplog doesn't require a userid
+		user = data_dict.get("user")
+
 	print data_dict
 	if request_type:
 		if user and user not in cache["users"]:
@@ -181,62 +186,109 @@ def process_request(data, cache):
 			stock_id = data_dict["stock_id"]
 
 			# Check user balance
-			if cache["users"][user]["balance"] >= amount:
-				# Set up buy trigger with stock and amount to spend
-				cache["users"][user]["buy_trigger"][stock_id][amount] = amount
-
+			if cache["users"][user]["balance"] >= amount
 				# Update user balance
-				cache["users"][user]["balance"] = cache["users"][user]["balance"] - amount
+				cache["users"][user]["balance"] -= amount
 				# -- store accountTransaction in audit
+				
+				# Set up buy trigger with stock and amount to spend
+				cache["users"][user]["buy_trigger"][stock_id]["amount"] = amount
 				print "Trigger ready. Please set commit level.\n"
 			
 			else:
 				print "Insufficient funds to set trigger.\n"
 				
 		elif request_type == CANCEL_SET_BUY:
-			if cache["users"][user]["buy_trigger"][stock_id][amount] > 0:
-				# remove the trigger value
-				cache["users"][user]["buy_trigger"][stock_id][trigger] = 0
+			stock_id = data_dict["stock_id"]
+			try:
+				#deactivate trigger by removing trigger amount
+				cache["users"][user]["buy_trigger"][stock_id]["trigger"] = 0
+			except:
+				#if there was no trigger
+				print "Invalid trigger.\n"
+			else:
 				# put the money back into the user account
-				cache["users"][user]["balance"] = cache["users"][user]["balance"] + cache["users"][user]["buy_trigger"][stock_id][amount]
+				cache["users"][user]["balance"] += cache["users"][user]["buy_trigger"][stock_id]["amount"]
+				cache["users"][user]["buy_trigger"][stock_id]["amount"] = 0
 				# store accountTransaction in audit
-				# remove buy_trigger
+				
+				#NOTE: trigger remains in cache, but is inactive - with a database the record can be deleted
 			
 		elif request_type == SET_BUY_TRIGGER:
-			print "Not implemented"
-			# -- check if trigger is initialised with given user and stock
-			# -- if yes, set buy trigger price
+			# What stock and how much
+			amount = float(data_dict["amount"])
+			stock_id = data_dict["stock_id"]
 			
+			try:
+				if cache["users"][user]["buy_trigger"][stock_id]["amount"] > 0:
+					if amount > 0
+						cache["users"][user]["buy_trigger"][stock_id]["trigger"] = amount;
+					else:
+						print "Buy trigger amount is not a positive value; Trigger not enabled.\n"
+				else:
+					# buy_trigger for stock exists with zero value (old trigger that was cancelled)
+					print "Buy trigger not initialized; Trigger not enabled.\n"
+					
+			except:
+				#buy_trigger doesn't exist at all
+				print "Buy trigger not initialized; Trigger not enabled.\n"
+				
 		elif request_type == SET_SELL_AMOUNT:
+			# What stock and how much
+			amount = float(data_dict["amount"])
+			stock_id = data_dict["stock_id"]
+			
+			if cache["users"][user]["stocks"][stock_id] >= amount:
+				cache["users"][user]["stocks"][stock_id] -= amount
+				# -- store accountTransaction in audit
+				
+				cache["users"][user]["sell_trigger"][stock_id]["amount"] = amount
+			else:
+				print "Insufficient stock to set trigger.\n"
+				
 			print "Not implemented"
-			# make_request(request_type, user)
-			# -- check if user has enough stock to set trigger
-			# -- create entry in trigger list: user, stock, amount to sell
 			
 		elif request_type == SET_SELL_TRIGGER:
-			print "Not implemented"
-			# make_request(request_type, user)
-			# -- check if trigger has been initialized for the given user/stock combination
-			# -- if yes, add given triggering price to trigger
+			# What stock and how much
+			amount = float(data_dict["amount"])
+			stock_id = data_dict["stock_id"]
+			
+			try:
+				if cache["users"][user]["sell_trigger"][stock_id]["amount"] > 0:
+					if amount > 0:
+						cache["users"][user]["sell_trigger"][stock_id]["trigger"] = amount
+					else:
+						print "Sell trigger amount is not a positive value; Trigger not enabled.\n"
+				else:
+					# sell_trigger for stock exists with zero value (old trigger that was cancelled)
+					print "Sell trigger not initialized; Trigger not enabled.\n"
+			except:
+				print "Sell trigger not initialized; Trigger not enabled.\n"
 			
 		elif request_type == CANCEL_SET_SELL:
-			print "Not implemented"
-			# make_request(request_type, user)
-			# -- Check if there is a trigger for the stock
-			# -- if yes, cancel it and return the stock to the active portfolio
+			stock_id = data_dict["stock_id"]
+			try:
+				cache["users"][user]["sell_trigger"][stock_id]["trigger"] = 0;
+			except:
+				print "Trigger does not exist.\n"
+			else:
+				cache["users"][user]["stocks"][stock_id] += cache["users"][user]["sell_trigger"][stock_id]["amount"]
+				cache["users"][user]["sell_trigger"][stock_id]["amount"] = 0
+				print "Sell trigger on " + stock_id + "cancelled.\n"
 			
 		elif request_type == DUMPLOG:
-			print "Not implemented"
-			# make_request(request_type, user)
-			# -- two modes:
-			# --   userid, filename - print transactions for user to file
-			# --   filename - print all transactions to file
+			try:
+				filename = data_dict["filename"]
+			except:
+				print "No filename for dumplog command. Dump not performed.\n"
+			else:
+				#activate the dump on audit
 
 		elif request_type == DISPLAY_SUMMARY:
-			print "Not implemented"
-			# make_request(request_type, user)
-			# -- for first run, only needs to touch log
-			# -- requires: transaction history, current balance, current stocks held, current triggers
+			print cache["users"][user]
+			
+		else:
+			print "Invalid command.\n"
 
 	print "Cache State: "
 	print cache

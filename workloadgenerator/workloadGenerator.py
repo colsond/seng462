@@ -24,7 +24,7 @@ DUMPLOG = "DUMPLOG"
 DISPLAY_SUMMARY = "DISPLAY_SUMMARY"
 
 
-def make_request(transaction_id, request_type, user, stock_id=None, amount=None):
+def make_request(transaction_id, request_type, user, stock_id=None, amount=None, filename=None):
 	data = {
 		'transaction_id': transaction_id,
 		'request_type': request_type,
@@ -36,6 +36,9 @@ def make_request(transaction_id, request_type, user, stock_id=None, amount=None)
 
 	if amount:
 		data['amount'] = amount
+	
+	if filename:
+		data['filename'] = filename
 
 	print str(data)
 		
@@ -160,10 +163,12 @@ def main():
 			make_request(transaction_id, request_type, user, stock_id)
 			
 		elif request_type == DUMPLOG:
-			if len(request) == 3:
-				make_request(transaction_id, request_type, request[3])
-			elif len(request) == 4:
-				make_request(transaction_id, request_type, request[3], request[4])
+			if len(request) == 2:
+				#filename
+				make_request(transaction_id, request_type, request[3]=filename)
+			elif len(request) == 3:
+				#userid, filename
+				make_request(transaction_id, request_type, request[3], request[4]=filename)
 
 		elif request_type == DISPLAY_SUMMARY:
 			user = request[1]
