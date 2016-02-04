@@ -6,6 +6,25 @@ import string
 import sys
 import time
 
+## Cache format:
+## cache = {
+##	"users": {
+##		"user": {
+##			"balance": 0,
+##			"stocks": {},
+##			"pending": {
+##				"stock_id": "id",
+##				"amount": 0,
+##				"timestamp": 0,
+##			},
+##			"trigger_type": {
+##			 "stock_id": "id",
+##       "amount": 0
+##			}
+##		}
+##	}
+##}
+
 ADD = "ADD"
 QUOTE = "QUOTE"
 BUY = "BUY"
@@ -67,8 +86,9 @@ def process_request(data, cache):
 			if cache["users"][user]["balance"] >= amount:
 				# get quote and send to user to confirm
 				result = get_quote(data_dict)
-				response = str(result)
-				response += "\n"
+				result = str(result)
+				result = result.split(',')
+				response = "Stock: " + result[1] + "  Current price: " + result[0] + "\n"
 				# -- store quoteServer in audit
 				
 				# Set pending buy to new values (should overwrite existing entry)
@@ -156,21 +176,34 @@ def process_request(data, cache):
 			response = "Sell cancelled.\n"
 			
 		elif request_type == SET_BUY_AMOUNT:
-			print "Not implemented"
-			# make_request(request_type, user)
-			# -- converted from apparent duplicate SET_SELL_AMOUNT
-			# -- Check if given user has given amount money
-			# -- if yes, set up buy trigger for user with stock and amount to buy
+			# What stock and how much
+			amount = float(data_dict["amount"])
+			stock_id = data_dict["stock_id"]
+
+			# Check user balance
+			if cache["users"][user]["balance"] >= amount:
+				# Set up buy trigger with stock and amount to spend
+				cache["users"][user]["buy_trigger"][stock_id][amount] = amount
+
+				# Update user balance
+				cache["users"][user]["balance"] = cache["users"][user]["balance"] - amount
+				# -- store accountTransaction in audit
+				print "Trigger ready. Please set commit level.\n"
 			
+			else:
+				print "Insufficient funds to set trigger.\n"
+				
 		elif request_type == CANCEL_SET_BUY:
-			print "Not implemented"
-			# make_request(request_type, user)
-			# -- check to see if user has a set buy trigger for given stock
-			# -- if yes, remove trigger entry and return funds to user
+			if cache["users"][user]["buy_trigger"][stock_id][amount] > 0:
+				# remove the trigger value
+				cache["users"][user]["buy_trigger"][stock_id][trigger] = 0
+				# put the money back into the user account
+				cache["users"][user]["balance"] = cache["users"][user]["balance"] + cache["users"][user]["buy_trigger"][stock_id][amount]
+				# store accountTransaction in audit
+				# remove buy_trigger
 			
 		elif request_type == SET_BUY_TRIGGER:
 			print "Not implemented"
-			# make_request(request_type, user)
 			# -- check if trigger is initialised with given user and stock
 			# -- if yes, set buy trigger price
 			
@@ -226,21 +259,6 @@ def get_quote(data):
 	print response
 	s.close()
 	return response
-
-## Cache format:
-## cache = {
-##	"users": {
-##		"user": {
-##			"balance": 0,
-##			"stocks": {},
-##			"pending": {
-##				"stock_id": "id",
-##				"amount": 0,
-##				"timestamp": 0,
-##			}
-##		}
-##	}
-##}
 
 def main():
 	cache = {
