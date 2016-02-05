@@ -1,0 +1,3 @@
+#!/usr/bin/sh
+clear
+gcc -pthread th_client.c -o cli
