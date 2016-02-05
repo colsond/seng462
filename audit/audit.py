@@ -192,19 +192,19 @@ def handleEntry(strdict):
    
     #based on log type call the appropriate function to generate xml packet
     if(logType == "UserCommandType"):
-    xmlPacket = parseUserCommand(entryDict)
+        xmlPacket = parseUserCommand(entryDict)
     elif(logType == "QuoteServerType"):
-    xmlPacket = pareseQuoteServer(entryDict)
+        xmlPacket = pareseQuoteServer(entryDict)
     elif(logType == "AccountTransactionType"):
-    xmlPacket = parseAccountTransaction(entryDict)
+        xmlPacket = parseAccountTransaction(entryDict)
     elif(logType == "SystemEventType"):
-    xmlPacket = parseSystemEvent(entryDict)
+        xmlPacket = parseSystemEvent(entryDict)
     elif(logType == "ErrorEventType"):
-    xmlPacket = parseErrorEvent(entryDict)
+        xmlPacket = parseErrorEvent(entryDict)
     elif(logType == "DebugType"):
-    xmlPacket = parseDebug(entryDict)
+        xmlPacket = parseDebug(entryDict)
     else:
-    print "unknown log type"
+        print "unknown log type"
     #unknown log type ?throw an error?
 
     #open log file to append to, may need to put this in a try block
