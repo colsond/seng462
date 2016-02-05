@@ -17,8 +17,13 @@ import time
 ##				"amount": 0,
 ##				"timestamp": 0,
 ##			},
-##			"trigger_type": {
-##				"stock_id": "id"{
+##			"buy_trigger": {
+##				"stock_id": {
+##      		"amount": 0,
+##					"trigger": 0
+##				}
+##			"sell_trigger": {
+##				"stock_id": {
 ##      		"amount": 0,
 ##					"trigger": 0
 ##				}
@@ -202,30 +207,49 @@ def process_request(data, cache):
 	# -- store userCommand in audit regardless of correctness
 	
 	response = "\n"
-	request_type = data_dict.get("request_type")
-	try:
-		#dumplog doesn't require a userid
-		user = data_dict.get("user")
 
-	print data_dict
-	if request_type:
-		if user and user not in cache["users"]:
-			cache["users"][user] = {
-				"balance": 0,
-				"stocks": {},
-				"pending_buy": {},
-				"pending_sell": {}
-			}
+	transaction_id = data_dict.get('transaction_id')
+	
+	if transaction_id is None:
+		print "Missing transaction id. Ignored.\n"
+	else:
+
+		request_type = data_dict.get('request_type')
+
+		if request_type is None:
+			print "Malformed request. Ignored.\n"
+		else:
+			stock_id = data_dict.get('stock_id')
+
+			user = data_dict.get('user')
+			if user and user not in cache["users"]:
+				cache["users"][user] = {
+					"balance": 0,
+					"stocks": {},
+					"pending_buy": {},
+					"pending_sell": {},
+					"buy_trigger": {},
+		      "sell_trigger": {},
+				}
+
+			amount = data_dict.get('amount')
+			if amount is not None:
+				# store amounts in pennies to avoid decimals
+				amount = int(float(amount)*100)
+
+			filename = data_dict.get('filename')
 
 		if request_type == ADD:
-			amount = float(data_dict["amount"])
-			if amount < 0:
-				# -- store errorEvent in audit
-				response = "Attempting to add a negative amount\n"
-			else:
-				cache["users"][user]["balance"] = cache["users"][user]["balance"] + amount
-				response = "Added\n"
-				# -- store accountTransaction in audit
+				if amount is None:
+					# -- store errorEvent in audit
+					response = "ADD - Amount not specified.\n"
+				elif amount < 0:
+					# -- store errorEvent in audit
+					response = "ADD - Attempting to add a negative amount\n"
+				else:
+					cache["users"][user]["balance"] += amount
+					response = "Added\n"
+					# -- store accountTransaction in audit
 		
 		elif request_type == QUOTE:
 			result = get_quote(data_dict)
@@ -234,10 +258,6 @@ def process_request(data, cache):
 			# -- store quoteServer in audit
 			
 		elif request_type == BUY:
-			# What stock and how much
-			amount = float(data_dict["amount"])
-			stock_id = data_dict["stock_id"]
-
 			# Check user balance
 			if cache["users"][user]["balance"] >= amount:
 				# get quote and send to user to confirm
