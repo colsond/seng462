@@ -68,7 +68,7 @@ def pareseQuoteServer(entryDict):
     quoteServerType += '<timestamp>' + str(timeStamp) + '</timestamp>'
     quoteServerType += '<server>' + server + '</server>'
     quoteServerType += '<transactionNum>' + transactionNum + '</transactionNum>'
-    quoteServerType += '<quoteServerTime>' + quoteServerTime + '</quoteServerTime>'
+    quoteServerType += '<quoteServerTime>' + str(quoteServerTime) + '</quoteServerTime>'
     quoteServerType += '<username>' + userName + '</username>'
     quoteServerType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
     quoteServerType += '<price>' + str(price) + '</price>'
