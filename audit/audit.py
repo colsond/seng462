@@ -25,7 +25,6 @@ print 'Socket now listening'
 #Function for handling connections. This will be used to create threads
 def clientthread(conn):
     #Sending message to connected client
-    f = open('logfile.txt', 'a')     
     #infinite loop so that function do not terminate and thread do not end.
     while True:
          
@@ -34,11 +33,15 @@ def clientthread(conn):
         data = conn.recv(1024)
 	#handle request here
         if not data: 
-            f.close()
             break
-     
-        f.write(data+"\n")
-	reply = 'Recieved: ' + data
+	#this function call handles the data package and returns ok or asks for a resend.
+	#status = handleRequest(data)     
+
+	#if the data is handled ok, send back an ok, otherwise request a resend
+	#if(status=='OK'):
+	reply = 'OK'
+	#else:
+	   #reply = "ERROR"
         conn.sendall(reply)
      
     #came out of loop
@@ -57,8 +60,38 @@ while 1:
 s.close()
 
 '''
+## This function handles the data package recieved thru the socket and dumps it into the audit log
+def handleEntry(self, strdict):
+    xmlPacket = ''
 
-I'm not sure if we need the type definitions from the schema
+    #unpack string into dictionary
+    entryDict = ast.literal_eval(strdict)
+    
+    #based on source parse the dict into an xml string and add it to the log
+    logType = entryDict['logType']
+   
+    #based on log type call the appropriate function to generate xml packet
+    if(logType == ""):
+	xmlPacket = 
+    elif(logType == ""):
+	xmlPacket = 
+    elif(logType == ""):
+	xmlPacket = 
+    elif(logType == ""):
+	xmlPacket = 
+    elif(logType == ""):
+	xmlPacket = 
+    elif(logType == ""):
+	xmlPacket = 
+    else:
+	#unknown log type ?throw an error?
+
+    #open log file to append to, may need to put this in a try block
+    f = open('logfile.txt', 'a')     
+    
+'''
+
+'''
 ~~XML STRINGS~~
 
 ##USER COMMAND TYPE
