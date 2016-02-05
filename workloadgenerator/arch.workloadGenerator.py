@@ -3,8 +3,7 @@ import socket
 import sys
 import string
 
-# web_server_address = 'b132.seng.uvic.ca'
-web_server_address = 'localhost'
+web_server_address = 'b142.seng.uvic.ca'
 web_server_port = 44421
 
 ADD = "ADD"
@@ -25,7 +24,7 @@ DUMPLOG = "DUMPLOG"
 DISPLAY_SUMMARY = "DISPLAY_SUMMARY"
 
 
-def make_request(transaction_id, request_type, user, stock_id=None, amount=None, filename=None):
+def make_request(transaction_id, request_type, user, stock_id=None, amount=None):
 	data = {
 		'transaction_id': transaction_id,
 		'request_type': request_type,
@@ -37,12 +36,7 @@ def make_request(transaction_id, request_type, user, stock_id=None, amount=None,
 
 	if amount:
 		data['amount'] = amount
-	
-	if filename:
-		data['filename'] = filename
 
-	print str(data)
-		
 	# Create a TCP/IP socket
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -81,20 +75,22 @@ def main():
 
 	f = open("1userWorkLoad", 'r')
 	for line in f:
-
-		tokens = line.split(' ')
+		# partition returns a 3-tuple: part before seperator, seperator, 
+		# part after seperator - if it fails: original string, empty, empty
+		tokens = line.partition(' ')
 
 		transaction_id = tokens[0]
+		# quick way to nuke the brackets
 		transaction_id = transaction_id.translate(None, bad_chars)
 
-		request = tokens[1].split(',')
+		request = tokens[2].split(',')
 
 		request_type = request[0]
 
 		if request_type == ADD:
 			user = request[1]
 			amount = request[2]
-			make_request(transaction_id, request_type, user, amount=amount)
+			make_request(transaction_id, request_type, user, amount)
 
 		elif request_type == QUOTE:
 			user = request[1]
@@ -164,15 +160,10 @@ def main():
 			make_request(transaction_id, request_type, user, stock_id)
 			
 		elif request_type == DUMPLOG:
-			if len(request) == 2:
-				#filename
-				filename = request[1]
-				make_request(transaction_id, request_type, filename=filename)
-			elif len(request) == 3:
-				#userid, filename
-				user = request[1]
-				filename = request[2]
-				make_request(transaction_id, request_type, user, filename=filename)
+			if len(request) == 3:
+				make_request(transaction_id, request_type, request[3])
+			elif len(request) == 4:
+				make_request(transaction_id, request_type, request[3], request[4])
 
 		elif request_type == DISPLAY_SUMMARY:
 			user = request[1]
