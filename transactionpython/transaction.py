@@ -300,6 +300,7 @@ def process_request(data, cache):
 				cache["users"][user] = {
 					"balance": 0,
 					"stocks": {},
+					"quotes": {},
 					"pending_buy": {},
 					"pending_sell": {},
 					"buy_trigger": {},
@@ -589,12 +590,13 @@ def get_quote(data, cache):
 	stock_id = data['stock_id']
 	try:
 		existing_timestamp = cache["users"][user]["quotes"][stock_id]["timestamp"]
-		print "existing timestamp: " + existing_timestamp
+		print "existing timestamp: " + str(existing_timestamp)
 	except KeyError:
 		existing_timestamp = None
-
+	print int(time.time())
 	# If there is no existing quote for this user/stock_id, or the existing quote has expired, get a new one
-	if not existing_timestamp or int(time.time()) - existing_timestamp < 60:
+	if not existing_timestamp or int(time.time()) - int(existing_timestamp) > 60:
+		print "HITTING QUOTE SERVER \n HITTING QUOTE SERVER \n OMG \n!!!"
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 		s.connect(('quoteserve.seng.uvic.ca', 4444))
@@ -605,19 +607,16 @@ def get_quote(data, cache):
 		print response
 		s.close()
 		response = response.split(',')
-		print "quote server response: " + response
+		print "quote server response: " + str(response)
 
-		cache["users"][user]["quotes"][response[1]] = {
+		cache["users"][user]["quotes"][response[2]] = {
 			"price": response[0],
-			"user": response[2],
-			"timestamp": response[3],
+			"user": response[1],
+			"timestamp": int(response[3]) / 1000,
 			"cryptokey": response[4]
 		}
 
 	return cache
-
-
-	quote,sym,userid,timestamp,cryptokey
 
 def main():
 	cache = {
