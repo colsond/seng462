@@ -80,6 +80,7 @@ def audit_user_command_event(
 		funds=0):
 
 	audit_dict = {
+		"logType": "UserCommandType",
 		"timestamp": timestamp,
 		"server": server,
 		"transactionNum": transactionNum,
@@ -112,6 +113,7 @@ def audit_quote_server_event(
 		cryptokey):
 	
 	audit_dict = {
+		"logType": "QuoteServerType",
 		"timestamp": timestamp,
 		"server": server,
 		"transactionNum": transactionNum,
@@ -135,6 +137,7 @@ def audit_transaction_event(
 		funds):
 
 	audit_dict = {
+		"logType": "AccountTransactionType",
 		"timestamp": timestamp,
 		"server": server,
 		"transactionNum": transactionNum,
@@ -152,12 +155,13 @@ def audit_system_event(
 		server,
 		transactionNum,
 		command,
-		username,
-		stockSymbol,
-		filename,
-		funds):
+		username="",
+		stockSymbol="",
+		filename="",
+		funds=0):
 
 	audit_dict = {
+		"logType": "SystemEventType",
 		"timestamp": timestamp,
 		"server": server,
 		"transactionNum": transactionNum,
@@ -184,13 +188,14 @@ def audit_error_event(
 		timestamp,
 		server,
 		transactionNum,
-		command,
-		stockSymbol,
-		filename,
-		funds
-		errorMessage):
+		command,username="",
+		stockSymbol="",
+		filename="",
+		funds=0,
+		errorMessage=""):
 
 	audit_dict = {
+		"logType": "ErrorEventType",
 		"timestamp": timestamp,
 		"server": server,
 		"transactionNum": transactionNum,
@@ -211,6 +216,44 @@ def audit_error_event(
 
 	if errorMessage:
 		audit_dict["errorMessage"] = errorMessage
+	
+	send_audit_entry(str(audit_dict))
+
+	return
+
+def audit_debug(
+		timestamp,
+		server,
+		transactionNum,
+		command,
+		username="",
+		stockSymbol="",
+		filename="",
+		funds=0,
+		debugMessage=""):
+
+	audit_dict = {
+		"logType": "ErrorEventType",
+		"timestamp": timestamp,
+		"server": server,
+		"transactionNum": transactionNum,
+		"command": command,
+	}
+
+	if username:
+		audit_dict["username"] = username
+
+	if stockSymbol:
+		audit_dict["stockSymbol"] = stockSymbol
+
+	if filename:
+		audit_dict["filename"] = filename
+
+	if funds: 
+		audit_dict["funds"] = funds
+
+	if errorMessage:
+		audit_dict["debugMessage"] = errorMessage
 	
 	send_audit_entry(str(audit_dict))
 
@@ -241,6 +284,11 @@ def process_request(data, cache):
 		if request_type == ADD:
 			amount = float(data_dict["amount"])
 			if amount < 0:
+				audit_error_event(
+					int(time.time()),
+					"transaction_server_1",
+					data_dict["transaction_id"],
+					request_type )
 				# -- store errorEvent in audit
 				response = "Attempting to add a negative amount\n"
 			else:
