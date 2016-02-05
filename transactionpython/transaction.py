@@ -32,6 +32,10 @@ import time
 ##	}
 ##}
 
+# web_server_address = 'b132.seng.uvic.ca'
+web_server_address = 'localhost'
+web_server_port = 44421
+
 ADD = "ADD"
 QUOTE = "QUOTE"
 BUY = "BUY"
@@ -49,8 +53,25 @@ CANCEL_SET_SELL = "CANCEL_SET_SELL"
 DUMPLOG = "DUMPLOG"
 DISPLAY_SUMMARY = "DISPLAY_SUMMARY"
 
-def send_audit_entry(entry):
-	# Socket shit send the entry
+def send_audit_entry(message):
+
+	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+	# Connect the socket to the port where the server is listening
+	server_address = (audit_server_address, audit_sever_port)
+	print >>sys.stderr, 'connecting to %s port %s' % server_address
+	sock.connect(server_address)
+
+	try:
+		sock.sendall(message)
+		print >>sys.stderr, 'sent "%s"' % message
+		response = sock.recv(1024)
+		print >>sys.stderr, 'received "%s"' % response
+
+	finally:
+	    print >>sys.stderr, 'closing socket'
+	    sock.close()
+
 	return
 
 def audit_user_command_event(
