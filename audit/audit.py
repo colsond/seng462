@@ -1,3 +1,4 @@
+import ast
 import socket
 import sys
 import io
@@ -21,89 +22,18 @@ print 'Socket bind complete'
 #Start listening on socket
 s.listen(10)
 print 'Socket now listening'
- 
-#Function for handling connections. This will be used to create threads
-def clientthread(conn):
-    #Sending message to connected client
-    #infinite loop so that function do not terminate and thread do not end.
-    while True:
-         
-        #Receiving from client
-	#this is where all the logic for logging will go.
-        data = conn.recv(1024)
-	#handle request here
-        if not data: 
-            break
-	#this function call handles the data package and returns ok or asks for a resend.
-	status = handleEntry(data)     
 
-	#if the data is handled ok, send back an ok, otherwise request a resend
-	if(status=='OK'):
-	    reply = 'OK'
-	else:
-	   reply = "ERROR"
-        conn.sendall(reply)
-     
-    #came out of loop
-    print "Ending transmission"
-    conn.close()
-    sys.exit(0) 
-#now keep talking with the client
-while 1:
-    #wait to accept a connection - blocking call
-    conn, addr = s.accept()
-    print 'Connected with ' + addr[0] + ':' + str(addr[1])
-     
-    #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
-    start_new_thread(clientthread ,(conn,))
- 
-s.close()
-
-
-## This function handles the data package recieved thru the socket and dumps it into the audit log
-def handleEntry(strdict):
-    xmlPacket = ''
-
-    #unpack string into dictionary
-    entryDict = ast.literal_eval(strdict)
-    
-    #based on source parse the dict into an xml string and add it to the log
-    logType = entryDict['logType']
-   
-    #based on log type call the appropriate function to generate xml packet
-    if(logType == "userCommandType"):
-	xmlPacket = parseUserCommand(entryDict)
-    elif(logType == "quoteServerType"):
-	xmlPacket = pareseQuoteServer(entryDict)
-    elif(logType == "accountTransactionType"):
-	xmlPacket = parseAccountTransaction(entryDict)
-    elif(logType == "systemEventType"):
-	xmlPacket = parseSystemEvent(entryDict)
-    elif(logType == "errorEventType"):
-	xmlPacket = parseErrorEvent(entryDict)
-    elif(logType == "DebugType"):
-	xmlPacket = parseDebug(entryDict)
-    else:
-	#unknown log type ?throw an error?
-
-    #open log file to append to, may need to put this in a try block
-    f = open('logfile.xml', 'a')     
-    f.write(xmlPacket)
-    f.close() 
-    return "OK"
-
-
-##USER COMMAND TYPE
+###USER COMMAND TYPE
 def parseUserCommand(entryDict):
 #inputs
     timeStamp = entryDict['timestamp']
     server = entryDict['server']
     transactionNum = entryDict['transactionNum']
     command = entryDict['command']
-    userName = entryDict.get('username', default='')
-    stockSymbol = entryDict.get('stockSymbol', default='')
-    filename = entryDict.get('filename', default='')
-    funds = entryDict.get('funds', default='')
+    userName = entryDict.get('username')
+    stockSymbol = entryDict.get('stockSymbol')
+    filename = entryDict.get('filename')
+    funds = entryDict.get('funds')
 
     userCommandType = ''
     userCommandType += '<userCommand>'
@@ -178,10 +108,10 @@ def parseSystemEvent(entryDict):
         server = entryDict['server']
         transactionNum = entryDict['transactionNum']
         command = entryDict['command']
-	userName = entryDict.get('username', default='')
-	stockSymbol = entryDict.get('stockSymbol', default='')
-	fileName = entryDict.get('filename', default='')
-	funds = entryDict.get('funds', default='')
+	userName = entryDict.get('username')
+	stockSymbol = entryDict.get('stockSymbol')
+	fileName = entryDict.get('filename')
+	funds = entryDict.get('funds')
 
 	systemEventType = ''
 	systemEventType += '<systemEvent>'
@@ -198,17 +128,17 @@ def parseSystemEvent(entryDict):
 
 
 ##Error Event Type
-def parseErrorEvent(entryDict)
+def parseErrorEvent(entryDict):
 #inputs
 	timeStamp = entryDict['timestamp']
 	server = entryDict['server']
         transactionNum = entryDict['transactionNum']
         command = entryDict['command']
-	userName = entryDict.get('username', default='')
-	stockSymbol = entryDict.get('stockSymbol', default='')
-	fileName = entryDict.get('filename', default='')
-	funds = entryDict.get('funds', default='')
-	errorMessage = entryDict.get('errorMessage', default='')
+	userName = entryDict.get('username')
+	stockSymbol = entryDict.get('stockSymbol')
+	fileName = entryDict.get('filename')
+	funds = entryDict.get('funds')
+	errorMessage = entryDict.get('errorMessage')
 
 	errorEventType = ''
 	errorEventType += '<errorEvent>'
@@ -231,11 +161,11 @@ def parseDebug(entryDict):
 	server = entryDict['server']
         transactionNum = entryDict['transactionNum']
         command = entryDict['command']
-	userName = entryDict.get('username', default='')
-	stockSymbol = entryDict.get('stockSymbol', default='')
-	fileName = entryDict.get('filename', default='')
-	funds = entryDict.get('funds', default='')
-	debugMessage = entryDict.get('debugMessage', default='')
+	userName = entryDict.get('username')
+	stockSymbol = entryDict.get('stockSymbol')
+	fileName = entryDict.get('filename')
+	funds = entryDict.get('funds')
+	debugMessage = entryDict.get('debugMessage')
 
 	DebugType = ''
 	DebugType += '<debugEvent>'
@@ -250,4 +180,77 @@ def parseDebug(entryDict):
 	DebugType += '</debugEvent>'
 	
 	return DebugType
+# This function handles the data package recieved thru the socket and dumps it into the audit log
+def handleEntry(strdict):
+    xmlPacket = ''
+
+    #unpack string into dictionary
+    entryDict = ast.literal_eval(strdict)
+    
+    #based on source parse the dict into an xml string and add it to the log
+    logType = entryDict['logType']
+   
+    #based on log type call the appropriate function to generate xml packet
+    if(logType == "UserCommandType"):
+	xmlPacket = parseUserCommand(entryDict)
+    elif(logType == "QuoteServerType"):
+	xmlPacket = pareseQuoteServer(entryDict)
+    elif(logType == "AccountTransactionType"):
+	xmlPacket = parseAccountTransaction(entryDict)
+    elif(logType == "SystemEventType"):
+	xmlPacket = parseSystemEvent(entryDict)
+    elif(logType == "ErrorEventType"):
+	xmlPacket = parseErrorEvent(entryDict)
+    elif(logType == "DebugType"):
+	xmlPacket = parseDebug(entryDict)
+    else:
+	print "unknown log type"
+	#unknown log type ?throw an error?
+
+    #open log file to append to, may need to put this in a try block
+    f = open('logfile.xml', 'a')     
+    print xmlPacket
+    f.write(xmlPacket)
+    f.close() 
+    return "OK"
+
+
+
+#Function for handling connections. This will be used to create threads
+def clientthread(conn):
+    #Sending message to connected client
+    #infinite loop so that function do not terminate and thread do not end.
+    while True:
+         
+        #Receiving from client
+	#this is where all the logic for logging will go.
+        data = conn.recv(1024)
+	#handle request here
+        if not data: 
+            break
+	#this function call handles the data package and returns ok or asks for a resend.
+	status = handleEntry(data)     
+
+	#if the data is handled ok, send back an ok, otherwise request a resend
+	if(status=='OK'):
+	    reply = 'OK'
+	else:
+	   reply = "ERROR"
+        conn.sendall(reply)
+     
+    #came out of loop
+    print "Ending transmission"
+    conn.close()
+    sys.exit(0) 
+#now keep talking with the client
+while 1:
+    #wait to accept a connection - blocking call
+    conn, addr = s.accept()
+    print 'Connected with ' + addr[0] + ':' + str(addr[1])
+     
+    #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
+    start_new_thread(clientthread ,(conn,))
+ 
+s.close()
+
 
