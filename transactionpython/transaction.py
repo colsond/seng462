@@ -60,7 +60,7 @@ def send_audit_entry(message):
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 	# Connect the socket to the port where the server is listening
-	server_address = (audit_server_address, audit_sever_port)
+	server_address = (audit_server_address, audit_server_port)
 	print >>sys.stderr, 'connecting to %s port %s' % server_address
 	sock.connect(server_address)
 
@@ -276,6 +276,7 @@ def process_request(data, cache):
 
 	server_name = "transaction_server_1"
 	filename = ""
+	username = ""
 	transaction_id = data_dict.get('transaction_id')
 	
 	if transaction_id is None:
@@ -373,7 +374,7 @@ def process_request(data, cache):
 					result = result.split(',')
 					price = result[0]
 					timestamp = result[3]
-					response = result[4]
+					cryptokey = result[4]
 					response = "Stock: " + result[1] + "  Current price: " + price + "\n"
 					
 					audit_quote_server_event(
@@ -468,21 +469,21 @@ def process_request(data, cache):
 			
 			elif request_type == SET_BUY_AMOUNT:
 				# Check user balance
-				if cache["users"][user]["balance"] >= amount
+				if cache["users"][user]["balance"] >= amount:
 					# Update user balance
 					cache["users"][user]["balance"] -= amount
 					# -- store accountTransaction in audit
 			
-						# Set up buy trigger with stock and amount to spend
-						if stock_id not in cache["users"][user]["buy_trigger"]:
-							cache["users"][user]["buy_trigger"] = {
-								stock_id: {
-									"amount" : amount,
-									"trigger" : 0
-								}
+					# Set up buy trigger with stock and amount to spend
+					if stock_id not in cache["users"][user]["buy_trigger"]:
+						cache["users"][user]["buy_trigger"] = {
+							stock_id: {
+								"amount" : amount,
+								"trigger" : 0
 							}
-						else:
-							cache["users"][user]["buy_trigger"][stock_id]["amount"] = amount
+						}
+					else:
+						cache["users"][user]["buy_trigger"][stock_id]["amount"] = amount
 					print "Trigger ready. Please set commit level.\n"
 			
 				else:
@@ -507,7 +508,7 @@ def process_request(data, cache):
 			elif request_type == SET_BUY_TRIGGER:
 				try:
 					if cache["users"][user]["buy_trigger"][stock_id]["amount"] > 0:
-						if amount > 0
+						if amount > 0:
 							cache["users"][user]["buy_trigger"][stock_id]["trigger"] = amount;
 						else:
 							print "Buy trigger amount is not a positive value; Trigger not enabled.\n"

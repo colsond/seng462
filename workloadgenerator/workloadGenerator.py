@@ -25,12 +25,14 @@ DUMPLOG = "DUMPLOG"
 DISPLAY_SUMMARY = "DISPLAY_SUMMARY"
 
 
-def make_request(transaction_id, request_type, user, stock_id=None, amount=None, filename=None):
+def make_request(transaction_id, request_type, user=None, stock_id=None, amount=None, filename=None):
 	data = {
 		'transaction_id': transaction_id,
 		'request_type': request_type,
-		'user': user
 	}
+
+	if user:
+		data['user'] = user
 
 	if stock_id:
 		data['stock_id'] = stock_id
@@ -79,7 +81,7 @@ def main():
 
 	bad_chars = '[]'
 
-	f = open("1userWorkLoad", 'r')
+	f = open("1userWorkLoad.txt", 'r')
 	for line in f:
 
 		tokens = line.split(' ')
