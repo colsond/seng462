@@ -44,7 +44,7 @@ def parseUserCommand(entryDict):
     userCommandType += '<username>' + userName + '</username>'
     userCommandType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
     userCommandType += '<filename>' + filename + '</filename>'
-    userCommandType += '<funds>' + funds + '</funds>'
+    userCommandType += '<funds>' + str(funds) + '</funds>'
     userCommandType += '</userCommand>'
 
     return userCommandType
@@ -71,7 +71,7 @@ def pareseQuoteServer(entryDict):
     quoteServerType += '<quoteServerTime>' + quoteServerTime + '</quoteServerTime>'
     quoteServerType += '<username>' + userName + '</username>'
     quoteServerType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
-    quoteServerType += '<price>' + price + '</price>'
+    quoteServerType += '<price>' + str(price) + '</price>'
     quoteServerType += '<cryptokey>' + cryptokey + '</cryptokey>'
     quoteServerType += '</quoteServer>'
 
@@ -96,7 +96,7 @@ def parseAccountTransaction(entryDict):
     accountTransactionType += '<transactionNum>' + transactionNum + '</transactionNum>'
     accountTransactionType += '<action>' + action + '</action>'
     accountTransactionType += '<username>' + userName + '</username>'
-    accountTransactionType += '<funds>' + funds + '</funds>'
+    accountTransactionType += '<funds>' + str(funds) + '</funds>'
     accountTransactionType += '</accountTransaction>'
 
     return accountTransactionType
@@ -121,7 +121,7 @@ def parseSystemEvent(entryDict):
     systemEventType += '<command>' + command + '</command>'
     systemEventType += '<username>' + userName + '</username>'
     systemEventType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
-    systemEventType += '<funds>' + funds + '</funds>'
+    systemEventType += '<funds>' + str(funds) + '</funds>'
     systemEventType += '</systemEvent>'
 
     return systemEventType
@@ -148,7 +148,7 @@ def parseErrorEvent(entryDict):
     errorEventType += '<command>' + command + '</command>'
     errorEventType += '<username>' + userName + '</username>'
     errorEventType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
-    errorEventType += '<funds>' + funds + '</funds>'
+    errorEventType += '<funds>' + str(funds) + '</funds>'
     errorEventType += '<errorMessage>' + errorMessage + '</errorMessage>'
     errorEventType += '</errorEvent>'
     
@@ -175,7 +175,7 @@ def parseDebug(entryDict):
     DebugType += '<command>' + command + '</command>'
     DebugType += '<username>' + userName + '</username>'
     DebugType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
-    DebugType += '<funds>' + funds + '</funds>'
+    DebugType += '<funds>' + str(funds) + '</funds>'
     DebugType += '<debugMessage>' + errorMessage + '</debugMessage>'
     DebugType += '</debugEvent>'
     
