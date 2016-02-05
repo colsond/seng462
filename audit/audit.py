@@ -183,7 +183,7 @@ def parseDebug(entryDict):
 # This function handles the data package recieved thru the socket and dumps it into the audit log
 def handleEntry(strdict):
     xmlPacket = ''
-
+    print strdict
     #unpack string into dictionary
     entryDict = ast.literal_eval(strdict)
     
@@ -224,18 +224,18 @@ def clientthread(conn):
          
         #Receiving from client
     #this is where all the logic for logging will go.
-        data = conn.recv(1024)
+        data = conn.recv(4096)
     #handle request here
         if not data: 
             break
     #this function call handles the data package and returns ok or asks for a resend.
-    status = handleEntry(data)     
+    	status = handleEntry(data)     
 
     #if the data is handled ok, send back an ok, otherwise request a resend
-    if(status=='OK'):
-        reply = 'OK'
-    else:
-        reply = "ERROR"
+    	if(status=='OK'):
+        	reply = 'OK'
+   	else:
+        	reply = "ERROR"
         conn.sendall(reply)
      
     #came out of loop
