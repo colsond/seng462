@@ -235,7 +235,7 @@ def clientthread(conn):
     if(status=='OK'):
         reply = 'OK'
     else:
-       reply = "ERROR"
+        reply = "ERROR"
         conn.sendall(reply)
      
     #came out of loop
