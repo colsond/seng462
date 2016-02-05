@@ -166,10 +166,13 @@ def main():
 		elif request_type == DUMPLOG:
 			if len(request) == 2:
 				#filename
-				make_request(transaction_id, request_type, request[3]=filename)
+				filename = request[1]
+				make_request(transaction_id, request_type, filename=filename)
 			elif len(request) == 3:
 				#userid, filename
-				make_request(transaction_id, request_type, request[3], request[4]=filename)
+				user = request[1]
+				filename = request[2]
+				make_request(transaction_id, request_type, user, filename=filename)
 
 		elif request_type == DISPLAY_SUMMARY:
 			user = request[1]
