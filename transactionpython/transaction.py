@@ -468,21 +468,21 @@ def process_request(data, cache):
 			
 			elif request_type == SET_BUY_AMOUNT:
 				# Check user balance
-				if cache["users"][user]["balance"] >= amount
+				if cache["users"][user]["balance"] >= amount:
 					# Update user balance
 					cache["users"][user]["balance"] -= amount
 					# -- store accountTransaction in audit
 			
-						# Set up buy trigger with stock and amount to spend
-						if stock_id not in cache["users"][user]["buy_trigger"]:
-							cache["users"][user]["buy_trigger"] = {
-								stock_id: {
-									"amount" : amount,
-									"trigger" : 0
-								}
+					# Set up buy trigger with stock and amount to spend
+					if stock_id not in cache["users"][user]["buy_trigger"]:
+						cache["users"][user]["buy_trigger"] = {
+							stock_id: {
+								"amount" : amount,
+								"trigger" : 0
 							}
-						else:
-							cache["users"][user]["buy_trigger"][stock_id]["amount"] = amount
+						}
+					else:
+						cache["users"][user]["buy_trigger"][stock_id]["amount"] = amount
 					print "Trigger ready. Please set commit level.\n"
 			
 				else:
@@ -507,7 +507,7 @@ def process_request(data, cache):
 			elif request_type == SET_BUY_TRIGGER:
 				try:
 					if cache["users"][user]["buy_trigger"][stock_id]["amount"] > 0:
-						if amount > 0
+						if amount > 0:
 							cache["users"][user]["buy_trigger"][stock_id]["trigger"] = amount;
 						else:
 							print "Buy trigger amount is not a positive value; Trigger not enabled.\n"

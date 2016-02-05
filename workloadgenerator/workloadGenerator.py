@@ -79,7 +79,7 @@ def main():
 
 	bad_chars = '[]'
 
-	f = open("1userWorkLoad", 'r')
+	f = open("1userWorkLoad.txt", 'r')
 	for line in f:
 
 		tokens = line.split(' ')
