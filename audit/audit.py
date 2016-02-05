@@ -82,104 +82,104 @@ def pareseQuoteServer(entryDict):
 ##Account Transaction Type
 def parseAccountTransaction(entryDict):
 #inputs
-	timeStamp = entryDict['timestamp']
-	server = entryDict['server']
-	transactionNum = entryDict['transactionNum']
-	action = entryDict['action']
-	userName = entryDict['username']
-	funds = entryDict['funds']
+    timeStamp = entryDict['timestamp']
+    server = entryDict['server']
+    transactionNum = entryDict['transactionNum']
+    action = entryDict['action']
+    userName = entryDict['username']
+    funds = entryDict['funds']
 
-	accountTransactionType = ''
-	accountTransactionType += '<accountTransaction>'
-	accountTransactionType += '<timestamp>' + str(timeStamp) + '</timestamp>'
-	accountTransactionType += '<server>' + server + '</server>'
-	accountTransactionType += '<transactionNum>' + transactionNum + '</transactionNum>'
-	accountTransactionType += '<action>' + action + '</action>'
-	accountTransactionType += '<username>' + userName + '</username>'
-	accountTransactionType += '<funds>' + funds + '</funds>'
-	accountTransactionType += '</accountTransaction>'
+    accountTransactionType = ''
+    accountTransactionType += '<accountTransaction>'
+    accountTransactionType += '<timestamp>' + str(timeStamp) + '</timestamp>'
+    accountTransactionType += '<server>' + server + '</server>'
+    accountTransactionType += '<transactionNum>' + transactionNum + '</transactionNum>'
+    accountTransactionType += '<action>' + action + '</action>'
+    accountTransactionType += '<username>' + userName + '</username>'
+    accountTransactionType += '<funds>' + funds + '</funds>'
+    accountTransactionType += '</accountTransaction>'
 
-	return accountTransactionType
+    return accountTransactionType
 
 ##System Event Type
 def parseSystemEvent(entryDict):
 #inputs
-	timeStamp = entryDict['timestamp']
-        server = entryDict['server']
-        transactionNum = entryDict['transactionNum']
-        command = entryDict['command']
-	userName = entryDict.get('username')
-	stockSymbol = entryDict.get('stockSymbol')
-	fileName = entryDict.get('filename')
-	funds = entryDict.get('funds')
+    timeStamp = entryDict['timestamp']
+    server = entryDict['server']
+    transactionNum = entryDict['transactionNum']
+    command = entryDict['command']
+    userName = entryDict.get('username')
+    stockSymbol = entryDict.get('stockSymbol')
+    fileName = entryDict.get('filename')
+    funds = entryDict.get('funds')
 
-	systemEventType = ''
-	systemEventType += '<systemEvent>'
-	systemEventType += '<timestamp>' + str(timeStamp) + '</timestamp>'
-	systemEventType += '<server>' + server + '</server>'
-	systemEventType += '<transactionNum>' + transactionNum + '</transactionNum>'
-	systemEventType += '<command>' + command + '</command>'
-	systemEventType += '<username>' + userName + '</username>'
-	systemEventType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
-	systemEventType += '<funds>' + funds + '</funds>'
-	systemEventType += '</systemEvent>'
+    systemEventType = ''
+    systemEventType += '<systemEvent>'
+    systemEventType += '<timestamp>' + str(timeStamp) + '</timestamp>'
+    systemEventType += '<server>' + server + '</server>'
+    systemEventType += '<transactionNum>' + transactionNum + '</transactionNum>'
+    systemEventType += '<command>' + command + '</command>'
+    systemEventType += '<username>' + userName + '</username>'
+    systemEventType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
+    systemEventType += '<funds>' + funds + '</funds>'
+    systemEventType += '</systemEvent>'
 
-	return systemEventType
+    return systemEventType
 
 
 ##Error Event Type
 def parseErrorEvent(entryDict):
-#inputs
-	timeStamp = entryDict['timestamp']
-	server = entryDict['server']
+    #inputs
+    timeStamp = entryDict['timestamp']
+    server = entryDict['server']
     transactionNum = entryDict['transactionNum']
     command = entryDict['command']
-	userName = entryDict.get('username')
-	stockSymbol = entryDict.get('stockSymbol')
-	fileName = entryDict.get('filename')
-	funds = entryDict.get('funds')
-	errorMessage = entryDict.get('errorMessage')
+    userName = entryDict.get('username')
+    stockSymbol = entryDict.get('stockSymbol')
+    fileName = entryDict.get('filename')
+    funds = entryDict.get('funds')
+    errorMessage = entryDict.get('errorMessage')
 
-	errorEventType = ''
-	errorEventType += '<errorEvent>'
-	errorEventType += '<timestamp>' + str(timeStamp) + '</timestamp>'
-	errorEventType += '<server>' + server + '</server>'
-	errorEventType += '<transactionNum>' + transactionNum + '</transactionNum>'
-	errorEventType += '<command>' + command + '</command>'
-	errorEventType += '<username>' + userName + '</username>'
-	errorEventType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
-	errorEventType += '<funds>' + funds + '</funds>'
-	errorEventType += '<errorMessage>' + errorMessage + '</errorMessage>'
-	errorEventType += '</errorEvent>'
-	
-	return errorEventType
+    errorEventType = ''
+    errorEventType += '<errorEvent>'
+    errorEventType += '<timestamp>' + str(timeStamp) + '</timestamp>'
+    errorEventType += '<server>' + server + '</server>'
+    errorEventType += '<transactionNum>' + transactionNum + '</transactionNum>'
+    errorEventType += '<command>' + command + '</command>'
+    errorEventType += '<username>' + userName + '</username>'
+    errorEventType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
+    errorEventType += '<funds>' + funds + '</funds>'
+    errorEventType += '<errorMessage>' + errorMessage + '</errorMessage>'
+    errorEventType += '</errorEvent>'
+    
+    return errorEventType
 
 ##Debug Type
 def parseDebug(entryDict):
-#inputs
-	timeStamp = entryDict['timestamp']
-	server = entryDict['server']
+    #inputs
+    timeStamp = entryDict['timestamp']
+    server = entryDict['server']
     transactionNum = entryDict['transactionNum']
     command = entryDict['command']
-	userName = entryDict.get('username')
-	stockSymbol = entryDict.get('stockSymbol')
-	fileName = entryDict.get('filename')
-	funds = entryDict.get('funds')
-	debugMessage = entryDict.get('debugMessage')
+    userName = entryDict.get('username')
+    stockSymbol = entryDict.get('stockSymbol')
+    fileName = entryDict.get('filename')
+    funds = entryDict.get('funds')
+    debugMessage = entryDict.get('debugMessage')
 
-	DebugType = ''
-	DebugType += '<debugEvent>'
-	DebugType += '<timestamp>' + str(timeStamp) + '</timestamp>'
-	DebugType += '<server>' + server + '</server>'
-	DebugType += '<transactionNum>' + transactionNum + '</transactionNum>'
-	DebugType += '<command>' + command + '</command>'
-	DebugType += '<username>' + userName + '</username>'
-	DebugType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
-	DebugType += '<funds>' + funds + '</funds>'
-	DebugType += '<debugMessage>' + errorMessage + '</debugMessage>'
-	DebugType += '</debugEvent>'
-	
-	return DebugType
+    DebugType = ''
+    DebugType += '<debugEvent>'
+    DebugType += '<timestamp>' + str(timeStamp) + '</timestamp>'
+    DebugType += '<server>' + server + '</server>'
+    DebugType += '<transactionNum>' + transactionNum + '</transactionNum>'
+    DebugType += '<command>' + command + '</command>'
+    DebugType += '<username>' + userName + '</username>'
+    DebugType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
+    DebugType += '<funds>' + funds + '</funds>'
+    DebugType += '<debugMessage>' + errorMessage + '</debugMessage>'
+    DebugType += '</debugEvent>'
+    
+    return DebugType
 # This function handles the data package recieved thru the socket and dumps it into the audit log
 def handleEntry(strdict):
     xmlPacket = ''
@@ -192,20 +192,20 @@ def handleEntry(strdict):
    
     #based on log type call the appropriate function to generate xml packet
     if(logType == "UserCommandType"):
-	xmlPacket = parseUserCommand(entryDict)
+    xmlPacket = parseUserCommand(entryDict)
     elif(logType == "QuoteServerType"):
-	xmlPacket = pareseQuoteServer(entryDict)
+    xmlPacket = pareseQuoteServer(entryDict)
     elif(logType == "AccountTransactionType"):
-	xmlPacket = parseAccountTransaction(entryDict)
+    xmlPacket = parseAccountTransaction(entryDict)
     elif(logType == "SystemEventType"):
-	xmlPacket = parseSystemEvent(entryDict)
+    xmlPacket = parseSystemEvent(entryDict)
     elif(logType == "ErrorEventType"):
-	xmlPacket = parseErrorEvent(entryDict)
+    xmlPacket = parseErrorEvent(entryDict)
     elif(logType == "DebugType"):
-	xmlPacket = parseDebug(entryDict)
+    xmlPacket = parseDebug(entryDict)
     else:
-	print "unknown log type"
-	#unknown log type ?throw an error?
+    print "unknown log type"
+    #unknown log type ?throw an error?
 
     #open log file to append to, may need to put this in a try block
     f = open('logfile.xml', 'a')     
@@ -223,19 +223,19 @@ def clientthread(conn):
     while True:
          
         #Receiving from client
-	#this is where all the logic for logging will go.
+    #this is where all the logic for logging will go.
         data = conn.recv(1024)
-	#handle request here
+    #handle request here
         if not data: 
             break
-	#this function call handles the data package and returns ok or asks for a resend.
-	status = handleEntry(data)     
+    #this function call handles the data package and returns ok or asks for a resend.
+    status = handleEntry(data)     
 
-	#if the data is handled ok, send back an ok, otherwise request a resend
-	if(status=='OK'):
-	    reply = 'OK'
-	else:
-	   reply = "ERROR"
+    #if the data is handled ok, send back an ok, otherwise request a resend
+    if(status=='OK'):
+        reply = 'OK'
+    else:
+       reply = "ERROR"
         conn.sendall(reply)
      
     #came out of loop
