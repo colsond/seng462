@@ -308,11 +308,24 @@ def process_request(data, cache):
 				}
 
 			amount = data_dict.get('amount')
+			
 			if amount is not None:
 				# store amounts in pennies to avoid decimals
 				amount = int(float(amount)*100)
 
 			filename = data_dict.get('filename')
+			balance = cache["users"][user]["balance"]
+
+			audit_user_command_event(
+				int(time.time()),
+				server_name,
+				transaction_id,
+				request_type,
+				username,
+				stock_id,
+				filename,
+				balance
+			)
 
 			if request_type == ADD:
 					if amount is None:
