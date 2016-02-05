@@ -34,9 +34,9 @@ import time
 
 web_server_address = 'b132.seng.uvic.ca'
 audit_server_address = 'b142.seng.uvic.ca'
-# web_server_address = 'localhost'
+
 web_server_port = 44421
-audit_server_address = 44421
+audit_server_port = 44421
 
 ADD = "ADD"
 QUOTE = "QUOTE"
