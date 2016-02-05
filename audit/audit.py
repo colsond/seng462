@@ -30,10 +30,10 @@ def parseUserCommand(entryDict):
     server = entryDict['server']
     transactionNum = entryDict['transactionNum']
     command = entryDict['command']
-    userName = entryDict.get('username')
-    stockSymbol = entryDict.get('stockSymbol')
-    filename = entryDict.get('filename')
-    funds = entryDict.get('funds')
+    userName = entryDict.get('username', "")
+    stockSymbol = entryDict.get('stockSymbol', "")
+    filename = entryDict.get('filename', "")
+    funds = entryDict.get('funds', "")
 
     userCommandType = ''
     userCommandType += '<userCommand>'
@@ -108,10 +108,10 @@ def parseSystemEvent(entryDict):
     server = entryDict['server']
     transactionNum = entryDict['transactionNum']
     command = entryDict['command']
-    userName = entryDict.get('username')
-    stockSymbol = entryDict.get('stockSymbol')
-    fileName = entryDict.get('filename')
-    funds = entryDict.get('funds')
+    userName = entryDict.get('username', "")
+    stockSymbol = entryDict.get('stockSymbol', "")
+    fileName = entryDict.get('filename', "")
+    funds = entryDict.get('funds', "")
 
     systemEventType = ''
     systemEventType += '<systemEvent>'
@@ -161,11 +161,11 @@ def parseDebug(entryDict):
     server = entryDict['server']
     transactionNum = entryDict['transactionNum']
     command = entryDict['command']
-    userName = entryDict.get('username')
-    stockSymbol = entryDict.get('stockSymbol')
-    fileName = entryDict.get('filename')
-    funds = entryDict.get('funds')
-    debugMessage = entryDict.get('debugMessage')
+    userName = entryDict.get('username', "")
+    stockSymbol = entryDict.get('stockSymbol', "")
+    fileName = entryDict.get('filename', "")
+    funds = entryDict.get('funds', "")
+    debugMessage = entryDict.get('debugMessage', "")
 
     DebugType = ''
     DebugType += '<debugEvent>'
