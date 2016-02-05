@@ -88,8 +88,9 @@ def handleEntry(strdict):
 
     #open log file to append to, may need to put this in a try block
     f = open('logfile.xml', 'a')     
-    
-
+    f.write(xmlPacket)
+    f.close() 
+    return "OK"
 
 
 ##USER COMMAND TYPE
@@ -223,29 +224,30 @@ def parseErrorEvent(entryDict)
 	
 	return errorEventType
 
-'''
 ##Debug Type
+def parseDebug(entryDict):
 #inputs
-timeStamp = ''
-server = ''
-transactionNum = ''
-command = ''
-userName = ''
-stockSymbol = ''
-fileName = ''
-funds = ''
-debugMessage = ''
+	timeStamp = entryDict['timestamp']
+	server = entryDict['server']
+        transactionNum = entryDict['transactionNum']
+        command = entryDict['command']
+	userName = entryDict.get('username', default='')
+	stockSymbol = entryDict.get('stockSymbol', default='')
+	fileName = entryDict.get('filename', default='')
+	funds = entryDict.get('funds', default='')
+	debugMessage = entryDict.get('debugMessage', default='')
 
-DebugType = ''
-DebugType += '<debugEvent>'
-DebugType += '<timestamp>' + timeStamp + '</timestamp>'
-DebugType += '<server>' + server + '</server>'
-DebugType += '<transactionNum>' + transactionNum + '</transactionNum>'
-DebugType += '<command>' + command + '</command>'
-DebugType += '<username>' + userName + '</username>'
-DebugType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
-DebugType += '<funds>' + funds + '</funds>'
-DebugType += '<debugMessage>' + errorMessage + '</debugMessage>'
-DebugType += '</debugEvent>'
+	DebugType = ''
+	DebugType += '<debugEvent>'
+	DebugType += '<timestamp>' + timeStamp + '</timestamp>'
+	DebugType += '<server>' + server + '</server>'
+	DebugType += '<transactionNum>' + transactionNum + '</transactionNum>'
+	DebugType += '<command>' + command + '</command>'
+	DebugType += '<username>' + userName + '</username>'
+	DebugType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
+	DebugType += '<funds>' + funds + '</funds>'
+	DebugType += '<debugMessage>' + errorMessage + '</debugMessage>'
+	DebugType += '</debugEvent>'
+	
+	return DebugType
 
-'''
