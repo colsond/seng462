@@ -60,7 +60,7 @@ def send_audit_entry(message):
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 	# Connect the socket to the port where the server is listening
-	server_address = (audit_server_address, audit_sever_port)
+	server_address = (audit_server_address, audit_server_port)
 	print >>sys.stderr, 'connecting to %s port %s' % server_address
 	sock.connect(server_address)
 
@@ -276,6 +276,7 @@ def process_request(data, cache):
 
 	server_name = "transaction_server_1"
 	filename = ""
+	username = ""
 	transaction_id = data_dict.get('transaction_id')
 	
 	if transaction_id is None:
@@ -373,7 +374,7 @@ def process_request(data, cache):
 					result = result.split(',')
 					price = result[0]
 					timestamp = result[3]
-					response = result[4]
+					cryptokey = result[4]
 					response = "Stock: " + result[1] + "  Current price: " + price + "\n"
 					
 					audit_quote_server_event(
