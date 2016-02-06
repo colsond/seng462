@@ -285,7 +285,9 @@ def process_request(data, cache):
 	# -- store userCommand in audit regardless of correctness
 	
 	response = "\n"
-
+	print "\nNew transaction: "
+	print data_dict
+	print "\n"
 	server_name = "transaction_server_1"
 	filename = ""
 	transaction_id = data_dict.get('transaction_id')
@@ -612,9 +614,9 @@ def get_quote(data, cache):
 		print "quote server response: " + str(response)
 		server_name='transaction_server_1'
 
-		cache["users"][user]["quotes"][response[2]] = {
+		cache["users"][user]["quotes"][response[1]] = {
 			"price": response[0],
-			"user": response[1],
+			"user": response[2],
 			"timestamp": int(response[3]),
 			"cryptokey": response[4]
 		}
