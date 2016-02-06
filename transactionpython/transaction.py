@@ -624,8 +624,8 @@ def get_quote(data, cache):
 			server_name,
 			transaction_id,
 			response[0],
-			response[2],
 			response[1],
+			response[2],
 			quoteServerTime,
 			response[4]
 		)
