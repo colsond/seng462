@@ -338,41 +338,41 @@ def process_request(data, cache):
 			)
 
 			if request_type == ADD:
-					if amount is None:
-						response = "ADD - Amount not specified.\n"
-						audit_error_event(
-							now(),
-							server_name,
-							transaction_id,
-							request_type,
-							username,
-							stock_id,
-							filename,
-							response
-						)
-					elif amount < 0:
-						response = "ADD - Attempting to add a negative amount\n"
-						audit_error_event(
-							now(),
-							server_name,
-							transaction_id,
-							request_type,
-							username,
-							stock_id,
-							filename,
-							response
-						)
-					else:
-						cache["users"][user]["balance"] += amount
-						response = "Added\n"
-						audit_transaction_event(
-							now(),
-							server_name,
-							transaction_id,
-							request_type,
-							username,
-							cache["users"][user]["balance"]
-						)
+				if amount is None:
+					response = "ADD - Amount not specified.\n"
+					audit_error_event(
+						now(),
+						server_name,
+						transaction_id,
+						request_type,
+						username,
+						stock_id,
+						filename,
+						response
+					)
+				elif amount < 0:
+					response = "ADD - Attempting to add a negative amount\n"
+					audit_error_event(
+						now(),
+						server_name,
+						transaction_id,
+						request_type,
+						username,
+						stock_id,
+						filename,
+						response
+					)
+				else:
+					cache["users"][user]["balance"] += amount
+					response = "Added\n"
+					audit_transaction_event(
+						now(),
+						server_name,
+						transaction_id,
+						request_type,
+						username,
+						cache["users"][user]["balance"]
+					)
 		
 			elif request_type == QUOTE:
 				cache = get_quote(data_dict, cache)
@@ -397,7 +397,7 @@ def process_request(data, cache):
 			elif request_type == COMMIT_BUY: 
 				# Check if timestamp is still valid
 				if cache["users"][user]["pending_buy"]:
-					if now() - 60 <= cache["users"][user]["pending_buy"]["timestamp"]:
+					if now() - 60000 <= cache["users"][user]["pending_buy"]["timestamp"]:
 					
 						# Get stock_id and amount from pending_buy entry
 						amount = int(cache["users"][user]["pending_buy"]["amount"])
@@ -446,7 +446,7 @@ def process_request(data, cache):
 			elif request_type == COMMIT_SELL:
 				# Check if timestamp is still valid
 				if cache["users"][user]["pending_sell"]:
-					if now() - 60 <= cache["users"][user]["pending_sell"]["timestamp"]:
+					if now() - 60000 <= cache["users"][user]["pending_sell"]["timestamp"]:
 					
 						# Get stock_id and amount from pending_buy entry
 						amount = int(cache["users"][user]["pending_sell"]["amount"])
