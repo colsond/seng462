@@ -243,6 +243,9 @@ def clientthread(conn):
     conn.close()
     sys.exit(0) 
 #now keep talking with the client
+f = open('logfile.xml', 'a')
+f.write("<?xml version="1.0"?><log>")
+f.close()
 while 1:
     #wait to accept a connection - blocking call
     conn, addr = s.accept()
@@ -252,5 +255,6 @@ while 1:
     start_new_thread(clientthread ,(conn,))
  
 s.close()
-
-
+f = open('logfile.xml', 'a')
+f.write("</log>")
+f.close()
