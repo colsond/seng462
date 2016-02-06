@@ -251,7 +251,7 @@ def audit_debug(
 		debugMessage=""):
 
 	audit_dict = {
-		"logType": "ErrorEventType",
+		"logType": "DebugEventType",
 		"timestamp": timestamp,
 		"server": server,
 		"transactionNum": transactionNum,
@@ -321,7 +321,10 @@ def process_request(data, cache):
 				amount = int(float(amount)*100)
 
 			filename = data_dict.get('filename')
-			balance = cache["users"][user]["balance"]
+			if user:
+				balance = cache["users"][user]["balance"]
+			else:
+				balance = None
 
 			audit_user_command_event(
 				now(),
@@ -593,7 +596,7 @@ def get_quote(data, cache):
 		existing_timestamp = None
 	print now()
 	# If there is no existing quote for this user/stock_id, or the existing quote has expired, get a new one
-	if not existing_timestamp or now() - int(existing_timestamp) > 60:
+	if not existing_timestamp or now() - int(existing_timestamp) > 60000:
 		time_start = now()
 		print "HITTING QUOTE SERVER \n HITTING QUOTE SERVER \n OMG \n!!!"
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
