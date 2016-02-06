@@ -288,7 +288,6 @@ def process_request(data, cache):
 
 	server_name = "transaction_server_1"
 	filename = ""
-	username = ""
 	transaction_id = data_dict.get('transaction_id')
 	
 	if transaction_id is None:
@@ -331,7 +330,7 @@ def process_request(data, cache):
 				server_name,
 				transaction_id,
 				request_type,
-				username,
+				user,
 				stock_id,
 				filename,
 				balance
@@ -345,7 +344,7 @@ def process_request(data, cache):
 						server_name,
 						transaction_id,
 						request_type,
-						username,
+						user,
 						stock_id,
 						filename,
 						response
@@ -357,7 +356,7 @@ def process_request(data, cache):
 						server_name,
 						transaction_id,
 						request_type,
-						username,
+						user,
 						stock_id,
 						filename,
 						response
@@ -370,7 +369,7 @@ def process_request(data, cache):
 						server_name,
 						transaction_id,
 						request_type,
-						username,
+						user,
 						cache["users"][user]["balance"]
 					)
 		
@@ -602,7 +601,7 @@ def get_quote(data, cache):
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 		s.connect(('quoteserve.seng.uvic.ca', 4444))
-		request = user + ", " + stock_id + "\r"
+		request = stock_id + ", " + user + "\r"
 		s.send(request)
 
 		response = s.recv(1024)
