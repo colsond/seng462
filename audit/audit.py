@@ -39,7 +39,7 @@ def parseUserCommand(entryDict):
     userCommandType += '<userCommand>'
     userCommandType += '<timestamp>' + str(timeStamp) + '</timestamp>'
     userCommandType += '<server>' + server + '</server>'
-    userCommandType += '<transactionNum>' + transactionNum +'< /transactionNum>'
+    userCommandType += '<transactionNum>' + transactionNum +'</transactionNum>'
     userCommandType += '<command>' + command + '</command>'
     userCommandType += '<username>' + userName + '</username>'
     userCommandType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
