@@ -605,9 +605,10 @@ def get_quote(data, cache):
 		response = s.recv(1024)
 		print response
 		s.close()
-		quoteServerTime = now() - time_start()
+		quoteServerTime = now() - time_start
 		response = response.split(',')
 		print "quote server response: " + str(response)
+		server_name='transaction_server_1'
 
 		cache["users"][user]["quotes"][response[2]] = {
 			"price": response[0],
