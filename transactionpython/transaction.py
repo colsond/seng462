@@ -598,7 +598,6 @@ def get_quote(data, cache):
 	print now()
 	# If there is no existing quote for this user/stock_id, or the existing quote has expired, get a new one
 	if not existing_timestamp or now() - int(existing_timestamp) > 60000:
-		time_start = now()
 		print "HITTING QUOTE SERVER \n HITTING QUOTE SERVER \n OMG \n!!!"
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -609,7 +608,6 @@ def get_quote(data, cache):
 		response = s.recv(1024)
 		print response
 		s.close()
-		quoteServerTime = now() - time_start
 		response = response.split(',')
 		print "quote server response: " + str(response)
 		server_name='transaction_server_1'
@@ -628,7 +626,7 @@ def get_quote(data, cache):
 			response[0],
 			response[1],
 			response[2],
-			quoteServerTime,
+			int(response[3],
 			response[4]
 		)
 
