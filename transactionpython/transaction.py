@@ -620,7 +620,7 @@ def get_quote(data, cache):
 		}
 
 		audit_quote_server_event(
-			int(response[3]),
+			now(),
 			server_name,
 			transaction_id,
 			response[0],
