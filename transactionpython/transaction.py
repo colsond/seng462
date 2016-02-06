@@ -626,7 +626,7 @@ def get_quote(data, cache):
 			response[0],
 			response[1],
 			response[2],
-			int(response[3],
+			int(response[3]),
 			response[4]
 		)
 
