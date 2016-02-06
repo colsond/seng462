@@ -252,14 +252,17 @@ f = open('logfile.xml', 'a')
 f.write('<?xml version="1.0"?><log>')
 f.close()
 while 1:
-    #wait to accept a connection - blocking call
-    conn, addr = s.accept()
-    print 'Connected with ' + addr[0] + ':' + str(addr[1])
-     
-    #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
-    start_new_thread(clientthread ,(conn,))
- 
+    try:
+	    #wait to accept a connection - blocking call
+	    conn, addr = s.accept()
+	    print 'Connected with ' + addr[0] + ':' + str(addr[1])
+	     
+	    #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
+	    start_new_thread(clientthread ,(conn,))
+    except:
+	    f = open('logfile.xml', 'a')
+	    f.write("</log>")
+	    f.close()
+	    sys.exit(0) 
+
 s.close()
-f = open('logfile.xml', 'a')
-f.write("</log>")
-f.close()
