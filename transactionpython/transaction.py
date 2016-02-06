@@ -60,6 +60,9 @@ CANCEL_SET_SELL = "CANCEL_SET_SELL"
 DUMPLOG = "DUMPLOG"
 DISPLAY_SUMMARY = "DISPLAY_SUMMARY"
 
+def now():
+	return int(time.time() * 1000)
+
 def send_audit_entry(message):
 
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -317,7 +320,7 @@ def process_request(data, cache):
 			balance = cache["users"][user]["balance"]
 
 			audit_user_command_event(
-				int(time.time()),
+				now(),
 				server_name,
 				transaction_id,
 				request_type,
@@ -331,7 +334,7 @@ def process_request(data, cache):
 					if amount is None:
 						response = "ADD - Amount not specified.\n"
 						audit_error_event(
-							int(time.time()),
+							now(),
 							server_name,
 							transaction_id,
 							request_type,
@@ -343,7 +346,7 @@ def process_request(data, cache):
 					elif amount < 0:
 						response = "ADD - Attempting to add a negative amount\n"
 						audit_error_event(
-							int(time.time()),
+							now(),
 							server_name,
 							transaction_id,
 							request_type,
@@ -356,7 +359,7 @@ def process_request(data, cache):
 						cache["users"][user]["balance"] += amount
 						response = "Added\n"
 						audit_transaction_event(
-							int(time.time()),
+							now(),
 							server_name,
 							transaction_id,
 							request_type,
@@ -372,7 +375,7 @@ def process_request(data, cache):
 				response += "\n"
 
 				audit_quote_server_event(
-					int(time.time()),
+					now(),
 					server_name,
 					transaction_id,
 					price,
@@ -393,7 +396,7 @@ def process_request(data, cache):
 					response = "Stock: " + stock_id + "  Current price: " + price + "\n"
 					
 					audit_quote_server_event(
-						int(time.time()),
+						now(),
 						server_name,
 						transaction_id,
 						price,
@@ -406,13 +409,13 @@ def process_request(data, cache):
 					# Set pending buy to new values (should overwrite existing entry)
 					cache["users"][user]["pending_buy"]["stock_id"] = stock_id
 					cache["users"][user]["pending_buy"]["amount"] = amount
-					cache["users"][user]["pending_buy"]["timestamp"] = int(time.time())
+					cache["users"][user]["pending_buy"]["timestamp"] = now()
 					response = "Please confirm your purchase within 60 seconds.\n"
 			
 			elif request_type == COMMIT_BUY: 
 				# Check if timestamp is still valid
 				if cache["users"][user]["pending_buy"]:
-					if int(time.time()) - 60 <= cache["users"][user]["pending_buy"]["timestamp"]:
+					if now() - 60 <= cache["users"][user]["pending_buy"]["timestamp"]:
 					
 						# Get stock_id and amount from pending_buy entry
 						amount = int(cache["users"][user]["pending_buy"]["amount"])
@@ -453,13 +456,13 @@ def process_request(data, cache):
 					# Set pending sell to new values (should overwrite existing entry)
 					cache["users"][user]["pending_sell"]["stock_id"] = stock_id
 					cache["users"][user]["pending_sell"]["amount"] = amount
-					cache["users"][user]["pending_sell"]["timestamp"] = int(time.time())
+					cache["users"][user]["pending_sell"]["timestamp"] = now()
 					response = "Please confirm your sell within 60 seconds.\n"
 			
 			elif request_type == COMMIT_SELL:
 				# Check if timestamp is still valid
 				if cache["users"][user]["pending_sell"]:
-					if int(time.time()) - 60 <= cache["users"][user]["pending_sell"]["timestamp"]:
+					if now() - 60 <= cache["users"][user]["pending_sell"]["timestamp"]:
 					
 						# Get stock_id and amount from pending_buy entry
 						amount = int(cache["users"][user]["pending_sell"]["amount"])
@@ -606,9 +609,9 @@ def get_quote(data, cache):
 		print "existing timestamp: " + str(existing_timestamp)
 	except KeyError:
 		existing_timestamp = None
-	print int(time.time())
+	print now()
 	# If there is no existing quote for this user/stock_id, or the existing quote has expired, get a new one
-	if not existing_timestamp or int(time.time()) - int(existing_timestamp) > 60:
+	if not existing_timestamp or now() - int(existing_timestamp) > 60:
 		print "HITTING QUOTE SERVER \n HITTING QUOTE SERVER \n OMG \n!!!"
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -625,7 +628,7 @@ def get_quote(data, cache):
 		cache["users"][user]["quotes"][response[2]] = {
 			"price": response[0],
 			"user": response[1],
-			"timestamp": int(response[3]) / 1000,
+			"timestamp": int(response[3]),
 			"cryptokey": response[4]
 		}
 
