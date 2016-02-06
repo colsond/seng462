@@ -373,21 +373,7 @@ def process_request(data, cache):
 		
 			elif request_type == QUOTE:
 				cache = get_quote(data_dict, cache)
-				price = cache["users"][user]["quotes"][stock_id]["price"]
-				timestamp = cache["users"][user]["quotes"][stock_id]["timestamp"]
-				cryptokey = cache["users"][user]["quotes"][stock_id]["cryptokey"]
 				response += "\n"
-
-				audit_quote_server_event(
-					now(),
-					server_name,
-					transaction_id,
-					price,
-					stock_id,
-					username,
-					timestamp,
-					cryptokey
-				)
 			
 			elif request_type == BUY:
 				# Check user balance
@@ -396,19 +382,8 @@ def process_request(data, cache):
 					cache = get_quote(data_dict, cache)
 					price = cache["users"][user]["quotes"][stock_id]["price"]
 					timestamp = cache["users"][user]["quotes"][stock_id]["timestamp"]
-					cryptokey = cache["users"][user]["quotes"][stock_id]["cryptokey"]
 					response = "Stock: " + stock_id + "  Current price: " + price + "\n"
-					
-					audit_quote_server_event(
-						now(),
-						server_name,
-						transaction_id,
-						price,
-						stock_id,
-						username,
-						timestamp,
-						cryptokey
-					)
+				
 				
 					# Set pending buy to new values (should overwrite existing entry)
 					cache["users"][user]["pending_buy"]["stock_id"] = stock_id
@@ -450,7 +425,9 @@ def process_request(data, cache):
 				# Check user stock amount
 				if amount > 0 and cache["users"][user]["stocks"].get(stock_id, 0) >= amount:
 					# get quote and send to user to confirm
+					time_start = now()
 					cache = get_quote(data_dict, cache)
+					quoteServerTime = now() - time_start
 					price = cache["users"][user]["quotes"][stock_id]["price"]
 					timestamp = cache["users"][user]["quotes"][stock_id]["timestamp"]
 					cryptokey = cache["users"][user]["quotes"][stock_id]["cryptokey"]
@@ -608,6 +585,7 @@ def process_request(data, cache):
 def get_quote(data, cache):
 	user = data['user']
 	stock_id = data['stock_id']
+	transaction_id = data['transaction_id']
 	try:
 		existing_timestamp = cache["users"][user]["quotes"][stock_id]["timestamp"]
 		print "existing timestamp: " + str(existing_timestamp)
@@ -616,6 +594,7 @@ def get_quote(data, cache):
 	print now()
 	# If there is no existing quote for this user/stock_id, or the existing quote has expired, get a new one
 	if not existing_timestamp or now() - int(existing_timestamp) > 60:
+		time_start = now()
 		print "HITTING QUOTE SERVER \n HITTING QUOTE SERVER \n OMG \n!!!"
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -626,8 +605,10 @@ def get_quote(data, cache):
 		response = s.recv(1024)
 		print response
 		s.close()
+		quoteServerTime = now() - time_start
 		response = response.split(',')
 		print "quote server response: " + str(response)
+		server_name='transaction_server_1'
 
 		cache["users"][user]["quotes"][response[2]] = {
 			"price": response[0],
@@ -635,6 +616,17 @@ def get_quote(data, cache):
 			"timestamp": int(response[3]),
 			"cryptokey": response[4]
 		}
+
+		audit_quote_server_event(
+			int(response[3]),
+			server_name,
+			transaction_id,
+			response[0],
+			response[2],
+			response[1],
+			quoteServerTime,
+			response[4]
+		)
 
 	return cache
 
