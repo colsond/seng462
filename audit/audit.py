@@ -44,7 +44,8 @@ def parseUserCommand(entryDict):
     userCommandType += '<username>' + userName + '</username>'
     userCommandType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
     userCommandType += '<filename>' + filename + '</filename>'
-    userCommandType += '<funds>' + str(funds) + '</funds>'
+    if (funds!=""):
+        userCommandType += '<funds>' + str(funds) + '</funds>'
     userCommandType += '</userCommand>'
 
     return userCommandType
@@ -96,7 +97,8 @@ def parseAccountTransaction(entryDict):
     accountTransactionType += '<transactionNum>' + transactionNum + '</transactionNum>'
     accountTransactionType += '<action>' + action + '</action>'
     accountTransactionType += '<username>' + userName + '</username>'
-    accountTransactionType += '<funds>' + str(funds) + '</funds>'
+    if (funds!=""):
+        accountTransactionType += '<funds>' + str(funds) + '</funds>'
     accountTransactionType += '</accountTransaction>'
 
     return accountTransactionType
@@ -121,7 +123,8 @@ def parseSystemEvent(entryDict):
     systemEventType += '<command>' + command + '</command>'
     systemEventType += '<username>' + userName + '</username>'
     systemEventType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
-    systemEventType += '<funds>' + str(funds) + '</funds>'
+    if (funds!=""):
+        systemEventType += '<funds>' + str(funds) + '</funds>'
     systemEventType += '</systemEvent>'
 
     return systemEventType
@@ -148,7 +151,8 @@ def parseErrorEvent(entryDict):
     errorEventType += '<command>' + command + '</command>'
     errorEventType += '<username>' + userName + '</username>'
     errorEventType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
-    errorEventType += '<funds>' + str(funds) + '</funds>'
+    if (funds!=""):
+        errorEventType += '<funds>' + str(funds) + '</funds>'
     errorEventType += '<errorMessage>' + errorMessage + '</errorMessage>'
     errorEventType += '</errorEvent>'
     
@@ -175,7 +179,8 @@ def parseDebug(entryDict):
     DebugType += '<command>' + command + '</command>'
     DebugType += '<username>' + userName + '</username>'
     DebugType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
-    DebugType += '<funds>' + str(funds) + '</funds>'
+    if (funds!=""):
+        DebugType += '<funds>' + str(funds) + '</funds>'
     DebugType += '<debugMessage>' + errorMessage + '</debugMessage>'
     DebugType += '</debugEvent>'
     
@@ -244,7 +249,7 @@ def clientthread(conn):
     sys.exit(0) 
 #now keep talking with the client
 f = open('logfile.xml', 'a')
-f.write("<?xml version="1.0"?><log>")
+f.write('<?xml version="1.0"?><log>')
 f.close()
 while 1:
     #wait to accept a connection - blocking call
