@@ -39,9 +39,11 @@ import time
 
 web_server_address = 'b132.seng.uvic.ca'
 audit_server_address = 'b142.seng.uvic.ca'
-
-web_server_port = 44421
+# Port list, in case things are run on same machine
+# 44421	Audit
+# 44422 Transaction
 audit_server_port = 44421
+# web_server_port = 44422
 
 ADD = "ADD"
 QUOTE = "QUOTE"
@@ -608,7 +610,7 @@ def get_quote(data, cache):
 		response = s.recv(1024)
 		print response
 		s.close()
-		response = response.split(',')
+		response = response.split(', ')
 		print "quote server response: " + str(response)
 		server_name='transaction_server_1'
 
