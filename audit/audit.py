@@ -41,9 +41,12 @@ def parseUserCommand(entryDict):
     userCommandType += '<server>' + server + '</server>'
     userCommandType += '<transactionNum>' + transactionNum +'</transactionNum>'
     userCommandType += '<command>' + command + '</command>'
-    userCommandType += '<username>' + userName + '</username>'
-    userCommandType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
-    userCommandType += '<filename>' + filename + '</filename>'
+    if (userName!=""):
+        userCommandType += '<username>' + userName + '</username>'
+    if (stockSymbol!=""):
+        userCommandType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
+    if (filename!=""):
+        userCommandType += '<filename>' + filename + '</filename>'
     if (funds!=""):
         userCommandType += '<funds>' + str(funds) + '</funds>'
     userCommandType += '</userCommand>'
@@ -97,8 +100,7 @@ def parseAccountTransaction(entryDict):
     accountTransactionType += '<transactionNum>' + transactionNum + '</transactionNum>'
     accountTransactionType += '<action>' + action + '</action>'
     accountTransactionType += '<username>' + userName + '</username>'
-    if (funds!=""):
-        accountTransactionType += '<funds>' + str(funds) + '</funds>'
+    accountTransactionType += '<funds>' + str(funds) + '</funds>'
     accountTransactionType += '</accountTransaction>'
 
     return accountTransactionType
@@ -121,8 +123,12 @@ def parseSystemEvent(entryDict):
     systemEventType += '<server>' + server + '</server>'
     systemEventType += '<transactionNum>' + transactionNum + '</transactionNum>'
     systemEventType += '<command>' + command + '</command>'
-    systemEventType += '<username>' + userName + '</username>'
-    systemEventType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
+    if (userName!=""):
+        systemEventType += '<username>' + userName + '</username>'
+    if (stockSymbol!=""):
+        systemEventType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
+    if (filename!=""):
+        systemEventType += '<filename>' + filename + '</filename>'
     if (funds!=""):
         systemEventType += '<funds>' + str(funds) + '</funds>'
     systemEventType += '</systemEvent>'
@@ -149,11 +155,16 @@ def parseErrorEvent(entryDict):
     errorEventType += '<server>' + server + '</server>'
     errorEventType += '<transactionNum>' + transactionNum + '</transactionNum>'
     errorEventType += '<command>' + command + '</command>'
-    errorEventType += '<username>' + userName + '</username>'
-    errorEventType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
+    if (userName!=""):
+        errorEventType += '<username>' + userName + '</username>'
+    if (stockSymbol!=""):
+        errorEventType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
+    if (filename!=""):
+        errorEventType += '<filename>' + filename + '</filename>'
     if (funds!=""):
         errorEventType += '<funds>' + str(funds) + '</funds>'
-    errorEventType += '<errorMessage>' + errorMessage + '</errorMessage>'
+    if (errorMessage!=""):
+        errorEventType += '<errorMessage>' + errorMessage + '</errorMessage>'
     errorEventType += '</errorEvent>'
     
     return errorEventType
@@ -177,11 +188,16 @@ def parseDebug(entryDict):
     DebugType += '<server>' + server + '</server>'
     DebugType += '<transactionNum>' + transactionNum + '</transactionNum>'
     DebugType += '<command>' + command + '</command>'
-    DebugType += '<username>' + userName + '</username>'
-    DebugType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
+    if (userName!=""):
+        DebugType += '<username>' + userName + '</username>'
+    if (stockSymbol!=""):
+        DebugType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
+    if (filename!=""):
+        DebugType += '<filename>' + filename + '</filename>'
     if (funds!=""):
         DebugType += '<funds>' + str(funds) + '</funds>'
-    DebugType += '<debugMessage>' + errorMessage + '</debugMessage>'
+    if (debugMessage!=""):
+        DebugType += '<debugMessage>' + debugMessage + '</debugMessage>'
     DebugType += '</debugEvent>'
     
     return DebugType
@@ -210,11 +226,15 @@ def handleEntry(strdict):
         xmlPacket = parseDebug(entryDict)
     else:
         print "unknown log type"
+        return "UNKNOWN_LOG_TYPE"
     #unknown log type ?throw an error?
 
     #open log file to append to, may need to put this in a try block
     f = open('logfile.xml', 'a')     
-    print xmlPacket
+    
+    #for debugging
+    #print xmlPacket
+    
     f.write(xmlPacket)
     f.close() 
     return "OK"
@@ -233,14 +253,8 @@ def clientthread(conn):
     #handle request here
         if not data: 
             break
-    #this function call handles the data package and returns ok or asks for a resend.
-    	status = handleEntry(data)     
-
-    #if the data is handled ok, send back an ok, otherwise request a resend
-    	if(status=='OK'):
-        	reply = 'OK'
-   	else:
-        	reply = "ERROR"
+    #this function call handles the data package and returns ok or gives an unknown log error
+    	reply = handleEntry(data) 
         conn.sendall(reply)
      
     #came out of loop
