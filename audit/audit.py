@@ -160,8 +160,8 @@ def parseErrorEvent(entryDict):
 	#if (stockSymbol!=""):
 	if (stockSymbol!=None):
 		errorEventType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
-	#if (filename!=""):
-	if (filename!=None):
+	#if (fileName!=""):
+	if (fileName!=None):
 		errorEventType += '<filename>' + filename + '</filename>'
 	#if (funds!=""):
 	if (funds!=None):
