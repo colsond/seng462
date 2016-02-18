@@ -154,16 +154,20 @@ def parseErrorEvent(entryDict):
 	errorEventType += '<transactionNum>' + transactionNum + '</transactionNum>'
 	errorEventType += '<command>' + command + '</command>'
 
-	if (userName!=""):
+	#if (userName!=""):
+	if (userName!=None):
 			errorEventType += '<username>' + userName + '</username>'
 	#if (stockSymbol!=""):
 	if (stockSymbol!=None):
 		errorEventType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
-	if (filename!=""):
+	#if (filename!=""):
+	if (filename!=None):
 		errorEventType += '<filename>' + filename + '</filename>'
-	if (funds!=""):
+	#if (funds!=""):
+	if (funds!=None):
 		errorEventType += '<funds>' + str(funds) + '</funds>'
-	if (errorMessage!=""):
+	#if (errorMessage!=""):
+	if (errorMessage!=None):
 		errorEventType += '<errorMessage>' + errorMessage + '</errorMessage>'
 
 	errorEventType += '</errorEvent>'
