@@ -528,9 +528,7 @@ def process_request(data, cache):
 					print "Buy trigger not initialized; Trigger not enabled.\n"
 				
 			elif request_type == SET_SELL_AMOUNT:			
-				if stock_id not in cache["users"][user]["stocks"]
-					print "User does not own this stock.\n"
-				else:
+				if stock_id in cache["users"][user]["stocks"]:
 					if cache["users"][user]["stocks"][stock_id] >= amount:
 						cache["users"][user]["stocks"][stock_id] -= amount
 						# -- store accountTransaction in audit
@@ -547,7 +545,9 @@ def process_request(data, cache):
 				
 					else:
 						print "Insufficient stock to set trigger.\n"
-			
+				else:
+					print "User does not own this stock\n"
+					
 			elif request_type == SET_SELL_TRIGGER:			
 				try:
 					if cache["users"][user]["sell_trigger"][stock_id]["amount"] > 0:
