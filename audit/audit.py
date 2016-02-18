@@ -5,7 +5,10 @@ import io
 from thread import *
  
 HOST = ''   # Symbolic name meaning all available interfaces
-PORT = 44421 # Arbitrary non-privileged port
+# Port list, in case things are run on same machine
+# 44421	Audit
+# 44422 Transaction
+PORT = 44421
  
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 print 'Socket created'
