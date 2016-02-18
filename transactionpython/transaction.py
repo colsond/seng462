@@ -353,6 +353,7 @@ def process_request(data, cache):
 						user,
 						stock_id,
 						filename,
+						amount,
 						response
 					)
 				elif amount < 0:
@@ -365,6 +366,7 @@ def process_request(data, cache):
 						user,
 						stock_id,
 						filename,
+						amount,
 						response
 					)
 				else:
