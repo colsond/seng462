@@ -45,7 +45,6 @@ SELF_HOST = ''
 # 44422 Transaction
 audit_server_port = 44421
 SELF_PORT = 44422
-# web_server_port = 44422
 
 ADD = "ADD"
 QUOTE = "QUOTE"
@@ -612,7 +611,7 @@ def get_quote(data, cache):
 		response = s.recv(1024)
 		print response
 		s.close()
-		response = response.split(', ')
+		response = response.split(',')
 		print "quote server response: " + str(response)
 		server_name='transaction_server_1'
 
@@ -620,7 +619,7 @@ def get_quote(data, cache):
 			"price": response[0],
 			"user": response[2],
 			"timestamp": int(response[3]),
-			"cryptokey": response[4]
+			"cryptokey": response[4].translate(None,'\n')
 		}
 
 		audit_quote_server_event(
