@@ -160,7 +160,8 @@ def parseErrorEvent(entryDict):
     errorEventType += '<command>' + command + '</command>'
     if (userName!=""):
         errorEventType += '<username>' + userName + '</username>'
-    if (stockSymbol!=""):
+    #if (stockSymbol!=""):
+		if (stockSymbol!=None):
         errorEventType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
     if (filename!=""):
         errorEventType += '<filename>' + filename + '</filename>'
