@@ -56,8 +56,6 @@ def parseUserCommand(entryDict):
 
 	return userCommandType
 
-
-
 ##QUOTE SERVER TYPE
 def pareseQuoteServer(entryDict):
 #inputs
@@ -83,8 +81,6 @@ def pareseQuoteServer(entryDict):
 	quoteServerType += '</quoteServer>'
 
 	return quoteServerType
-
-
 
 ##Account Transaction Type
 def parseAccountTransaction(entryDict):
@@ -137,7 +133,6 @@ def parseSystemEvent(entryDict):
 	systemEventType += '</systemEvent>'
 
 	return systemEventType
-
 
 ##Error Event Type
 def parseErrorEvent(entryDict):
@@ -245,8 +240,6 @@ def handleEntry(strdict):
 	f.close() 
 	return "OK"
 
-
-
 #Function for handling connections. This will be used to create threads
 def clientthread(conn):
 	#Sending message to connected client
@@ -259,8 +252,8 @@ def clientthread(conn):
 		if not data: 
 			break
 	#this function call handles the data package and returns ok or gives an unknown log error
-	reply = handleEntry(data) 
-	conn.sendall(reply)
+		reply = handleEntry(data) 
+		conn.sendall(reply)
 	 
 	#came out of loop
 	print "Ending transmission"
