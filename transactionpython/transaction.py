@@ -233,6 +233,7 @@ def audit_error_event(
 
 	if funds: 
 		#funds = str(float(funds) / 100)
+		funds = str(funds)
 		audit_dict["funds"] = funds
 
 	if errorMessage:
