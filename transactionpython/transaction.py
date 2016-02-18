@@ -233,7 +233,7 @@ def audit_error_event(
 		audit_dict["filename"] = filename
 
 	if funds: 
-		#funds = str(float(funds) / 100)
+		funds = str(float(funds) / 100)
 		audit_dict["funds"] = funds
 
 	if errorMessage:
@@ -352,7 +352,7 @@ def process_request(data, cache):
 						request_type,
 						user,
 						stock_id,
-						filename,
+						None,
 						amount,
 						response
 					)
@@ -365,7 +365,7 @@ def process_request(data, cache):
 						request_type,
 						user,
 						stock_id,
-						filename,
+						None,
 						amount,
 						response
 					)
