@@ -208,11 +208,12 @@ def audit_error_event(
 		timestamp,
 		server,
 		transactionNum,
-		command,username="",
-		stockSymbol="",
-		filename="",
-		funds=0,
-		errorMessage=""):
+		command,
+		username=None,
+		stockSymbol=None,
+		filename=None,
+		funds=None,
+		errorMessage=None):
 
 	audit_dict = {
 		"logType": "ErrorEventType",
@@ -233,7 +234,6 @@ def audit_error_event(
 
 	if funds: 
 		#funds = str(float(funds) / 100)
-		funds = str(funds)
 		audit_dict["funds"] = funds
 
 	if errorMessage:
