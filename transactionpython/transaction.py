@@ -39,10 +39,12 @@ import time
 
 web_server_address = 'b132.seng.uvic.ca'
 audit_server_address = 'b142.seng.uvic.ca'
+SELF_HOST = ''
 # Port list, in case things are run on same machine
 # 44421	Audit
 # 44422 Transaction
 audit_server_port = 44421
+SELF_PORT = 44422
 # web_server_port = 44422
 
 ADD = "ADD"
@@ -640,11 +642,8 @@ def main():
 		"stocks": {}
 	}
 
-	host = ''
-	port = 44421
-
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	s.bind((host, port))
+	s.bind((SELF_HOST, SELF_PORT))
 
 	while 1:
 		print 'Main: waiting\n'
