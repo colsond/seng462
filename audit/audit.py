@@ -252,16 +252,15 @@ def clientthread(conn):
 	#Sending message to connected client
 	#infinite loop so that function do not terminate and thread do not end.
 	while True:
-			 
-			#Receiving from client
+	#Receiving from client
 	#this is where all the logic for logging will go.
-			data = conn.recv(4096)
+		data = conn.recv(4096)
 	#handle request here
-			if not data: 
-					break
+		if not data: 
+			break
 	#this function call handles the data package and returns ok or gives an unknown log error
-		reply = handleEntry(data) 
-			conn.sendall(reply)
+	reply = handleEntry(data) 
+	conn.sendall(reply)
 	 
 	#came out of loop
 	print "Ending transmission"
