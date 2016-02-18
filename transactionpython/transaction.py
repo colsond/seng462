@@ -6,6 +6,9 @@ import string
 import sys
 import time
 
+# -- REMEMBER: to not run in debug mode:
+#				python -O transaction.py
+
 ## Cache format:
 ## cache = {
 ##	"users": {
@@ -37,9 +40,12 @@ import time
 ##	}
 ##}
 
+server_name = "transaction_server_1"
+
 web_server_address = 'b132.seng.uvic.ca'
 audit_server_address = 'b142.seng.uvic.ca'
 SELF_HOST = ''
+
 # Port list, in case things are run on same machine
 # 44421	Audit
 # 44422 Transaction
@@ -207,8 +213,8 @@ def audit_system_event(
 def audit_error_event(
 		timestamp,
 		server,
-		transactionNum,
-		command,
+		transactionNum=None,
+		command=None,
 		username=None,
 		stockSymbol=None,
 		filename=None,
@@ -218,10 +224,14 @@ def audit_error_event(
 	audit_dict = {
 		"logType": "ErrorEventType",
 		"timestamp": timestamp,
-		"server": server,
-		"transactionNum": transactionNum,
-		"command": command,
+		"server": server
 	}
+
+	if transactionNum:
+		audit_dict["transactionNum"]: transactionNum
+
+	if command:
+		audit_dict["command"]: command
 
 	if username:
 		audit_dict["username"] = username
@@ -246,8 +256,8 @@ def audit_error_event(
 def audit_debug(
 		timestamp,
 		server,
-		transactionNum,
-		command,
+		transactionNum=None,
+		command=None,
 		username="",
 		stockSymbol="",
 		filename="",
@@ -257,10 +267,14 @@ def audit_debug(
 	audit_dict = {
 		"logType": "DebugEventType",
 		"timestamp": timestamp,
-		"server": server,
-		"transactionNum": transactionNum,
-		"command": command,
+		"server": server
 	}
+
+	if transactionNum:
+		audit_dict["transactionNum"] = transactionNum
+
+	if command:
+		audit_dict["command"] = command
 
 	if username:
 		audit_dict["username"] = username
@@ -272,7 +286,7 @@ def audit_debug(
 		audit_dict["filename"] = filename
 
 	if funds: 
-		funds = str(float(funds) / 100)
+#		funds = str(float(funds) / 100)
 		audit_dict["funds"] = funds
 
 	if errorMessage:
@@ -286,51 +300,95 @@ def process_request(data, cache):
 	# Convert Data to Dict
 	data_dict = ast.literal_eval(data)
 
-	# -- store userCommand in audit regardless of correctness
-	
-	response = "\n"
 	print "\nNew transaction: "
 	print data_dict
 	print "\n"
-	server_name = "transaction_server_1"
-	filename = ""
+
+	response = "Request not processed."
 	transaction_id = data_dict.get('transaction_id')
-	
+	request_type = data_dict.get('request_type')
+	user = data_dict.get('user')
+	stock_id = data_dict.get('stock_id')
+	filename = data_dict.get('filename')
+	amount = data_dict.get('amount')
+
+
+	# -- DEBUG: store event in audit regardless of correctness
+	if __debug__:
+		audit_debug(
+			now(),
+			server_name,
+			transaction_id,
+			request_type,
+			user,
+			stock_id,
+			filename,
+			amount,
+			"Storing command before processing."
+		)
+
+
+# ---------------------------------------------------------
+# Begin processing request
+# ---------------------------------------------------------
+
+	# -- Check for transaction id and request type
 	if transaction_id is None:
-		print "Missing transaction id. Ignored.\n"
+		response = "Missing transaction id. Transaction ignored."
+		audit_error_event(
+			now(),
+			server_name,
+			transaction_id,
+			request_type,
+			user,
+			stock_id,
+			filename,
+			amount,
+			response
+		)
 	else:
 
-		request_type = data_dict.get('request_type')
-
 		if request_type is None:
-			print "Malformed request. Ignored.\n"
+			response = "Missing request command. Transaction ignored."
+			audit_error_event(
+				now(),
+				server_name,
+				transaction_id,
+				request_type,
+				user,
+				stock_id,
+				filename,
+				amount,
+				response
+			)
 		else:
-			stock_id = data_dict.get('stock_id')
 
-			user = data_dict.get('user')
-			if user and user not in cache["users"]:
-				cache["users"][user] = {
-					"balance": 0,
-					"stocks": {},
-					"quotes": {},
-					"pending_buy": {},
-					"pending_sell": {},
-					"buy_trigger": {},
-		      		"sell_trigger": {},
-				}
+			# -- If there is a transaction id and request type then check if there
+			# is a user id in the request, check if that user id exists in the 
+			# database, and if not then add them; Store user's present balance.
 
-			amount = data_dict.get('amount')
-			
+			if user:
+				if user not in cache["users"]:
+					cache["users"][user] = {
+						"balance": 0,
+						"stocks": {},
+						"quotes": {},
+						"pending_buy": {},
+						"pending_sell": {},
+						"buy_trigger": {},
+					  		"sell_trigger": {},
+					}
+					balance = None
+				else:
+					balance = cache["users"][user]["balance"]
+			# No action if no user in request
+
+
+			# -- Convert amounts to pennies to avoid decimals
 			if amount is not None:
-				# store amounts in pennies to avoid decimals
 				amount = int(float(amount)*100)
 
-			filename = data_dict.get('filename')
-			if user:
-				balance = cache["users"][user]["balance"]
-			else:
-				balance = None
-
+			# Store request before processing
 			audit_user_command_event(
 				now(),
 				server_name,
@@ -342,9 +400,12 @@ def process_request(data, cache):
 				balance
 			)
 
+# --------------
+# -- ADD REQUEST
+# --------------
 			if request_type == ADD:
 				if amount is None:
-					response = "ADD - Amount not specified.\n"
+					response = "Amount not specified."
 					audit_error_event(
 						now(),
 						server_name,
@@ -352,12 +413,12 @@ def process_request(data, cache):
 						request_type,
 						user,
 						stock_id,
-						None,
+						None,#filename
 						amount,
 						response
 					)
 				elif amount < 0:
-					response = "ADD - Attempting to add a negative amount\n"
+					response = 'Attempting to add a negative amount.' 
 					audit_error_event(
 						now(),
 						server_name,
@@ -365,13 +426,13 @@ def process_request(data, cache):
 						request_type,
 						user,
 						stock_id,
-						None,
+						None,#filename
 						amount,
 						response
 					)
 				else:
 					cache["users"][user]["balance"] += amount
-					response = "Added\n"
+					response = "Added."
 					audit_transaction_event(
 						now(),
 						server_name,
@@ -380,32 +441,158 @@ def process_request(data, cache):
 						user,
 						cache["users"][user]["balance"]
 					)
-		
+
+# ----------------
+# -- QUOTE REQUEST
+# ----------------
 			elif request_type == QUOTE:
-				cache = get_quote(data_dict, cache)
-				response += "\n"
-			
+
+				existing_timestamp = cache["users"][user]["quotes"][stock_id].get("timestamp")
+				if __debug__:
+					print "existing timestamp: " + str(existing_timestamp)
+					print "current time: " + now()
+
+				# If there is no existing quote for this user/stock_id, or the existing quote has expired, get a new one
+				if not existing_timestamp or now() - int(existing_timestamp) > 60000:
+
+					if __debug__:
+						audit_debug(
+							now(),
+							server_name,
+							transaction_id,
+							request_type,
+							user,
+							stock_id,
+							None,#filename
+							amount,
+							'Sending quote request')
+
+					current_quote = get_quote(user,stock_id,transaction_id)
+
+					if current_quote[1] == stock_id
+						cache["users"][user]["quotes"][current_quote[1]] = {
+							"price": current_quote[0],
+							"user": current_quote[2],
+							"timestamp": int(current_quote[3]),
+							"cryptokey": current_quote[4]
+						}
+					else:
+						audit_error_event(
+							now(),
+							server_name,
+							transaction_id,
+							request_type,
+							user,
+							stock_id,
+							None,#filename
+							None,#amount
+							'Quoted stock name [' + current_quote[1] + '] does not match requested stock name.'
+						)
+
+					audit_quote_server_event(
+						now(),
+						server_name,
+						transaction_id,
+						current_quote[0],
+						current_quote[1],
+						current_quote[2],
+						int(current_quote[3]),
+						current_quote[4]
+					)
+
+				response = stock_id + ': ' + cache["users"][user]["quotes"][stock_id]['price']
+
+# --------------
+# -- BUY REQUEST
+# --------------
 			elif request_type == BUY:
+
 				# Check user balance
 				if cache["users"][user]["balance"] >= amount:
 					# get quote and send to user to confirm
-					cache = get_quote(data_dict, cache)
+
+# FROM QUOTE REQUEST
+
+					# UNCOMMENT IF CACHED QUOTES CAN BE USED FOR BUY REQUESTS
+					#existing_timestamp = cache["users"][user]["quotes"][stock_id].get("timestamp")
+					#if __debug__:
+					#	print "existing timestamp: " + str(existing_timestamp)
+					#	print "current time: " + now()
+
+					## If there is no existing quote for this user/stock_id, or the existing quote has expired, get a new one
+					#if not existing_timestamp or now() - int(existing_timestamp) > 60000:
+
+					#TAB REMAINING CODE IN QUOTE SECTION IF ENABLING CACHING
+
+					if __debug__:
+						audit_debug(
+							now(),
+							server_name,
+							transaction_id,
+							request_type,
+							user,
+							stock_id,
+							None,#filename
+							amount,
+							'Sending quote request')
+
+					current_quote = get_quote(user,stock_id,transaction_id)
+
+					if current_quote[1] == stock_id
+						cache["users"][user]["quotes"][current_quote[1]] = {
+							"price": current_quote[0],
+							"user": current_quote[2],
+							"timestamp": int(current_quote[3]),
+							"cryptokey": current_quote[4]
+						}
+					else:
+						audit_error_event(
+							now(),
+							server_name,
+							transaction_id,
+							request_type,
+							user,
+							stock_id,
+							None,#filename
+							None,#amount
+							'Quoted stock name [' + current_quote[1] + '] does not match requested stock name.'
+						)
+
+					audit_quote_server_event(
+						now(),
+						server_name,
+						transaction_id,
+						current_quote[0],
+						current_quote[1],
+						current_quote[2],
+						int(current_quote[3]),
+						current_quote[4]
+					)
+
+# END QUOTE SECTION
+
+					
 					price = cache["users"][user]["quotes"][stock_id]["price"]
 					timestamp = cache["users"][user]["quotes"][stock_id]["timestamp"]
 					response = "Stock: " + stock_id + "  Current price: " + price + "\n"
-				
-				
+			
 					# Set pending buy to new values (should overwrite existing entry)
 					cache["users"][user]["pending_buy"]["stock_id"] = stock_id
 					cache["users"][user]["pending_buy"]["amount"] = amount
 					cache["users"][user]["pending_buy"]["timestamp"] = now()
 					response = "Please confirm your purchase within 60 seconds.\n"
-			
+
+				else:
+					response = "Insufficient funds in account to place buy order."
+
+# ---------------------
+# -- COMMIT BUY REQUEST - This is where I stopped
+# ---------------------
 			elif request_type == COMMIT_BUY: 
 				# Check if timestamp is still valid
 				if cache["users"][user]["pending_buy"]:
 					if now() - 60000 <= cache["users"][user]["pending_buy"]["timestamp"]:
-					
+				
 						# Get stock_id and amount from pending_buy entry
 						amount = int(cache["users"][user]["pending_buy"]["amount"])
 						stock_id = cache["users"][user]["pending_buy"]["stock_id"]
@@ -415,22 +602,26 @@ def process_request(data, cache):
 							cache["users"][user]["stocks"][stock_id] = amount
 						else:
 							cache["users"][user]["stocks"][stock_id] = cache["users"][user]["stocks"][stock_id] + amount
-					
+				
 						# Update user balance
 						cache["users"][user]["balance"] = cache["users"][user]["balance"] - amount
 						# -- store accountTransaction in audit
-					
+				
 						# Remove the pending entry
 						cache["users"][user]["pending_buy"] = {}
 
-						response = "Last buy order committed.\n"
+						response = "Last buy order committed."
 					else:
-						print "TIME WINDOW ELAPSED\n"
-			
+						reponse = "Time elapsed. Buy cancelled."
+						
+
+# ---------------------
+# -- CANCEL BUY REQUEST
+# ---------------------
 			elif request_type == CANCEL_BUY:
 				cache["users"][user]["pending_buy"] = {}
-				response = "Buy cancelled.\n"
-			
+				response = "Buy cancelled."
+		
 			elif request_type == SELL:
 				# Check user stock amount
 				if amount > 0 and cache["users"][user]["stocks"].get(stock_id, 0) >= amount:
@@ -449,26 +640,26 @@ def process_request(data, cache):
 					cache["users"][user]["pending_sell"]["amount"] = amount
 					cache["users"][user]["pending_sell"]["timestamp"] = now()
 					response = "Please confirm your sell within 60 seconds.\n"
-			
+		
 			elif request_type == COMMIT_SELL:
 				# Check if timestamp is still valid
 				if cache["users"][user]["pending_sell"]:
 					if now() - 60000 <= cache["users"][user]["pending_sell"]["timestamp"]:
-					
+				
 						# Get stock_id and amount from pending_buy entry
 						amount = int(cache["users"][user]["pending_sell"]["amount"])
 						stock_id = cache["users"][user]["pending_sell"]["stock_id"]
 
 						# Update user stock value
 						cache["users"][user]["stocks"][stock_id] = cache["users"][user]["stocks"][stock_id] - amount
-					
+				
 						# Update user balance
 						cache["users"][user]["balance"] = cache["users"][user]["balance"] + amount
-					
+				
 						# Remove the pending entry
 						cache["users"][user]["pending_sell"] = {}
 						# -- store accountTransaction in audit
-					
+				
 						response = "Sell committed.\n"
 					else:
 						print "TIME WINDOW ELAPSED"
@@ -476,14 +667,14 @@ def process_request(data, cache):
 			elif request_type == CANCEL_SELL:
 				cache["users"][user]["pending_sell"] = {}
 				response = "Sell cancelled.\n"
-			
+		
 			elif request_type == SET_BUY_AMOUNT:
 				# Check user balance
 				if cache["users"][user]["balance"] >= amount:
 					# Update user balance
 					cache["users"][user]["balance"] -= amount
 					# -- store accountTransaction in audit
-			
+		
 					# Set up buy trigger with stock and amount to spend
 					if stock_id not in cache["users"][user]["buy_trigger"]:
 						cache["users"][user]["buy_trigger"] = {
@@ -495,10 +686,10 @@ def process_request(data, cache):
 					else:
 						cache["users"][user]["buy_trigger"][stock_id]["amount"] = amount
 					print "Trigger ready. Please set commit level.\n"
-			
+		
 				else:
 					print "Insufficient funds to set trigger.\n"
-				
+			
 			elif request_type == CANCEL_SET_BUY:
 				stock_id = data_dict["stock_id"]
 				try:
@@ -512,9 +703,9 @@ def process_request(data, cache):
 					cache["users"][user]["balance"] += cache["users"][user]["buy_trigger"][stock_id]["amount"]
 					cache["users"][user]["buy_trigger"][stock_id]["amount"] = 0
 					# store accountTransaction in audit
-				
-					#NOTE: trigger remains in cache, but is inactive - with a database the record can be deleted
 			
+					#NOTE: trigger remains in cache, but is inactive - with a database the record can be deleted
+		
 			elif request_type == SET_BUY_TRIGGER:
 				try:
 					if cache["users"][user]["buy_trigger"][stock_id]["amount"] > 0:
@@ -525,17 +716,17 @@ def process_request(data, cache):
 					else:
 						# buy_trigger for stock exists with zero value (old trigger that was cancelled)
 						print "Buy trigger not initialized; Trigger not enabled.\n"
-					
+				
 				except:
 					#buy_trigger doesn't exist at all
 					print "Buy trigger not initialized; Trigger not enabled.\n"
-				
+			
 			elif request_type == SET_SELL_AMOUNT:			
 				if stock_id in cache["users"][user]["stocks"]:
 					if cache["users"][user]["stocks"][stock_id] >= amount:
 						cache["users"][user]["stocks"][stock_id] -= amount
 						# -- store accountTransaction in audit
-				
+			
 						if stock_id not in cache["users"][user]["sell_trigger"]:
 							cache["users"][user]["sell_trigger"] = {
 								stock_id: {
@@ -545,12 +736,12 @@ def process_request(data, cache):
 							}
 						else:
 							cache["users"][user]["sell_trigger"][stock_id]["amount"] = amount
-				
+			
 					else:
 						print "Insufficient stock to set trigger.\n"
 				else:
 					print "User does not own this stock\n"
-					
+				
 			elif request_type == SET_SELL_TRIGGER:			
 				try:
 					if cache["users"][user]["sell_trigger"][stock_id]["amount"] > 0:
@@ -563,7 +754,7 @@ def process_request(data, cache):
 						print "Sell trigger not initialized; Trigger not enabled.\n"
 				except:
 					print "Sell trigger not initialized; Trigger not enabled.\n"
-			
+		
 			elif request_type == CANCEL_SET_SELL:
 				try:
 					cache["users"][user]["sell_trigger"][stock_id]["trigger"] = 0;
@@ -573,7 +764,7 @@ def process_request(data, cache):
 					cache["users"][user]["stocks"][stock_id] += cache["users"][user]["sell_trigger"][stock_id]["amount"]
 					cache["users"][user]["sell_trigger"][stock_id]["amount"] = 0
 					print "Sell trigger on " + stock_id + "cancelled.\n"
-			
+		
 			elif request_type == DUMPLOG:
 					if filename is None:
 						print "No filename for dumplog command. Dump not performed.\n"
@@ -583,7 +774,7 @@ def process_request(data, cache):
 
 			elif request_type == DISPLAY_SUMMARY:
 				print cache["users"][user]
-			
+		
 			else:
 				print "Invalid command.\n"
 
@@ -595,51 +786,37 @@ def process_request(data, cache):
 	return response, cache
 
 # Request a Quote from the quote server
-def get_quote(data, cache):
+# Values returned from function in the order the quote server provides
+#
+# Quote server response format:
+#		price,stock,user,timestamp,cryptokey
+#
+# Note: function returns price in cents
+
+def get_quote(data):
 	user = data['user']
 	stock_id = data['stock_id']
 	transaction_id = data['transaction_id']
-	try:
-		existing_timestamp = cache["users"][user]["quotes"][stock_id]["timestamp"]
-		print "existing timestamp: " + str(existing_timestamp)
-	except KeyError:
-		existing_timestamp = None
-	print now()
-	# If there is no existing quote for this user/stock_id, or the existing quote has expired, get a new one
-	if not existing_timestamp or now() - int(existing_timestamp) > 60000:
+
+	if __debug__:
 		print "HITTING QUOTE SERVER \n HITTING QUOTE SERVER \n OMG \n!!!"
-		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-		s.connect(('quoteserve.seng.uvic.ca', 4444))
-		request = stock_id + ", " + user + "\r"
-		s.send(request)
+	request = stock_id + ", " + user + "\r"
 
-		response = s.recv(1024)
-		print response
-		s.close()
-		response = response.split(',')
+	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	s.connect(('quoteserve.seng.uvic.ca', 4444))
+	s.send(request)
+	response = s.recv(1024)
+	s.close()
+
+	if __debug__:
 		print "quote server response: " + str(response)
-		server_name='transaction_server_1'
 
-		cache["users"][user]["quotes"][response[1]] = {
-			"price": response[0],
-			"user": response[2],
-			"timestamp": int(response[3]),
-			"cryptokey": response[4].translate(None,'\n')
-		}
+	response.translate(None,'\n')
+	response = response.split(',')
+	response[0] = int(float(response[0])*100)
 
-		audit_quote_server_event(
-			now(),
-			server_name,
-			transaction_id,
-			response[0],
-			response[1],
-			response[2],
-			int(response[3]),
-			response[4]
-		)
-
-	return cache
+	return response
 
 def main():
 	cache = {
