@@ -1,6 +1,5 @@
 [1] ADD,umhaEY4lil,91628.00 
 [2] ADD,LwNQpkd8mr,80084.08 
-[9962] ADD,umhaEY4lil,-73280.58
 [3] ADD,kul4JJSoHc,72079.97 
 [4] ADD,w69hSQMdyy,57106.99 
 [5] ADD,xFrzsBbeiS,58716.24 
