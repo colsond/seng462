@@ -398,7 +398,7 @@ def process_request(data, cache):
 				user,
 				stock_id,
 				filename,
-				balance
+				amount
 			)
 
 # --------------
