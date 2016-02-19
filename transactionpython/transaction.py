@@ -143,7 +143,7 @@ def audit_quote_server_event(
 		"timestamp": timestamp,
 		"server": server,
 		"transactionNum": transactionNum,
-		"price": price,
+		"price": str(float(price)/100),
 		"stockSymbol": stockSymbol,
 		"username": username,
 		"quoteServerTime": quoteServerTime,
@@ -169,7 +169,7 @@ def audit_transaction_event(
 		"transactionNum": transactionNum,
 		"action": action,
 		"username": username,
-		"funds": funds,
+		"funds": str(float(funds)/100),
 	}
 
 	send_audit_entry(str(audit_dict))
