@@ -877,7 +877,7 @@ def process_request(data, cache):
 # -- CANCEL SET BUY REQUEST
 # -------------------------
 			elif request_type == CANCEL_SET_BUY:
-				if cache["users"][user]["buy_trigger"][stock_id].get("trigger",0) == 0
+				if cache["users"][user]["buy_trigger"][stock_id].get("trigger",0) == 0:
 					#if there was no trigger
 					response = "No trigger listed for stock."
 					audit_error_event(
