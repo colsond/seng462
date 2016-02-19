@@ -290,8 +290,8 @@ def audit_debug(
 #		funds = str(float(funds) / 100)
 		audit_dict["funds"] = funds
 
-	if errorMessage:
-		audit_dict["debugMessage"] = errorMessage
+	if debugMessage:
+		audit_dict["debugMessage"] = debugMessage
 	
 	send_audit_entry(str(audit_dict))
 
