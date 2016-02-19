@@ -1061,16 +1061,16 @@ def process_request(data, cache):
 							response)
 				else:
 					response = "Sell trigger not initialized; Trigger not enabled.\n"
-						audit_error_event(
-							now(),
-							server_name,
-							transaction_id,
-							request_type,
-							user,
-							stock_id,
-							None,#filename
-							amount,
-							response)
+					audit_error_event(
+						now(),
+						server_name,
+						transaction_id,
+						request_type,
+						user,
+						stock_id,
+						None,#filename
+						amount,
+						response)
 		
 # --------------------------
 # -- CANCEL SET SELL REQUEST
