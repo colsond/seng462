@@ -454,7 +454,7 @@ def process_request(data, cache):
 					
 				if __debug__:
 					print "existing timestamp: " + str(existing_timestamp)
-					print "current time: " + now()
+					print "current time: " + str(now())
 
 				# If there is no existing quote for this user/stock_id, or the existing quote has expired, get a new one
 				if not existing_timestamp or now() - int(existing_timestamp) > 60000:
