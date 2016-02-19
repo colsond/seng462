@@ -197,8 +197,8 @@ def parseDebug(entryDict):
 			DebugType += '<username>' + userName + '</username>'
 	if (stockSymbol!=""):
 			DebugType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
-	if (filename!=""):
-			DebugType += '<filename>' + filename + '</filename>'
+	if (fileName!=""):
+			DebugType += '<filename>' + fileName + '</filename>'
 	if (funds!=""):
 			DebugType += '<funds>' + str(funds) + '</funds>'
 	if (debugMessage!=""):
