@@ -559,7 +559,7 @@ def process_request(data, cache):
 							stock_id,
 							None,#filename
 							None,#amount
-							'Quoted stock name [' + current_quote[1] + '] does not match requested stock name.'
+							'Quoted stock name [' + str(current_quote[1]) + '] does not match requested stock name.'
 						)
 
 					audit_quote_server_event(
@@ -578,13 +578,13 @@ def process_request(data, cache):
 					
 					price = cache["users"][user]["quotes"][stock_id]["price"]
 					timestamp = cache["users"][user]["quotes"][stock_id]["timestamp"]
-					response = "Stock: " + stock_id + "  Current price: " + price + "\n"
+					response = str(stock_id) + ":" + str(price)
 			
 					# Set pending buy to new values (should overwrite existing entry)
 					cache["users"][user]["pending_buy"]["stock_id"] = stock_id
 					cache["users"][user]["pending_buy"]["amount"] = amount
 					cache["users"][user]["pending_buy"]["timestamp"] = now()
-					response = "Please confirm your purchase within 60 seconds.\n"
+					response = "Please confirm your purchase within 60 seconds."
 
 				else:
 					response = "Insufficient funds in account to place buy order."
