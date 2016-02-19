@@ -1149,9 +1149,9 @@ def get_quote(data):
 	if __debug__:
 		print "quote server response: " + str(response)
 
-	response.translate(None,'\n')
 	response = response.split(',')
 	response[0] = int(float(response[0])*100)
+	response[4]=response[4].translate(None,'\n')
 
 	return response
 
