@@ -471,7 +471,7 @@ def process_request(data, cache):
 							amount,
 							'Sending quote request')
 
-					current_quote = get_quote(user,stock_id,transaction_id)
+					current_quote = get_quote({"user":user,"stock_id":stock_id,"transaction_id":transaction_id})
 
 					if current_quote[1] == stock_id:
 						cache["users"][user]["quotes"][current_quote[1]] = {
@@ -540,7 +540,7 @@ def process_request(data, cache):
 							amount,
 							'Sending quote request')
 
-					current_quote = get_quote(user,stock_id,transaction_id)
+					current_quote = get_quote({"user":user,"stock_id":stock_id,"transaction_id":transaction_id})
 
 					if current_quote[1] == stock_id:
 						cache["users"][user]["quotes"][current_quote[1]] = {
@@ -679,7 +679,7 @@ def process_request(data, cache):
 								amount,
 								'Sending quote request')
 
-						current_quote = get_quote(user,stock_id,transaction_id)
+						current_quote = get_quote({"user":user,"stock_id":stock_id,"transaction_id":transaction_id})
 
 						audit_quote_server_event(
 							now(),
