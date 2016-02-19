@@ -639,7 +639,7 @@ def process_request(data, cache):
 					response = "No buy order in place. Commit buy cancelled."
 					audit_error_event(
 						now(),
-						server,
+						server_name,
 						transaction_id,
 						request_type,
 						user,
