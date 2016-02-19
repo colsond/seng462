@@ -490,7 +490,7 @@ def process_request(data, cache):
 							stock_id,
 							None,#filename
 							None,#amount
-							'Quoted stock name [' + current_quote[1] + '] does not match requested stock name.'
+							'Quoted stock name [' + str(current_quote[1]) + '] does not match requested stock name.'
 						)
 
 					audit_quote_server_event(
@@ -504,7 +504,7 @@ def process_request(data, cache):
 						current_quote[4]
 					)
 
-				response = stock_id + ': ' + cache["users"][user]["quotes"][stock_id]['price']
+				response = str(stock_id) + ':' + str(cache["users"][user]["quotes"][stock_id]['price'])
 
 # --------------
 # -- BUY REQUEST
