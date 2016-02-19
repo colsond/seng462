@@ -121,7 +121,7 @@ def audit_user_command_event(
 		audit_dict["filename"] = filename
 
 	if funds:
-		funds = str(float(funds) / 100)
+		funds = "{:.2f}".format(float(funds)/100)
 		audit_dict["funds"] = funds
 	
 	send_audit_entry(str(audit_dict))
@@ -169,7 +169,7 @@ def audit_transaction_event(
 		"transactionNum": transactionNum,
 		"action": action,
 		"username": username,
-		"funds": str(float(funds)/100),
+		"funds": "{:.2f}".format(float(funds)/100),
 	}
 
 	send_audit_entry(str(audit_dict))
@@ -204,7 +204,7 @@ def audit_system_event(
 		audit_dict["filename"] = filename
 
 	if funds:
-		funds = str(float(funds) / 100)
+		funds = "{:.2f}".format(float(funds)/100)
 		audit_dict["funds"] = funds
 	
 	send_audit_entry(str(audit_dict))
@@ -244,7 +244,7 @@ def audit_error_event(
 		audit_dict["filename"] = filename
 
 	if funds: 
-		funds = str(float(funds) / 100)
+		funds = "{:.2f}".format(float(funds)/100)
 		audit_dict["funds"] = funds
 
 	if errorMessage:
@@ -288,7 +288,7 @@ def audit_debug(
 
 	if funds: 
 #		funds = str(float(funds) / 100)
-		audit_dict["funds"] = funds
+		audit_dict["funds"] = "{:.2f}".format(float(funds)/100)
 
 	if debugMessage:
 		audit_dict["debugMessage"] = debugMessage
