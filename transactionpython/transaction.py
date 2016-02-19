@@ -447,10 +447,11 @@ def process_request(data, cache):
 # -- QUOTE REQUEST
 # ----------------
 			elif request_type == QUOTE:
-				if stock_id in cache["users"][user]["quotes"]
+				if stock_id in cache["users"][user]["quotes"]:
 					existing_timestamp = cache["users"][user]["quotes"][stock_id].get("timestamp",0)
-				else
+				else:
 					existing_timestamp = None
+					
 				if __debug__:
 					print "existing timestamp: " + str(existing_timestamp)
 					print "current time: " + now()
