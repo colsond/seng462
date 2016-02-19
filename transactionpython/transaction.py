@@ -229,10 +229,10 @@ def audit_error_event(
 	}
 
 	if transactionNum:
-		audit_dict["transactionNum"]: transactionNum
+		audit_dict["transactionNum"] = transactionNum
 
 	if command:
-		audit_dict["command"]: command
+		audit_dict["command"] = command
 
 	if username:
 		audit_dict["username"] = username
