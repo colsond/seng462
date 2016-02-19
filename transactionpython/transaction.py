@@ -821,10 +821,23 @@ def process_request(data, cache):
 # -- SET BUY AMOUNT REQUEST
 # -------------------------
 			elif request_type == SET_BUY_AMOUNT:
-				# Check if there is an existing trigger for the stock
-				if cache["users"][user]["buy_trigger"][stock_id].get("trigger",0) == 0:
-					# Check user balance
-					if cache["users"][user]["balance"] >= amount:
+			
+				# Check user balance
+				if cache["users"][user]["balance"] >= amount:
+					# Check if there is an existing trigger for the stock
+					if stock_id in cache["users"][user]["buy_trigger"] and cache["users"][user]["buy_trigger"][stock_id].get("trigger",0) > 0:
+						response = "Trigger already set for stock."
+						audit_error_event(
+							now(),
+							server_name,
+							transaction_id,
+							request_type,
+							user,
+							stock_id,
+							None,#filename
+							amount,
+							response)
+					else:
 						# Update user balance
 						cache["users"][user]["balance"] -= amount
 						
@@ -838,33 +851,14 @@ def process_request(data, cache):
 						)
 			
 						# Set up buy trigger with stock and amount to spend
-						if stock_id not in cache["users"][user]["buy_trigger"]:
-							cache["users"][user]["buy_trigger"] = {
-								stock_id: {
-									"amount" : amount,
-									"trigger" : 0
-								}
+						cache["users"][user]["buy_trigger"] = {
+							stock_id: {
+								"amount" : amount,
+								"trigger" : 0
 							}
-						else:
-							cache["users"][user]["buy_trigger"][stock_id]["amount"] = amount
-
-						response = "Trigger ready. Please set commit level."
-			
-					else:
-						response = "Insufficient funds to set trigger."
-						audit_error_event(
-							now(),
-							server_name,
-							transaction_id,
-							request_type,
-							user,
-							stock_id,
-							None,#filename
-							amount,
-							response)
-							
+						}
 				else:
-					response = "Trigger already set for stock."
+					response = "Insufficient funds to set trigger."
 					audit_error_event(
 						now(),
 						server_name,
@@ -875,7 +869,7 @@ def process_request(data, cache):
 						None,#filename
 						amount,
 						response)
-								
+					
 # -------------------------
 # -- CANCEL SET BUY REQUEST
 # -------------------------
@@ -982,7 +976,7 @@ def process_request(data, cache):
 			elif request_type == SET_SELL_AMOUNT:
 				if stock_id in cache["users"][user]["stocks"]:
 					if cache["users"][user]["stocks"][stock_id] >= amount:
-						if stock_id in cache["users"][user]["sell_trigger"] and cache["users"][user]["sell_trigger"].get("trigger",0) >= 0:
+						if stock_id in cache["users"][user]["sell_trigger"] and cache["users"][user]["sell_trigger"].get("trigger",0) > 0:
 							response = "Active sell trigger for stock."
 							audit_error_event(
 								now(),
