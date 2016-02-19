@@ -143,7 +143,7 @@ def audit_quote_server_event(
 		"timestamp": timestamp,
 		"server": server,
 		"transactionNum": transactionNum,
-		"price": "{:.2f}".format(price),
+		"price": "{:.2f}".format(float(price)/100),
 		"stockSymbol": stockSymbol,
 		"username": username,
 		"quoteServerTime": quoteServerTime,
