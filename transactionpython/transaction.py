@@ -25,6 +25,7 @@ import time
 ##      		"amount": 0,
 ##					"trigger": 0
 ##				}
+##			},
 ##			"sell_trigger": {
 ##				"stock_id": {
 ##      		"amount": 0,
@@ -34,7 +35,7 @@ import time
 ##			"quotes": {
 ##				stock_id: {
 ##
-##}
+##				}
 ##			}
 ##		}
 ##	}
@@ -586,7 +587,7 @@ def process_request(data, cache):
 					response = "Insufficient funds in account to place buy order."
 
 # ---------------------
-# -- COMMIT BUY REQUEST - This is where I stopped
+# -- COMMIT BUY REQUEST
 # ---------------------
 			elif request_type == COMMIT_BUY: 
 				# Check if timestamp is still valid
@@ -596,23 +597,53 @@ def process_request(data, cache):
 						# Get stock_id and amount from pending_buy entry
 						amount = int(cache["users"][user]["pending_buy"]["amount"])
 						stock_id = cache["users"][user]["pending_buy"]["stock_id"]
+				
+						# Update user balance
+						cache["users"][user]["balance"] = cache["users"][user]["balance"] - amount
 
 						# Create or update stock entry for user
 						if stock_id not in cache["users"][user]["stocks"]:
 							cache["users"][user]["stocks"][stock_id] = amount
 						else:
-							cache["users"][user]["stocks"][stock_id] = cache["users"][user]["stocks"][stock_id] + amount
-				
-						# Update user balance
-						cache["users"][user]["balance"] = cache["users"][user]["balance"] - amount
-						# -- store accountTransaction in audit
+							cache["users"][user]["stocks"][stock_id] += amount
+							
+						audit_transaction_event(
+							now(),
+							server_name,
+							transaction_id,
+							request_type,
+							user,
+							amount)
 				
 						# Remove the pending entry
 						cache["users"][user]["pending_buy"] = {}
 
 						response = "Last buy order committed."
+						
 					else:
-						reponse = "Time elapsed. Buy cancelled."
+						response = "Time elapsed. Commit buy cancelled."
+						audit_error_event(
+							now(),
+							server_name,
+							transaction_id,
+							request_type,
+							user,
+							None,#stock
+							None,#filename
+							None,#amount
+							response)
+				else:
+					response = "No buy order in place. Commit buy cancelled."
+					audit_error_event(
+						now(),
+						server,
+						transaction_id,
+						request_type,
+						user,
+						None,#stock
+						None,#filename
+						None,#amount
+						response)
 						
 
 # ---------------------
@@ -621,26 +652,108 @@ def process_request(data, cache):
 			elif request_type == CANCEL_BUY:
 				cache["users"][user]["pending_buy"] = {}
 				response = "Buy cancelled."
-		
+				
+# ---------------
+# -- SELL REQUEST
+# ---------------
 			elif request_type == SELL:
 				# Check user stock amount
-				if amount > 0 and cache["users"][user]["stocks"].get(stock_id, 0) >= amount:
-					# get quote and send to user to confirm
-					time_start = now()
-					cache = get_quote(data_dict, cache)
-					quoteServerTime = now() - time_start
-					price = cache["users"][user]["quotes"][stock_id]["price"]
-					timestamp = cache["users"][user]["quotes"][stock_id]["timestamp"]
-					cryptokey = cache["users"][user]["quotes"][stock_id]["cryptokey"]
-					response = "Stock: " + stock_id + "  Current price: " + price + "\n"
-					# -- store quoteServer in audit
+				if amount > 0:
+					if cache["users"][user]["stocks"].get(stock_id, 0) >= amount:
+						# get quote and send to user to confirm
+						
+# FROM QUOTE REQUEST
 
-					# Set pending sell to new values (should overwrite existing entry)
-					cache["users"][user]["pending_sell"]["stock_id"] = stock_id
-					cache["users"][user]["pending_sell"]["amount"] = amount
-					cache["users"][user]["pending_sell"]["timestamp"] = now()
-					response = "Please confirm your sell within 60 seconds.\n"
-		
+						if __debug__:
+							audit_debug(
+								now(),
+								server_name,
+								transaction_id,
+								request_type,
+								user,
+								stock_id,
+								None,#filename
+								amount,
+								'Sending quote request')
+
+						current_quote = get_quote(user,stock_id,transaction_id)
+
+						audit_quote_server_event(
+							now(),
+							server_name,
+							transaction_id,
+							current_quote[0],
+							current_quote[1],
+							current_quote[2],
+							int(current_quote[3]),
+							current_quote[4]
+						)
+
+						if current_quote[1] != stock_id:
+							response = 'Quoted stock name [' + current_quote[1] + '] does not match requested stock name.'
+							audit_error_event(
+								now(),
+								server_name,
+								transaction_id,
+								request_type,
+								user,
+								stock_id,
+								None,#filename
+								None,#amount
+								response
+							)
+						else:
+							cache["users"][user]["quotes"][current_quote[1]] = {
+								"price": current_quote[0],
+								"user": current_quote[2],
+								"timestamp": int(current_quote[3]),
+								"cryptokey": current_quote[4]
+							}
+
+# END QUOTE SECTION
+
+							# Set pending sell to new values (should overwrite existing entry)
+							cache["users"][user]["pending_sell"]["stock_id"] = stock_id
+							cache["users"][user]["pending_sell"]["amount"] = amount
+							cache["users"][user]["pending_sell"]["timestamp"] = now()
+							response = stock_id + ":" + price
+
+							# old code
+							# time_start = now()
+							# cache = get_quote(data_dict, cache)
+							# quoteServerTime = now() - time_start
+							# price = cache["users"][user]["quotes"][stock_id]["price"]
+							# timestamp = cache["users"][user]["quotes"][stock_id]["timestamp"]
+							# cryptokey = cache["users"][user]["quotes"][stock_id]["cryptokey"]
+
+					else:
+						response = "Insufficient stock owned."
+						audit_error_event(
+							now(),
+							server_name,
+							transaction_id,
+							request_type,
+							user,
+							stock_id,
+							None,#filename
+							amount,
+							response)
+				else:
+					response = "Attempt to sell 0 or fewer shares."
+					audit_error_event(
+						now(),
+						server_name,
+						transaction_id,
+						request_type,
+						user,
+						stock_id,
+						None,#filename
+						amount,
+						response)
+					
+# ----------------------
+# -- COMMIT SELL REQUEST
+# ----------------------
 			elif request_type == COMMIT_SELL:
 				# Check if timestamp is still valid
 				if cache["users"][user]["pending_sell"]:
@@ -651,126 +764,372 @@ def process_request(data, cache):
 						stock_id = cache["users"][user]["pending_sell"]["stock_id"]
 
 						# Update user stock value
-						cache["users"][user]["stocks"][stock_id] = cache["users"][user]["stocks"][stock_id] - amount
+						cache["users"][user]["stocks"][stock_id] -= amount
 				
 						# Update user balance
-						cache["users"][user]["balance"] = cache["users"][user]["balance"] + amount
+						cache["users"][user]["balance"] += amount
+						
+						audit_transaction_event(
+							now(),
+							server_name,
+							transaction_id,
+							request_type,
+							user,
+							amount
+						)
 				
 						# Remove the pending entry
 						cache["users"][user]["pending_sell"] = {}
-						# -- store accountTransaction in audit
 				
-						response = "Sell committed.\n"
+						response = "Sell committed."
 					else:
-						print "TIME WINDOW ELAPSED"
-
+						response = "TIME WINDOW ELAPSED"
+						audit_error_event(
+							now(),
+							server_name,
+							transaction_id,
+							request_type,
+							user,
+							None,#stock
+							None,#filename
+							None,#amount
+							response)
+				else:
+					response = 'No sale pending.'
+					audit_error_event(
+						now(),
+						server_name,
+						transaction_id,
+						request_type,
+						user,
+						None,#stock
+						None,#filename
+						None,#amount
+						response)
+					
+# ----------------------
+# -- CANCEL SELL REQUEST
+# ----------------------
 			elif request_type == CANCEL_SELL:
 				cache["users"][user]["pending_sell"] = {}
-				response = "Sell cancelled.\n"
-		
-			elif request_type == SET_BUY_AMOUNT:
-				# Check user balance
-				if cache["users"][user]["balance"] >= amount:
-					# Update user balance
-					cache["users"][user]["balance"] -= amount
-					# -- store accountTransaction in audit
-		
-					# Set up buy trigger with stock and amount to spend
-					if stock_id not in cache["users"][user]["buy_trigger"]:
-						cache["users"][user]["buy_trigger"] = {
-							stock_id: {
-								"amount" : amount,
-								"trigger" : 0
-							}
-						}
-					else:
-						cache["users"][user]["buy_trigger"][stock_id]["amount"] = amount
-					print "Trigger ready. Please set commit level.\n"
-		
-				else:
-					print "Insufficient funds to set trigger.\n"
-			
-			elif request_type == CANCEL_SET_BUY:
-				stock_id = data_dict["stock_id"]
-				try:
-					#deactivate trigger by removing trigger amount
-					cache["users"][user]["buy_trigger"][stock_id]["trigger"] = 0
-				except:
-					#if there was no trigger
-					print "Invalid trigger.\n"
-				else:
-					# put the money back into the user account
-					cache["users"][user]["balance"] += cache["users"][user]["buy_trigger"][stock_id]["amount"]
-					cache["users"][user]["buy_trigger"][stock_id]["amount"] = 0
-					# store accountTransaction in audit
-			
-					#NOTE: trigger remains in cache, but is inactive - with a database the record can be deleted
-		
-			elif request_type == SET_BUY_TRIGGER:
-				try:
-					if cache["users"][user]["buy_trigger"][stock_id]["amount"] > 0:
-						if amount > 0:
-							cache["users"][user]["buy_trigger"][stock_id]["trigger"] = amount;
-						else:
-							print "Buy trigger amount is not a positive value; Trigger not enabled.\n"
-					else:
-						# buy_trigger for stock exists with zero value (old trigger that was cancelled)
-						print "Buy trigger not initialized; Trigger not enabled.\n"
+				response = "Sell cancelled."
 				
-				except:
-					#buy_trigger doesn't exist at all
-					print "Buy trigger not initialized; Trigger not enabled.\n"
+# -------------------------
+# -- SET BUY AMOUNT REQUEST
+# -------------------------
+			elif request_type == SET_BUY_AMOUNT:
+				# Check if there is an existing trigger for the stock
+				if cache["users"][user]["buy_trigger"][stock_id].get("trigger",0) == 0:
+					# Check user balance
+					if cache["users"][user]["balance"] >= amount:
+						# Update user balance
+						cache["users"][user]["balance"] -= amount
+						
+						audit_transaction_event(
+							now(),
+							server_name,
+							transaction_id,
+							request_type,
+							user,
+							amount
+						)
 			
-			elif request_type == SET_SELL_AMOUNT:			
-				if stock_id in cache["users"][user]["stocks"]:
-					if cache["users"][user]["stocks"][stock_id] >= amount:
-						cache["users"][user]["stocks"][stock_id] -= amount
-						# -- store accountTransaction in audit
-			
-						if stock_id not in cache["users"][user]["sell_trigger"]:
-							cache["users"][user]["sell_trigger"] = {
+						# Set up buy trigger with stock and amount to spend
+						if stock_id not in cache["users"][user]["buy_trigger"]:
+							cache["users"][user]["buy_trigger"] = {
 								stock_id: {
 									"amount" : amount,
 									"trigger" : 0
 								}
 							}
 						else:
-							cache["users"][user]["sell_trigger"][stock_id]["amount"] = amount
+							cache["users"][user]["buy_trigger"][stock_id]["amount"] = amount
+
+						response = "Trigger ready. Please set commit level."
 			
 					else:
-						print "Insufficient stock to set trigger.\n"
+						response = "Insufficient funds to set trigger."
+						audit_error_event(
+							now(),
+							server_name,
+							transaction_id,
+							request_type,
+							user,
+							stock_id,
+							None,#filename
+							amount,
+							response)
+							
 				else:
-					print "User does not own this stock\n"
+					response = "Trigger already set for stock."
+					audit_error_event(
+						now(),
+						server_name,
+						transaction_id,
+						request_type,
+						user,
+						stock_id,
+						None,#filename
+						amount,
+						response)
+								
+# -------------------------
+# -- CANCEL SET BUY REQUEST
+# -------------------------
+			elif request_type == CANCEL_SET_BUY:
+				if cache["users"][user]["buy_trigger"][stock_id].get("trigger",0) == 0
+					#if there was no trigger
+					response = "No trigger listed for stock."
+					audit_error_event(
+						now(),
+						server_name,
+						transaction_id,
+						request_type,
+						user,
+						stock_id,
+						None,#filename
+						None,#amount
+						response)
+				else:
+					# put the money back into the user account
+					amount = cache["users"][user]["buy_trigger"][stock_id]["amount"]
+					
+					cache["users"][user]["buy_trigger"][stock_id]["trigger"] = 0
+					cache["users"][user]["buy_trigger"][stock_id]["amount"] = 0
+					
+					cache["users"][user]["balance"] += amount
+						
+					audit_transaction_event(
+						now(),
+						server_name,
+						transaction_id,
+						request_type,
+						user,
+						amount
+					)
+					
+					response = "Buy trigger cancelled."
+					#NOTE: trigger remains in cache, but is inactive - with a database the record can be deleted					
+
+# --------------------------
+# -- SET BUY TRIGGER REQUEST
+# --------------------------
+			elif request_type == SET_BUY_TRIGGER:
+				# Stock should exist in buy trigger list, and have amount set, but no trigger value set
+				if stock_id in cache["users"][user]["buy_trigger"]:
+					if cache["users"][user]["buy_trigger"][stock_id].get("amount",0) > 0:
+						if cache["users"][user]["buy_trigger"][stock_id].get("trigger",0) == 0:
+							if amount > 0:
+								cache["users"][user]["buy_trigger"][stock_id]["trigger"] = amount;
+								response = "Buy trigger set."
+							else:
+								response = "Cannot set trigger to buy at 0 or less."
+								audit_error_event(
+									now(),
+									server_name,
+									transaction_id,
+									request_type,
+									user,
+									stock_id,
+									None,#filename
+									amount,
+									response)
+						else:
+							response = "Buy trigger already enabled for this stock."
+							audit_error_event(
+								now(),
+								server_name,
+								transaction_id,
+								request_type,
+								user,
+								stock_id,
+								None,#filename
+								amount,
+								response)
+									
+						else:
+						response = "Buy trigger not initialized; Trigger not enabled."
+						audit_error_event(
+							now(),
+							server_name,
+							transaction_id,
+							request_type,
+							user,
+							stock_id,
+							None,#filename
+							amount,
+							response)
+							
+					else:
+						response = "Buy trigger not initialized; Trigger not enabled."
+						audit_error_event(
+							now(),
+							server_name,
+							transaction_id,
+							request_type,
+							user,
+							stock_id,
+							None,#filename
+							amount,
+							response)
+							
+				else:
+					response = "No trigger set for stock."
+					audit_error_event(
+						now(),
+						server_name,
+						transaction_id,
+						request_type,
+						user,
+						stock_id,
+						None,#filename
+						amount,
+						response)
+					
+# --------------------------
+# -- SET SELL AMOUNT REQUEST
+# --------------------------
+			elif request_type == SET_SELL_AMOUNT:
+				if stock_id in cache["users"][user]["stocks"]:
+					if cache["users"][user]["stocks"][stock_id] >= amount:
+						if stock_id in cache["users"][user]["sell_trigger"] and cache["users"][user]["sell_trigger"].get("trigger",0) >= 0:
+							response = "Active sell trigger for stock."
+							audit_error_event(
+								now(),
+								server_name,
+								transaction_id,
+								request_type,
+								user,
+								stock_id,
+								None,#filename
+								amount,
+								response)
+						else:
+							cache["users"][user]["stocks"][stock_id] -= amount
+							
+							cache["users"][user]["sell_trigger"] = {
+								stock_id: {
+									"amount" : amount,
+									"trigger" : 0
+								}
+							}
+							response = "Sell trigger initialised."
+					else:
+						response = "Insufficient stock to set trigger."
+						audit_error_event(
+							now(),
+							server_name,
+							transaction_id,
+							request_type,
+							user,
+							stock_id,
+							None,#filename
+							amount,
+							response)
+				else:
+					response = "User does not own this stock."
+					audit_error_event(
+						now(),
+						server_name,
+						transaction_id,
+						request_type,
+						user,
+						stock_id,
+						None,#filename
+						amount,
+						response)
 				
+# ---------------------------
+# -- SET SELL TRIGGER REQUEST
+# ---------------------------
 			elif request_type == SET_SELL_TRIGGER:			
-				try:
+				if stock_id in cache["users"][user]["sell_trigger"]:
 					if cache["users"][user]["sell_trigger"][stock_id]["amount"] > 0:
 						if amount > 0:
 							cache["users"][user]["sell_trigger"][stock_id]["trigger"] = amount
+							response = "Sell trigger set."
 						else:
-							print "Sell trigger amount is not a positive value; Trigger not enabled.\n"
+							response = "Sell trigger amount is not a positive value; Trigger not enabled."
+							audit_error_event(
+								now(),
+								server_name,
+								transaction_id,
+								request_type,
+								user,
+								stock_id,
+								None,#filename
+								amount,
+								response)
 					else:
-						# sell_trigger for stock exists with zero value (old trigger that was cancelled)
-						print "Sell trigger not initialized; Trigger not enabled.\n"
-				except:
-					print "Sell trigger not initialized; Trigger not enabled.\n"
-		
-			elif request_type == CANCEL_SET_SELL:
-				try:
-					cache["users"][user]["sell_trigger"][stock_id]["trigger"] = 0;
-				except:
-					print "Trigger does not exist.\n"
+						response = "Sell trigger not initialized; Trigger not enabled."
+						audit_error_event(
+							now(),
+							server_name,
+							transaction_id,
+							request_type,
+							user,
+							stock_id,
+							None,#filename
+							amount,
+							response)
 				else:
-					cache["users"][user]["stocks"][stock_id] += cache["users"][user]["sell_trigger"][stock_id]["amount"]
-					cache["users"][user]["sell_trigger"][stock_id]["amount"] = 0
-					print "Sell trigger on " + stock_id + "cancelled.\n"
+					response = "Sell trigger not initialized; Trigger not enabled.\n"
+						audit_error_event(
+							now(),
+							server_name,
+							transaction_id,
+							request_type,
+							user,
+							stock_id,
+							None,#filename
+							amount,
+							response)
 		
+# --------------------------
+# -- CANCEL SET SELL REQUEST
+# --------------------------
+			elif request_type == CANCEL_SET_SELL:
+				if stock_id in cache["users"][user]["sell_trigger"]:
+					if cache["users"][user]["sell_trigger"][stock_id]["trigger"] > 0:
+						cache["users"][user]["stocks"][stock_id] += cache["users"][user]["sell_trigger"][stock_id]["amount"]
+						cache["users"][user]["sell_trigger"][stock_id]["amount"] = 0
+						cache["users"][user]["sell_trigger"][stock_id]["trigger"] = 0
+						
+						response = "Sell trigger cancelled."
+					else:
+						response = "Sell trigger not active on this stock."
+						audit_error_event(
+							now(),
+							server_name,
+							transaction_id,
+							request_type,
+							user,
+							stock_id,
+							None,#filename
+							amount,
+							response)
+				else:
+					response = "Sell trigger does not exist for this stock."
+					audit_error_event(
+						now(),
+						server_name,
+						transaction_id,
+						request_type,
+						user,
+						stock_id,
+						None,#filename
+						amount,
+						response)
+
+# --------------------------
+# -- DUMPLOG REQUEST
+# --------------------------		
 			elif request_type == DUMPLOG:
 					if filename is None:
 						print "No filename for dumplog command. Dump not performed.\n"
 					else:
 						#activate the dump on audit
-						print "Dump engaged.\n"
+						print "Dump engaged. Honest.\n"
 
 			elif request_type == DISPLAY_SUMMARY:
 				print cache["users"][user]
