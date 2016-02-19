@@ -546,7 +546,7 @@ def process_request(data, cache):
 						cache["users"][user]["quotes"][current_quote[1]] = {
 							"price": current_quote[0],
 							"user": current_quote[2],
-							"timestamp": int(current_quote[3]),
+							"timestamp": now(),
 							"cryptokey": current_quote[4]
 						}
 					else:
@@ -574,17 +574,16 @@ def process_request(data, cache):
 					)
 
 # END QUOTE SECTION
-
 					
 					price = cache["users"][user]["quotes"][stock_id]["price"]
 					timestamp = cache["users"][user]["quotes"][stock_id]["timestamp"]
-					response = str(stock_id) + ":" + str(price)
 			
 					# Set pending buy to new values (should overwrite existing entry)
 					cache["users"][user]["pending_buy"]["stock_id"] = stock_id
-					cache["users"][user]["pending_buy"]["amount"] = amount
-					cache["users"][user]["pending_buy"]["timestamp"] = now()
-					response = "Please confirm your purchase within 60 seconds."
+					cache["users"][user]["pending_buy"]["amount"] = price
+					cache["users"][user]["pending_buy"]["timestamp"] = timestamp
+					
+					response = str(stock_id) + ":" + str(price)
 
 				else:
 					response = "Insufficient funds in account to place buy order."
@@ -709,25 +708,20 @@ def process_request(data, cache):
 							cache["users"][user]["quotes"][current_quote[1]] = {
 								"price": current_quote[0],
 								"user": current_quote[2],
-								"timestamp": int(current_quote[3]),
+								"timestamp": now(),
 								"cryptokey": current_quote[4]
 							}
 
 # END QUOTE SECTION
 
+							price = cache["users"][user]["quotes"][stock_id]["price"]
+							timestamp = cache["users"][user]["quotes"][stock_id]["timestamp"]
+							
 							# Set pending sell to new values (should overwrite existing entry)
 							cache["users"][user]["pending_sell"]["stock_id"] = stock_id
-							cache["users"][user]["pending_sell"]["amount"] = amount
-							cache["users"][user]["pending_sell"]["timestamp"] = now()
-							response = stock_id + ":" + price
-
-							# old code
-							# time_start = now()
-							# cache = get_quote(data_dict, cache)
-							# quoteServerTime = now() - time_start
-							# price = cache["users"][user]["quotes"][stock_id]["price"]
-							# timestamp = cache["users"][user]["quotes"][stock_id]["timestamp"]
-							# cryptokey = cache["users"][user]["quotes"][stock_id]["cryptokey"]
+							cache["users"][user]["pending_sell"]["amount"] = price
+							cache["users"][user]["pending_sell"]["timestamp"] = timestamp
+							response = str(stock_id) + ":" + str(price)
 
 					else:
 						response = "Insufficient stock owned."
