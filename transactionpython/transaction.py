@@ -470,7 +470,7 @@ def process_request(data, cache):
 
 					current_quote = get_quote(user,stock_id,transaction_id)
 
-					if current_quote[1] == stock_id
+					if current_quote[1] == stock_id:
 						cache["users"][user]["quotes"][current_quote[1]] = {
 							"price": current_quote[0],
 							"user": current_quote[2],
