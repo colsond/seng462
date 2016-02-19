@@ -947,19 +947,6 @@ def process_request(data, cache):
 								amount,
 								response)
 									
-						else:
-						response = "Buy trigger not initialized; Trigger not enabled."
-						audit_error_event(
-							now(),
-							server_name,
-							transaction_id,
-							request_type,
-							user,
-							stock_id,
-							None,#filename
-							amount,
-							response)
-							
 					else:
 						response = "Buy trigger not initialized; Trigger not enabled."
 						audit_error_event(
