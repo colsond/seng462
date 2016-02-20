@@ -121,8 +121,8 @@ def audit_user_command_event(
 		audit_dict["filename"] = filename
 
 	if funds:
-		funds = "{:.2f}".format(float(funds)/100)
-		audit_dict["funds"] = funds
+		#funds = "{:.2f}".format(float(funds)/100)
+		audit_dict["funds"] = str(int(funds/100)) + '.' + str(funds%100)
 	
 	send_audit_entry(str(audit_dict))
 
@@ -143,7 +143,8 @@ def audit_quote_server_event(
 		"timestamp": timestamp,
 		"server": server,
 		"transactionNum": transactionNum,
-		"price": "{:.2f}".format(float(price)/100),
+		"price" : str(int(price/100)) + '.' + str(price%100),
+		#"price": "{:.2f}".format(float(price)/100),
 		"stockSymbol": stockSymbol,
 		"username": username,
 		"quoteServerTime": quoteServerTime,
@@ -169,7 +170,7 @@ def audit_transaction_event(
 		"transactionNum": transactionNum,
 		"action": action,
 		"username": username,
-		"funds": "{:.2f}".format(float(funds)/100),
+		"funds" : str(int(funds/100)) + '.' + str(funds%100)
 	}
 
 	send_audit_entry(str(audit_dict))
@@ -204,8 +205,8 @@ def audit_system_event(
 		audit_dict["filename"] = filename
 
 	if funds:
-		funds = "{:.2f}".format(float(funds)/100)
-		audit_dict["funds"] = funds
+		#funds = "{:.2f}".format(float(funds)/100)
+		audit_dict["funds"] = str(int(funds/100)) + '.' + str(funds%100)
 	
 	send_audit_entry(str(audit_dict))
 
@@ -244,8 +245,8 @@ def audit_error_event(
 		audit_dict["filename"] = filename
 
 	if funds: 
-		funds = "{:.2f}".format(float(funds)/100)
-		audit_dict["funds"] = funds
+		#funds = "{:.2f}".format(float(funds)/100)
+		audit_dict["funds"] = str(int(funds/100)) + '.' + str(funds%100)
 
 	if errorMessage:
 		audit_dict["errorMessage"] = errorMessage
@@ -288,7 +289,8 @@ def audit_debug(
 
 	if funds: 
 #		funds = str(float(funds) / 100)
-		audit_dict["funds"] = "{:.2f}".format(float(funds)/100)
+		audit_dict["funds"] = str(int(funds/100)) + '.' + str(funds%100)
+		
 
 	if debugMessage:
 		audit_dict["debugMessage"] = debugMessage
@@ -1151,7 +1153,7 @@ def get_quote(data):
 
 	response = response.split(',')
 	response[0] = int(float(response[0])*100)
-	response[4]=response[4].translate(None,'\n')
+	response[4] = response[4].translate(None,'\n')
 
 	return response
 
