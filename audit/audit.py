@@ -36,20 +36,20 @@ def parseUserCommand(entryDict):
     funds = entryDict.get('funds', "")
 
     userCommandType = ''
-    userCommandType += '<userCommand>'
-    userCommandType += '<timestamp>' + str(timeStamp) + '</timestamp>'
-    userCommandType += '<server>' + server + '</server>'
-    userCommandType += '<transactionNum>' + transactionNum +'</transactionNum>'
-    userCommandType += '<command>' + command + '</command>'
+    userCommandType += '<userCommand>\n'
+    userCommandType += '    <timestamp>' + str(timeStamp) + '</timestamp>\n'
+    userCommandType += '    <server>' + server + '</server>\n'
+    userCommandType += '    <transactionNum>' + transactionNum +'</transactionNum>\n'
+    userCommandType += '    <command>' + command + '</command>\n'
     if (userName!=""):
-        userCommandType += '<username>' + userName + '</username>'
+        userCommandType += '    <username>' + userName + '</username>\n'
     if (stockSymbol!=""):
-        userCommandType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
+        userCommandType += '    <stockSymbol>' + stockSymbol + '</stockSymbol>\n'
     if (filename!=""):
-        userCommandType += '<filename>' + filename + '</filename>'
+        userCommandType += '    <filename>' + filename + '</filename>\n'
     if (funds!=""):
-        userCommandType += '<funds>' + str(funds) + '</funds>'
-    userCommandType += '</userCommand>'
+        userCommandType += '    <funds>' + str(funds) + '</funds>\n'
+    userCommandType += '</userCommand>\n'
 
     return userCommandType
 
@@ -68,16 +68,16 @@ def pareseQuoteServer(entryDict):
     cryptokey = entryDict['cryptokey']
 
     quoteServerType = ''
-    quoteServerType += '<quoteServer>'
-    quoteServerType += '<timestamp>' + str(timeStamp) + '</timestamp>'
-    quoteServerType += '<server>' + server + '</server>'
-    quoteServerType += '<transactionNum>' + transactionNum + '</transactionNum>'
-    quoteServerType += '<quoteServerTime>' + str(quoteServerTime) + '</quoteServerTime>'
-    quoteServerType += '<username>' + userName + '</username>'
-    quoteServerType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
-    quoteServerType += '<price>' + str(price) + '</price>'
-    quoteServerType += '<cryptokey>' + cryptokey + '</cryptokey>'
-    quoteServerType += '</quoteServer>'
+    quoteServerType += '<quoteServer>\n'
+    quoteServerType += '    <timestamp>' + str(timeStamp) + '</timestamp>\n'
+    quoteServerType += '    <server>' + server + '</server>\n'
+    quoteServerType += '    <transactionNum>' + transactionNum + '</transactionNum>\n'
+    quoteServerType += '    <quoteServerTime>' + str(quoteServerTime) + '</quoteServerTime>\n'
+    quoteServerType += '    <username>' + userName + '</username>\n'
+    quoteServerType += '    <stockSymbol>' + stockSymbol + '</stockSymbol>\n'
+    quoteServerType += '    <price>' + str(price) + '</price>\n'
+    quoteServerType += '    <cryptokey>' + cryptokey + '</cryptokey>\n'
+    quoteServerType += '</quoteServer>\n'
 
     return quoteServerType
 
@@ -94,14 +94,14 @@ def parseAccountTransaction(entryDict):
     funds = entryDict['funds']
 
     accountTransactionType = ''
-    accountTransactionType += '<accountTransaction>'
-    accountTransactionType += '<timestamp>' + str(timeStamp) + '</timestamp>'
-    accountTransactionType += '<server>' + server + '</server>'
-    accountTransactionType += '<transactionNum>' + transactionNum + '</transactionNum>'
-    accountTransactionType += '<action>' + action + '</action>'
-    accountTransactionType += '<username>' + userName + '</username>'
-    accountTransactionType += '<funds>' + str(funds) + '</funds>'
-    accountTransactionType += '</accountTransaction>'
+    accountTransactionType += '<accountTransaction>\n'
+    accountTransactionType += '    <timestamp>' + str(timeStamp) + '</timestamp>\n'
+    accountTransactionType += '    <server>' + server + '</server>\n'
+    accountTransactionType += '    <transactionNum>' + transactionNum + '</transactionNum>\n'
+    accountTransactionType += '    <action>' + action + '</action>\n'
+    accountTransactionType += '    <username>' + userName + '</username>\n'
+    accountTransactionType += '    <funds>' + str(funds) + '</funds>\n'
+    accountTransactionType += '</accountTransaction>\n'
 
     return accountTransactionType
 
@@ -118,20 +118,20 @@ def parseSystemEvent(entryDict):
     funds = entryDict.get('funds', "")
 
     systemEventType = ''
-    systemEventType += '<systemEvent>'
-    systemEventType += '<timestamp>' + str(timeStamp) + '</timestamp>'
-    systemEventType += '<server>' + server + '</server>'
-    systemEventType += '<transactionNum>' + transactionNum + '</transactionNum>'
-    systemEventType += '<command>' + command + '</command>'
+    systemEventType += '<systemEvent>\n'
+    systemEventType += '    <timestamp>' + str(timeStamp) + '</timestamp>\n'
+    systemEventType += '    <server>' + server + '</server>\n'
+    systemEventType += '    <transactionNum>' + transactionNum + '</transactionNum>\n'
+    systemEventType += '    <command>' + command + '</command>\n'
     if (userName!=""):
-        systemEventType += '<username>' + userName + '</username>'
+        systemEventType += '    <username>' + userName + '</username>\n'
     if (stockSymbol!=""):
-        systemEventType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
+        systemEventType += '    <stockSymbol>' + stockSymbol + '</stockSymbol>\n'
     if (filename!=""):
-        systemEventType += '<filename>' + filename + '</filename>'
+        systemEventType += '    <filename>' + filename + '</filename>\n'
     if (funds!=""):
-        systemEventType += '<funds>' + str(funds) + '</funds>'
-    systemEventType += '</systemEvent>'
+        systemEventType += '    <funds>' + str(funds) + '</funds>\n'
+    systemEventType += '</systemEvent>\n'
 
     return systemEventType
 
@@ -150,22 +150,22 @@ def parseErrorEvent(entryDict):
     errorMessage = entryDict.get('errorMessage')
 
     errorEventType = ''
-    errorEventType += '<errorEvent>'
-    errorEventType += '<timestamp>' + str(timeStamp) + '</timestamp>'
-    errorEventType += '<server>' + server + '</server>'
-    errorEventType += '<transactionNum>' + transactionNum + '</transactionNum>'
-    errorEventType += '<command>' + command + '</command>'
+    errorEventType += '<errorEvent>\n'
+    errorEventType += '    <timestamp>' + str(timeStamp) + '</timestamp>\n'
+    errorEventType += '    <server>' + server + '</server>\n'
+    errorEventType += '    <transactionNum>' + transactionNum + '</transactionNum>\n'
+    errorEventType += '    <command>' + command + '</command>\n'
     if (userName!=""):
-        errorEventType += '<username>' + userName + '</username>'
+        errorEventType += '    <username>' + userName + '</username>\n'
     if (stockSymbol!=""):
-        errorEventType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
+        errorEventType += '    <stockSymbol>' + stockSymbol + '</stockSymbol>\n'
     if (filename!=""):
-        errorEventType += '<filename>' + filename + '</filename>'
+        errorEventType += '    <filename>' + filename + '</filename>\n'
     if (funds!=""):
-        errorEventType += '<funds>' + str(funds) + '</funds>'
+        errorEventType += '    <funds>' + str(funds) + '</funds>\n'
     if (errorMessage!=""):
-        errorEventType += '<errorMessage>' + errorMessage + '</errorMessage>'
-    errorEventType += '</errorEvent>'
+        errorEventType += '    <errorMessage>' + errorMessage + '</errorMessage>\n'
+    errorEventType += '</errorEvent>\n'
     
     return errorEventType
 
@@ -183,22 +183,22 @@ def parseDebug(entryDict):
     debugMessage = entryDict.get('debugMessage', "")
 
     DebugType = ''
-    DebugType += '<debugEvent>'
-    DebugType += '<timestamp>' + str(timeStamp) + '</timestamp>'
-    DebugType += '<server>' + server + '</server>'
-    DebugType += '<transactionNum>' + transactionNum + '</transactionNum>'
-    DebugType += '<command>' + command + '</command>'
+    DebugType += '<debugEvent>\n'
+    DebugType += '    <timestamp>' + str(timeStamp) + '</timestamp>\n'
+    DebugType += '    <server>' + server + '</server>\n'
+    DebugType += '    <transactionNum>' + transactionNum + '</transactionNum>\n'
+    DebugType += '    <command>' + command + '</command>\n'
     if (userName!=""):
-        DebugType += '<username>' + userName + '</username>'
+        DebugType += '    <username>' + userName + '</username>\n'
     if (stockSymbol!=""):
-        DebugType += '<stockSymbol>' + stockSymbol + '</stockSymbol>'
+        DebugType += '    <stockSymbol>' + stockSymbol + '</stockSymbol>\n'
     if (filename!=""):
-        DebugType += '<filename>' + filename + '</filename>'
+        DebugType += '    <filename>' + filename + '</filename>\n'
     if (funds!=""):
-        DebugType += '<funds>' + str(funds) + '</funds>'
+        DebugType += '    <funds>' + str(funds) + '</funds>\n'
     if (debugMessage!=""):
-        DebugType += '<debugMessage>' + debugMessage + '</debugMessage>'
-    DebugType += '</debugEvent>'
+        DebugType += '    <debugMessage>' + debugMessage + '</debugMessage>\n'
+    DebugType += '</debugEvent>\n'
     
     return DebugType
 # This function handles the data package recieved thru the socket and dumps it into the audit log
