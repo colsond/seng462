@@ -1156,7 +1156,7 @@ def get_quote(data):
 	#convert dollars to cents
 	#response[0] = int(float(response[0])*100)
 	price = str(response[0]).split('.')
-	response[0] = price[0] + '.' + price[1]
+	response[0] = int(price[0] + price[1])
 	
 	#remove newline from cryptokey
 	response[4] = response[4].translate(None,'\n')
