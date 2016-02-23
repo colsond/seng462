@@ -5,7 +5,10 @@ import string
 
 web_server_address = 'b132.seng.uvic.ca'
 # web_server_address = 'localhost'
-web_server_port = 44421
+# Port list, in case things are run on same machine
+# 44421	Audit
+# 44422 Transaction
+web_server_port = 44422
 
 ADD = "ADD"
 QUOTE = "QUOTE"
@@ -81,7 +84,7 @@ def main():
 
 	bad_chars = '[]'
 
-	f = open("1userWorkLoad.txt", 'r')
+	f = open("activeWorkLoad.txt", 'r')
 	for line in f:
 
 		tokens = line.split(' ')
