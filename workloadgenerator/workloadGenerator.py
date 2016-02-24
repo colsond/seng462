@@ -2,6 +2,9 @@ import io
 import socket
 import sys
 import string
+import Queue
+from threading import Thread, current_thread
+
 
 web_server_address = 'b132.seng.uvic.ca'
 # web_server_address = 'localhost'
@@ -26,7 +29,9 @@ SET_SELL_TRIGGER = "SET_SELL_TRIGGER"
 CANCEL_SET_SELL = "CANCEL_SET_SELL"
 DUMPLOG = "DUMPLOG"
 DISPLAY_SUMMARY = "DISPLAY_SUMMARY"
+NUM_WORKER_THREADS = 4
 
+q = Queue.Queue()
 
 def make_request(transaction_id, request_type, user=None, stock_id=None, amount=None, filename=None):
 	data = {
@@ -88,14 +93,14 @@ def processWorkloadFile(sourceDir, targetDir, workloadFile):
 		tokens = line.split(' ')
 		commandInfo = tokens[1].split(',')
 		user = commandInfo[1]
+
+		#need to decide what to do with the dump command
 		if commandInfo[0]==DUMPLOG:
 			fileDict['last']=line
 			userList.append('last')
-			print('last')
 		else:
 			if user not in userList:
 				userList.append(user)
-				print(user)
 			if user in fileDict:
 				fileDict[user] += line
 			else:
@@ -105,13 +110,14 @@ def processWorkloadFile(sourceDir, targetDir, workloadFile):
 		f = open ((targetDir+ user + '.txt'), 'w')
 		f.write(fileDict[user])
 		f.close()
+	return userList
 
-def main():
-	processWorkloadFile('/','./seperatedWorkload/','colsontestwl.txt')
-'''
+
+
+def sendWorkload(user):
 	bad_chars = '[]'
 
-	f = open("activeWorkLoad.txt", 'r')
+	f = open('./seperatedWorkload/' + user + '.txt', 'r')
 	for line in f:
 
 		tokens = line.split(' ')
@@ -213,7 +219,28 @@ def main():
 		else:
 			# INVALID REQUEST
 			print "invalid request: " + request[0]
-'''
+
+
+def worker():
+	while True:
+	    user = q.get()
+	    sendWorkload(user)
+	    q.task_done()
+
+def main():
+	userList = processWorkloadFile('/','./seperatedWorkload/','1userWorkLoad.txt')
+
+
+	for i in range(NUM_WORKER_THREADS):
+	     t = Thread(target=worker)
+	     t.daemon = True
+	     t.start()
+
+	for item in userList:
+	    q.put(item)
+
+	q.join() #blocks until everything is done
+
 
 
 if __name__ == "__main__":
