@@ -80,8 +80,35 @@ def make_request(transaction_id, request_type, user=None, stock_id=None, amount=
 
 	return response
 
-def main():
+def processWorkloadFile(sourceDir, targetDir, workloadFile):
+	fileDict = {}
+	userList = []
+	f = open (workloadFile, 'r')
+	for line in f:
+		tokens = line.split(' ')
+		commandInfo = tokens[1].split(',')
+		user = commandInfo[1]
+		if commandInfo[0]==DUMPLOG:
+			fileDict['last']=line
+			userList.append('last')
+			print('last')
+		else:
+			if user not in userList:
+				userList.append(user)
+				print(user)
+			if user in fileDict:
+				fileDict[user] += line
+			else:
+				fileDict[user] = line
+	f.close()
+	for user in userList:
+		f = open ((targetDir+ user + '.txt'), 'w')
+		f.write(fileDict[user])
+		f.close()
 
+def main():
+	processWorkloadFile('/','./seperatedWorkload/','colsontestwl.txt')
+'''
 	bad_chars = '[]'
 
 	f = open("activeWorkLoad.txt", 'r')
@@ -186,6 +213,7 @@ def main():
 		else:
 			# INVALID REQUEST
 			print "invalid request: " + request[0]
+'''
 
 
 if __name__ == "__main__":
