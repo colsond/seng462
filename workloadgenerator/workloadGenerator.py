@@ -3,7 +3,6 @@ import socket
 import sys
 import string
 import Queue
-import time
 from threading import Thread, current_thread
 
 
