@@ -6,6 +6,8 @@ import string
 import sys
 import time
 
+from database import Database
+
 # -- REMEMBER: to not run in debug mode:
 #				python -O transaction.py
 
@@ -1177,6 +1179,14 @@ def get_quote(data):
 	return response
 
 def main():
+	db = Database(
+		dbname="transactiondb",
+		dbuser="cusmith",
+		dbpass=""
+	)
+	print db.select_records()
+	db.insert_record("jim", 200)
+	print db.select_records()
 	cache = {
 		"users": {},
 		"stocks": {}
