@@ -1,5 +1,10 @@
 import psycopg2
 
+class ConnectionPool:
+
+    def __init__(self, mincon, maxcon):
+        
+
 class Database:
 
     def __init__(self, dbname, dbuser, dbpass):
@@ -19,14 +24,14 @@ class Database:
             self.curs.execute("""CREATE TABLE Users (
                                 id char(20), balance int)""")
         except:
-	    self.conn.rollback()
-	    self.curs.execute("""DROP TABLE Users""")
-	    self.curs.execute("""CREATE TABLE Users (
-                                id text, balance int)""")
+    	    self.conn.rollback()
+    	    self.curs.execute("""DROP TABLE Users""")
+    	    self.curs.execute("""CREATE TABLE Users (
+                                    id text, balance int)""")
 
-	try:
-	    self.curs.execute("""CREATE TABLE Stock (
-                                id text, quote int, timestamp int)""")
+    	try:
+    	    self.curs.execute("""CREATE TABLE Stock (
+                                    id text, quote int, timestamp int)""")
         except:
             self.conn.rollback()
             self.curs.execute("""DROP TABLE Stock""")
@@ -34,11 +39,19 @@ class Database:
                                 id text, quote int, timestamp int)""")
         self.conn.commit()
 
-    def select_records(self, table="Users"):
-        self.curs.execute("""SELECT * FROM %s""" % table)
-        return self.curs.fetchall()
+    # call like: select_records("Users", "id,balance", "id='jim' AND balance=200")
+    def select_records(self, values, table, constraints):
+        self.curs.execute("""SELECT %s FROM %s WHERE %s""" % (values_format, table, constraints_format))
+        result = self.curs.fetchall()
+
+        if len(result) > 1:
+            print 'more than one value returned!!!?'
+
+        return result
 
 
-    def insert_record(self, user_id, balance):
-        self.curs.execute("""INSERT INTO Users (id, balance) VALUES ('%s', %s)""" % (user_id, balance))
-        # insert query
+    def insert_record(self, table, columns, values):
+        self.curs.execute("""INSERT INTO %s (%s) VALUES (%s)""" % (table, columns, values))
+
+    def update_record(self, table, values, constraints):
+        self.curs.execute("""UPDATE %s SET %s WHERE %s)""" % (table, values, constraints))

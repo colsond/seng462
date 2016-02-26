@@ -55,6 +55,7 @@ SELF_HOST = ''
 audit_server_port = 44421
 SELF_PORT = 44422
 
+# Commands
 ADD = "ADD"
 QUOTE = "QUOTE"
 BUY = "BUY"
@@ -71,6 +72,19 @@ SET_SELL_TRIGGER = "SET_SELL_TRIGGER"
 CANCEL_SET_SELL = "CANCEL_SET_SELL"
 DUMPLOG = "DUMPLOG"
 DISPLAY_SUMMARY = "DISPLAY_SUMMARY"
+
+# Database Constants
+DATABASE_TX = 'transactiondb'
+USERNAME = 'curtissmith'
+PASSWORD = ''
+
+TABLE_USER = 'Users'
+ID = 'id'
+BALANCE = 'balance'
+
+TABLE_STOCK = 'Stock'
+QUOTE = 'quote'
+TIMESTAMP = 'timestamp'
 
 def now():
 	return int(time.time() * 1000)
@@ -302,6 +316,7 @@ def audit_debug(
 	return
 
 def process_request(data, cache):
+	db = Database.connect()
 	# Convert Data to Dict
 	data_dict = ast.literal_eval(data)
 
@@ -373,7 +388,9 @@ def process_request(data, cache):
 			# database, and if not then add them; Store user's present balance.
 
 			if user:
-				if user not in cache["users"]:
+				if not db.select_records(ID, TABLE_USER, "%s=%s" % (ID, user)):
+				# if user not in cache["users"]:
+					db.insert_record(TABLE_USER, "%s,%s" % (ID,BALANCE), "%s,0" % user)
 					cache["users"][user] = {
 						"balance": 0,
 						"stocks": {},
@@ -1181,13 +1198,13 @@ def get_quote(data):
 def main():
 	db = Database(
 		dbname="transactiondb",
-		dbuser="cusmith",
+		dbuser="curtissmith",
 		dbpass=""
 	)
 	db.initialize()
-	print db.select_records()
+	print db.select_records("Users", ["id", "balance"], ["id='jim'"])
 	db.insert_record("jim", 200)
-	print db.select_records()
+	print db.select_records("Users", ["id", "balance"], ["id='jim'"])
 	cache = {
 		"users": {},
 		"stocks": {}
