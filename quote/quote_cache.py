@@ -104,7 +104,7 @@ def get_quote(stock_id, user, transactionNum):
 	audit_event("quote",message["timestamp"],transactionNum,None,message["user"],message["stock_id"],message["price"],message["timestamp"],message["cryptokey"],None)
 	
 	if __debug__:
-		print '[' + response[0] + ':' + response[1] + ':' + response [2] + ':' response[3] + ':' + response[4] + ']\n'
+		print '[' + response[0] + ':' + response[1] + ':' + response [2] + ':' + response[3] + ':' + response[4] + ']\n'
 
 	return message
 
