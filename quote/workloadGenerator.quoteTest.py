@@ -20,9 +20,10 @@ def make_request(data):
 	sock.sendall(str(data))
 	response = sock.recv(1024)
 	response = ast.literal_eval(response)
-	print "Transaction number: " + data['transactionNum'] + "\n"
-	print "Req: " + data['user'] + "," + data['stock_id'] + " - " + data['command'] + "\n"
-	print "Recv: " + response['user'] + "," + response['stock_id'] + " - " + response['price'] + " [" + response['timestamp'] + "]\n\n"
+	if __debug__:
+		print "Transaction number: " + data['transactionNum'] + "\n"
+		print "Req: " + data['user'] + "," + data['stock_id'] + " - " + data['command'] + "\n"
+		print "Recv: " + response['user'] + "," + response['stock_id'] + " - " + response['price'] + " [" + response['timestamp'] + "]\n\n"
 	sock.close()
 
 	return

@@ -9,8 +9,8 @@ import getopt
 
 HOST = ''
 PORT = 44420
-MAX_PORT = 44420
-MIN_PORT = 44429
+MAX_PORT = 44429
+MIN_PORT = 44420
 
 MAX_INCOMING_CONN_BUFFER = 10
 
@@ -268,7 +268,7 @@ def main(argv):
 	global PORT
 	
 	try:
-		cmdline_options, args = getopt.getopt(argv,'p:')
+		cmdline_options, args = getopt.getopt(argv,'hp:')
 	
 	except getopt.GetoptError as err:
 		# print help information and exit:
@@ -277,14 +277,16 @@ def main(argv):
 		usage()
 		sys.exit(2)
 
-	for o, a in cmdline_option:
+	for o, a in cmdline_options:
 		if o == "-p":
-			cmdline_port = a
-			if cmdline_port >= MAX_PORT and cmdline_port <= MIN_PORT:
-				PORT = cmdline_port
+			a = int(a)
+			if a >= MIN_PORT and a <= MAX_PORT:
+				PORT = a
 			else:
-				print "Invalid port (" + str(cmdline_port) + ") specified. Valid range: " + str(MAX_PORT) + " - " + str(MIN_PORT) + "\n"
+				print "Invalid port (" + str(a) + ") specified. Valid range: " + str(MAX_PORT) + " - " + str(MIN_PORT) + "\n"
 				sys.exit(2)
+		if o == "-h"
+			print "Use -p to set port number. Valid range: " + str(MAX_PORT) + " - " + str(MIN_PORT) + "\n"
 	print "Setting port [" + str(PORT) + "]\n"
 	
 	if init_listen():
