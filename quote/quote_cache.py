@@ -7,29 +7,31 @@ import time
 import threading
 import getopt
 
-HOST = ''
-PORT = 44420
+global HOST = ''
+global PORT = 44420
+global MAX_PORT = 44420
+global MIN_PORT = 44429
 
-MAX_INCOMING_CONN_BUFFER = 10
+global MAX_INCOMING_CONN_BUFFER = 10
 
-MY_NAME = 'Cache1'
+global MY_NAME = 'Cache1'
 
-QUOTE_SERVER_HOST = 'quoteserve.seng.uvic.ca'
-QUOTE_SERVER_PORT = 4444
-QUOTE_SERVER_RECV = 100
+global QUOTE_SERVER_HOST = 'quoteserve.seng.uvic.ca'
+global QUOTE_SERVER_PORT = 4444
+global QUOTE_SERVER_RECV = 100
 
-AUDIT_SERVER_ADDRESS = 'b142.seng.uvic.ca'
-AUDIT_SERVER_PORT = 44421
+global AUDIT_SERVER_ADDRESS = 'b142.seng.uvic.ca'
+global AUDIT_SERVER_PORT = 44421
 
-QUOTE_LIFE = 30	# in seconds
+global QUOTE_LIFE = 30	# in seconds
 
-MAX_THREADS = 100
+global MAX_THREADS = 100
 
-incoming_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+global incoming_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-cache_lock = threading.Semaphore(1)
+global cache_lock = threading.Semaphore(1)
 
-cache = {
+global cache = {
 	"ABC" : {
 		'quote': 0,
 		'user': "",
@@ -281,6 +283,7 @@ def main(argv):
 		else:
 			print "Invalid port (" + str(cmdline_port) + ") specified. Valid range: " + str(MAX_PORT) + " - " + str(MIN_PORT) + "\n"
 			sys.exit(2)
+	print "Setting port [" + str(PORT) + "]\n"
 	
 	if init_listen():
 		while 1:
