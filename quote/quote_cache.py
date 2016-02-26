@@ -109,7 +109,7 @@ def get_quote(stock_id, user, transactionNum):
 	return message
 
 def send_audit(message):
-	
+
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 	# Connect the socket to the port where the server is listening
@@ -117,10 +117,11 @@ def send_audit(message):
 	
 	if __debug__:
 		print 'connecting to ' + AUDIT_SERVER_ADDRESS + ' port ' + AUDIT_SERVER_PORT + '\n'
+		
 	sock.connect(server_address)
 
 	try:
-		sock.sendall(str(message))	
+		sock.sendall(str(message))
 		response = sock.recv(1024)
 		
 		if __debug__:
@@ -129,8 +130,8 @@ def send_audit(message):
 
 	finally:
 		if __debug__:
-	    print >>sys.stderr, 'closing socket'
-	    sock.close()
+			print >>sys.stderr, 'closing socket'
+		sock.close()
 
 	return
 	
