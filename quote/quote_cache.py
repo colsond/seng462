@@ -173,7 +173,7 @@ def audit_event(
 			"cryptokey": cryptokey
 		}
 	
-	else	#error message
+	else: #error message
 		message = {
 			"logType": "ErrorEventType",
 			"timestamp": timestamp,
