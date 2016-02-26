@@ -277,13 +277,14 @@ def main(argv):
 		usage()
 		sys.exit(2)
 
-	if 'p' in cmdline_options:
-		cmdline_port = cmdline_options.get('p')
-		if cmdline_port >= MAX_PORT and cmdline_port <= MIN_PORT:
-			PORT = cmdline_port
-		else:
-			print "Invalid port (" + str(cmdline_port) + ") specified. Valid range: " + str(MAX_PORT) + " - " + str(MIN_PORT) + "\n"
-			sys.exit(2)
+	for o, a in cmdline_option:
+		if o == "-p":
+			cmdline_port = a
+			if cmdline_port >= MAX_PORT and cmdline_port <= MIN_PORT:
+				PORT = cmdline_port
+			else:
+				print "Invalid port (" + str(cmdline_port) + ") specified. Valid range: " + str(MAX_PORT) + " - " + str(MIN_PORT) + "\n"
+				sys.exit(2)
 	print "Setting port [" + str(PORT) + "]\n"
 	
 	if init_listen():
