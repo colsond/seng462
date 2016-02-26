@@ -147,8 +147,6 @@ def audit_event(
 		cryptokey,
 		errorMessage):
 	
-	message["server"] = MY_NAME
-
 	if type == "incoming":
 		message = {
 			"logType": "SystemEventType",
