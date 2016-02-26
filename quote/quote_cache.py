@@ -7,31 +7,47 @@ import time
 import threading
 import getopt
 
-global HOST = ''
-global PORT = 44420
-global MAX_PORT = 44420
-global MIN_PORT = 44429
+global HOST
+HOST = ''
+global PORT
+PORT = 44420
+global MAX_PORT
+MAX_PORT = 44420
+global MIN_PORT
+MIN_PORT = 44429
 
-global MAX_INCOMING_CONN_BUFFER = 10
+global MAX_INCOMING_CONN_BUFFER
+MAX_INCOMING_CONN_BUFFER = 10
 
-global MY_NAME = 'Cache1'
+global MY_NAME
+MY_NAME = 'Cache1'
 
-global QUOTE_SERVER_HOST = 'quoteserve.seng.uvic.ca'
-global QUOTE_SERVER_PORT = 4444
-global QUOTE_SERVER_RECV = 100
+global QUOTE_SERVER_HOST
+QUOTE_SERVER_HOST = 'quoteserve.seng.uvic.ca'
+global QUOTE_SERVER_PORT
+QUOTE_SERVER_PORT = 4444
+global QUOTE_SERVER_RECV
+QUOTE_SERVER_RECV = 100
 
-global AUDIT_SERVER_ADDRESS = 'b142.seng.uvic.ca'
-global AUDIT_SERVER_PORT = 44421
+global AUDIT_SERVER_ADDRESS
+AUDIT_SERVER_ADDRESS = 'b142.seng.uvic.ca'
+global AUDIT_SERVER_PORT
+AUDIT_SERVER_PORT = 44421
 
-global QUOTE_LIFE = 30	# in seconds
+global QUOTE_LIFE
+QUOTE_LIFE = 30	# in seconds
 
-global MAX_THREADS = 100
+global MAX_THREADS
+MAX_THREADS = 100
 
-global incoming_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+global incoming_socket
+incoming_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-global cache_lock = threading.Semaphore(1)
+global cache_lock
+cache_lock = threading.Semaphore(1)
 
-global cache = {
+global cache
+cache = {
 	"ABC" : {
 		'quote': 0,
 		'user': "",
