@@ -248,7 +248,7 @@ def thread_conn_handler(conn):
 	data = conn.recv(1024)
 	
 	data = ast.literal_eval(data)
-	if data.get("command") == "BUY" or data.get("command") == "SELL"
+	if data.get("command") == "BUY" or data.get("command") == "SELL":
 		quote = get_quote(data.get("stock_id"),data.get("user"),data.get("transactionNum"))
 		update_cache(quote)
 	elif data.get(command) == "QUOTE":
