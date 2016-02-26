@@ -5,6 +5,7 @@ import string
 import sys
 import time
 import threading
+import getopt
 
 HOST = ''
 PORT = 44420
@@ -116,7 +117,7 @@ def send_audit(message):
 	server_address = (AUDIT_SERVER_ADDRESS, AUDIT_SERVER_PORT)
 	
 	if __debug__:
-		print 'connecting to ' + AUDIT_SERVER_ADDRESS + ' port ' + AUDIT_SERVER_PORT + '\n'
+		print 'connecting to ' + AUDIT_SERVER_ADDRESS + ' port ' + str(AUDIT_SERVER_PORT) + '\n'
 		
 	sock.connect(server_address)
 
@@ -261,8 +262,26 @@ def thread_conn_handler(conn):
 	conn.close()
 	return
 
-def main():
+def main(argv):
+	
+	try:
+		cmdline_options, args = getopt.getopt(argv,'p:')
+	
+	except getopt.GetoptError as err:
+        # print help information and exit:
+        print str(err) + '\n'# will print something like "option -a not recognized"
+				print 'Use -p [port number] to set port. Valid range is 44420 to 44429\n'
+        usage()
+        sys.exit(2)
 
+	if p in cmdline_options:
+		cmdline_port = cmdline_options.get('p')
+		if cmdline_port >= MAX_PORT and cmdline_port <= MIN_PORT
+			PORT = cmdline_port
+		else:
+			print "Invalid port (" + str(cmdline_port) + ") specified. Valid range: " + str(MAX_PORT) + " - " + str(MIN_PORT) + "\n"
+			sys.exit(2)
+	
 	if init_listen():
 		while 1:
 			conn, addr = incoming_socket.accept()
@@ -277,4 +296,4 @@ def main():
 			
 
 if __name__ == "__main__":
-	main()
+	main(sys.argv[1:])
