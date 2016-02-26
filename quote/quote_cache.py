@@ -196,7 +196,7 @@ def scan_cache(stock_id):
 		if cache[stock_id]["cacheexpire"] >= now():
 			message = {
 				"status" : "success",
-				"quote" : cache[stock_id]["quote"],
+				"price" : cache[stock_id]["price"],
 				"stock_id" : stock_id,
 				"user" : cache[stock_id]["user"],
 				"timestamp" : cache[stock_id]["timestamp"],
