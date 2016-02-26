@@ -274,7 +274,7 @@ def main():
 			
 			while threading.active_count() > MAX_THREADS:
 				pass
-			t = threading.Thread(target=thread_conn_handler, args=(conn))
+			t = threading.Thread(target=thread_conn_handler, args=(conn,))
 			t.start()
 			
 
