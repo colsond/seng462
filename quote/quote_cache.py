@@ -276,7 +276,7 @@ def main(argv):
 
 	if p in cmdline_options:
 		cmdline_port = cmdline_options.get('p')
-		if cmdline_port >= MAX_PORT and cmdline_port <= MIN_PORT
+		if cmdline_port >= MAX_PORT and cmdline_port <= MIN_PORT:
 			PORT = cmdline_port
 		else:
 			print "Invalid port (" + str(cmdline_port) + ") specified. Valid range: " + str(MAX_PORT) + " - " + str(MIN_PORT) + "\n"
