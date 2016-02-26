@@ -41,11 +41,11 @@ cache = {
 #incoming
 #	stock_id, user, transactionNum, command
 #outoging
-#	stock_id, user, transactionNum, quote, timestamp, key
+#	stock_id, user, transactionNum, price, timestamp, key
 
 # cache = {
 	# stock: {
-		# quote: 0,
+		# price: 0,
 		# user: "",
 		# timestamp: 0,
 		# cryptokey: "",
@@ -220,7 +220,7 @@ def update_cache(quote):
 	cache_lock.acquire()
 	
 	cache[quote.get("stock_id")] = {
-		"quote" : quote["quote"],
+		"price" : quote["price"],
 		"user" : quote["user"],
 		"timestamp" : quote["timestamp"],
 		"cryptokey" : quote["cryptokey"],
