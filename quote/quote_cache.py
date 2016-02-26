@@ -206,9 +206,9 @@ def audit_event(
 		}
 	
 	while threading.active_count() > MAX_THREADS:
-				pass
-			t = threading.Thread(target=send_audit, args=(message,))
-			t.start()
+		pass
+	t = threading.Thread(target=send_audit, args=(message,))
+	t.start()
 	#send_audit(str(message))
 	
 	return
