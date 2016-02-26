@@ -56,7 +56,7 @@ QUOTE_SERVER_RECV = 100
 AUDIT_SERVER_ADDRESS = 'b142.seng.uvic.ca'
 AUDIT_SERVER_PORT = 44421
 
-QUOTE_LIFE = 30	# in seconds
+QUOTE_LIFE = 45	# in seconds
 
 MAX_THREADS = 100
 
@@ -205,15 +205,11 @@ def audit_event(
 			"errorMessage" : errorMessage
 		}
 	
-<<<<<<< HEAD
 	while threading.active_count() > MAX_THREADS:
 		pass
 	t = threading.Thread(target=send_audit, args=(message,))
 	t.start()
 	#send_audit(str(message))
-=======
-	send_audit(str(message))
->>>>>>> parent of c54083e... trying threaded audit logging
 	
 	return
 	
