@@ -185,7 +185,7 @@ def audit_event(
 			"errorMessage" : errorMessage
 		}
 	
-	# send_audit(str(message))
+	send_audit(str(message))
 	
 	return
 	
