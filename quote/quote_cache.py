@@ -1,3 +1,36 @@
+#	quote_cache.py
+#	Binds to local port, waits for incoming quote requests. BUY and SELL related
+#	requests go directly to the quote server, and are placed in the cache. QUOTE
+#	requests check the cache first, and if no quote exists - or the existing
+#	quote is expired - the server then contacts the external quote server for a 
+#	quote and updates the cache. The resulting quote is sent back to the 
+#	client on the same connection.
+#	Incoming connections are threaded, and the server can handle multiple 
+#	simultaneous requests.
+#	Quote lifetimes are based solely on local server time. External quote server
+#	time is recorded for auditing purposes only.
+#	
+#
+#	Command line options
+#	-h			help
+#	-p portnum	set the port number to bind to
+#
+#	Input/Output
+#	Expecting str(dict) with the following keys
+#		stock_id, user, transactionNum, command
+#	Responds with str(dict) with the following keys
+#		stock_id, user, transactionNum, price, timestamp, key
+#
+#	Cache structure
+#	cache = {
+#		stock: {
+#			price: 0,
+#			user: "",
+#			timestamp: 0,
+#			cryptokey: "",
+#			cacheexpire: 0
+#		}
+#	}
 import ast
 import os
 import socket
@@ -40,21 +73,6 @@ cache = {
 		'cacheexpire': 0
 	}
 }
-
-#incoming
-#	stock_id, user, transactionNum, command
-#outoging
-#	stock_id, user, transactionNum, price, timestamp, key
-
-# cache = {
-	# stock: {
-		# price: 0,
-		# user: "",
-		# timestamp: 0,
-		# cryptokey: "",
-		# cacheexpire: 0
-	# }
-#}
 
 def now():
 	return int(time.time())
