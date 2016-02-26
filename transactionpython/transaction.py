@@ -1184,6 +1184,7 @@ def main():
 		dbuser="cusmith",
 		dbpass=""
 	)
+	db.initialize()
 	print db.select_records()
 	db.insert_record("jim", 200)
 	print db.select_records()
