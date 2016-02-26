@@ -127,7 +127,7 @@ def parseSystemEvent(entryDict):
         systemEventType += '    <username>' + userName + '</username>\n'
     if (stockSymbol!=""):
         systemEventType += '    <stockSymbol>' + stockSymbol + '</stockSymbol>\n'
-    if (filename!=""):
+    if (fileName!=""):
         systemEventType += '    <filename>' + filename + '</filename>\n'
     if (funds!=""):
         systemEventType += '    <funds>' + str(funds) + '</funds>\n'
