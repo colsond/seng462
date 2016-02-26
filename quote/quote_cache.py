@@ -247,8 +247,11 @@ def error_quote():
 
 def thread_conn_handler(conn):
 	data = conn.recv(1024)
-	
 	data = ast.literal_eval(data)
+	
+	#	from outside: stock_id, user, transactionNum, command
+	audit_event ("incoming", now(), data.get('transactionNum',0), data.get('command',"missing command"), data.get('user','No User'), data.get('stock_id',"---"), None, None, None, None)	
+	
 	if data.get("command") == "BUY" or data.get("command") == "SELL":
 		quote = get_quote(data.get("stock_id"),data.get("user"),data.get("transactionNum"))
 		update_cache(quote)
