@@ -30,11 +30,11 @@ cache_lock = threading.Semaphore(1)
 
 cache = {
 	"ABC" : {
-		quote: 0,
-		user: "",
-		timestamp: 0,
-		cryptokey: "",
-		cacheexpire: 0
+		'quote': 0,
+		'user': "",
+		'timestamp': 0,
+		'cryptokey': "",
+		'cacheexpire': 0
 	}
 }
 
