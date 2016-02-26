@@ -34,10 +34,10 @@ NUM_WORKER_THREADS = 4
 
 q = Queue.Queue()
 
-def make_request(pid, transaction_id, request_type, user=None, stock_id=None, amount=None, filename=None):
+def make_request(pid, transaction_id, command, user=None, stock_id=None, amount=None, filename=None):
 	data = {
 		'transaction_id': transaction_id,
-		'request_type': request_type,
+		'command': command,
 	}
 
 	if user:
@@ -128,94 +128,94 @@ def sendWorkload(user, pid):
 
 		request = tokens[1].split(',')
 
-		request_type = request[0]
+		command = request[0]
 
-		if request_type == ADD:
+		if command == ADD:
 			user = request[1]
 			amount = request[2]
-			make_request(pid, transaction_id, request_type, user, amount=amount)
+			make_request(pid, transaction_id, command, user, amount=amount)
 
-		elif request_type == QUOTE:
+		elif command == QUOTE:
 			user = request[1]
 			stock_id = request[2]
-			make_request(pid, transaction_id, request_type, user, stock_id)
+			make_request(pid, transaction_id, command, user, stock_id)
 
-		elif request_type == BUY:
+		elif command == BUY:
 			user = request[1]
 			stock_id = request[2]
 			amount = request[3]
-			make_request(pid, transaction_id, request_type, user, stock_id, amount)
+			make_request(pid, transaction_id, command, user, stock_id, amount)
 
-		elif request_type == COMMIT_BUY:
+		elif command == COMMIT_BUY:
 			user = request[1]
-			make_request(pid, transaction_id, request_type, user)
+			make_request(pid, transaction_id, command, user)
 			
-		elif request_type == CANCEL_BUY:
+		elif command == CANCEL_BUY:
 			user = request[1]
-			make_request(pid, transaction_id, request_type, user)
+			make_request(pid, transaction_id, command, user)
 			
-		elif request_type == SELL:
+		elif command == SELL:
 			user = request[1]
 			stock_id = request[2]
 			amount = request[3]
-			make_request(pid, transaction_id, request_type, user, stock_id, amount)
+			make_request(pid, transaction_id, command, user, stock_id, amount)
 
-		elif request_type == COMMIT_SELL:
+		elif command == COMMIT_SELL:
 			user = request[1]
-			make_request(pid, transaction_id, request_type, user)
+			make_request(pid, transaction_id, command, user)
 
-		elif request_type == CANCEL_SELL:
+		elif command == CANCEL_SELL:
 			user = request[1]
-			make_request(pid, transaction_id, request_type, user)
+			make_request(pid, transaction_id, command, user)
 
-		elif request_type == SET_BUY_AMOUNT:
+		elif command == SET_BUY_AMOUNT:
 			user = request[1]
 			stock_id = request[2]
 			amount = request[3]
-			make_request(pid, transaction_id, request_type, user, stock_id, amount)
+			make_request(pid, transaction_id, command, user, stock_id, amount)
 			
-		elif request_type == CANCEL_SET_BUY:
+		elif command == CANCEL_SET_BUY:
 			user = request[1]
 			stock_id = request[2]
-			make_request(pid, transaction_id, request_type, user, stock_id)
+			make_request(pid, transaction_id, command, user, stock_id)
 			
-		elif request_type == SET_BUY_TRIGGER:
-			user = request[1]
-			stock_id = request[2]
-			amount = request[3]
-			make_request(pid, transaction_id, request_type, user, stock_id, amount)
-			
-		elif request_type == SET_SELL_AMOUNT:
+		elif command == SET_BUY_TRIGGER:
 			user = request[1]
 			stock_id = request[2]
 			amount = request[3]
-			make_request(pid, transaction_id, request_type, user, stock_id, amount)
+			make_request(pid, transaction_id, command, user, stock_id, amount)
 			
-		elif request_type == SET_SELL_TRIGGER:
+		elif command == SET_SELL_AMOUNT:
 			user = request[1]
 			stock_id = request[2]
 			amount = request[3]
-			make_request(pid, transaction_id, request_type, user, stock_id, amount)
+			make_request(pid, transaction_id, command, user, stock_id, amount)
 			
-		elif request_type == CANCEL_SET_SELL:
+		elif command == SET_SELL_TRIGGER:
 			user = request[1]
 			stock_id = request[2]
-			make_request(pid, transaction_id, request_type, user, stock_id)
+			amount = request[3]
+			make_request(pid, transaction_id, command, user, stock_id, amount)
 			
-		elif request_type == DUMPLOG:
+		elif command == CANCEL_SET_SELL:
+			user = request[1]
+			stock_id = request[2]
+			make_request(pid, transaction_id, command, user, stock_id)
+			
+		elif command == DUMPLOG:
 			if len(request) == 2:
 				#filename
 				filename = request[1]
-				make_request(pid, transaction_id, request_type, filename=filename)
+				make_request(pid, transaction_id, command, filename=filename)
 			elif len(request) == 3:
 				#userid, filename
 				user = request[1]
 				filename = request[2]
-				make_request(pid, transaction_id, request_type, user, filename=filename)
+				make_request(pid, transaction_id, command, user, filename=filename)
 
-		elif request_type == DISPLAY_SUMMARY:
+		elif command == DISPLAY_SUMMARY:
 			user = request[1]
-			make_request(pid, transaction_id, request_type, user)
+			make_request(pid, transaction_id, command, user)
 
 		else:
 			# INVALID REQUEST
