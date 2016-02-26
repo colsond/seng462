@@ -245,21 +245,22 @@ def error_quote():
 	return quote
 
 def thread_conn_handler(conn):
-	data = conn.recv(1024):
-		data = ast.literal_eval(data)
-		if data.get("command") == "BUY" or data.get("command") == "SELL"
+	data = conn.recv(1024)
+	
+	data = ast.literal_eval(data)
+	if data.get("command") == "BUY" or data.get("command") == "SELL"
+		quote = get_quote(data.get("stock_id"),data.get("user"),data.get("transactionNum"))
+		update_cache(quote)
+	elif data.get(command) == "QUOTE":
+		quote = scan_cache(data.get("stock_id"))
+		if quote["status"] != "success":
 			quote = get_quote(data.get("stock_id"),data.get("user"),data.get("transactionNum"))
 			update_cache(quote)
-		elif data.get(command) == "QUOTE":
-			quote = scan_cache(data.get("stock_id"))
-			if quote["status"] != "success":
-				quote = get_quote(data.get("stock_id"),data.get("user"),data.get("transactionNum"))
-				update_cache(quote)
-		else:
-			quote = error_quote()
-			
-		conn.send(str(quote))
-		conn.close()
+	else:
+		quote = error_quote()
+		
+	conn.send(str(quote))
+	conn.close()
 	return
 
 def main():
