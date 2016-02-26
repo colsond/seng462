@@ -268,11 +268,11 @@ def main(argv):
 		cmdline_options, args = getopt.getopt(argv,'p:')
 	
 	except getopt.GetoptError as err:
-        # print help information and exit:
-        print str(err) + '\n'# will print something like "option -a not recognized"
-				print 'Use -p [port number] to set port. Valid range is 44420 to 44429\n'
-        usage()
-        sys.exit(2)
+		# print help information and exit:
+		print str(err) + '\n'# will print something like "option -a not recognized"
+		print 'Use -p [port number] to set port. Valid range is 44420 to 44429\n'
+		usage()
+		sys.exit(2)
 
 	if p in cmdline_options:
 		cmdline_port = cmdline_options.get('p')
