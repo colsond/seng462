@@ -1,4 +1,8 @@
 import ast
+import os
+import socket
+import string
+import sys
 import time
 import threading
 
@@ -142,8 +146,6 @@ def audit_event(
 		cryptokey,
 		errorMessage):
 	
-	message_error = 0
-	
 	message["server"] = MY_NAME
 
 	if type == "incoming":
@@ -183,7 +185,7 @@ def audit_event(
 			"errorMessage" : errorMessage
 		}
 	
-	send_audit(str(message))
+	# send_audit(str(message))
 	
 	return
 	
