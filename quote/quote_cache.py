@@ -285,8 +285,9 @@ def main(argv):
 			else:
 				print "Invalid port (" + str(a) + ") specified. Valid range: " + str(MAX_PORT) + " - " + str(MIN_PORT) + "\n"
 				sys.exit(2)
-		if o == "-h"
+		if o == "-h":
 			print "Use -p to set port number. Valid range: " + str(MAX_PORT) + " - " + str(MIN_PORT) + "\n"
+			sys.exit(2)
 	print "Setting port [" + str(PORT) + "]\n"
 	
 	if init_listen():
