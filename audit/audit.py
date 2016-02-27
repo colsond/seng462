@@ -111,7 +111,7 @@ def parseSystemEvent(entryDict):
     timeStamp = entryDict['timestamp']
     server = entryDict['server']
     transactionNum = entryDict['transactionNum']
-    command = entryDict['command']
+    command = entryDict.get('command', "")
     userName = entryDict.get('username', "")
     stockSymbol = entryDict.get('stockSymbol', "")
     fileName = entryDict.get('filename', "")
@@ -122,7 +122,8 @@ def parseSystemEvent(entryDict):
     systemEventType += '    <timestamp>' + str(timeStamp) + '</timestamp>\n'
     systemEventType += '    <server>' + server + '</server>\n'
     systemEventType += '    <transactionNum>' + transactionNum + '</transactionNum>\n'
-    systemEventType += '    <command>' + command + '</command>\n'
+    if (command != ""):
+        systemEventType += '    <command>' + command + '</command>\n'
     if (userName!=""):
         systemEventType += '    <username>' + userName + '</username>\n'
     if (stockSymbol!=""):
@@ -142,7 +143,7 @@ def parseErrorEvent(entryDict):
     timeStamp = entryDict['timestamp']
     server = entryDict['server']
     transactionNum = entryDict['transactionNum']
-    command = entryDict['command']
+    command = entryDict.get('command', "")
     userName = entryDict.get('username')
     stockSymbol = entryDict.get('stockSymbol')
     fileName = entryDict.get('filename')
@@ -154,7 +155,8 @@ def parseErrorEvent(entryDict):
     errorEventType += '    <timestamp>' + str(timeStamp) + '</timestamp>\n'
     errorEventType += '    <server>' + server + '</server>\n'
     errorEventType += '    <transactionNum>' + transactionNum + '</transactionNum>\n'
-    errorEventType += '    <command>' + command + '</command>\n'
+    if (command != ""):
+        errorEventType += '    <command>' + command + '</command>\n'
     if (userName!=""):
         errorEventType += '    <username>' + userName + '</username>\n'
     if (stockSymbol!=""):
@@ -175,7 +177,7 @@ def parseDebug(entryDict):
     timeStamp = entryDict['timestamp']
     server = entryDict['server']
     transactionNum = entryDict['transactionNum']
-    command = entryDict['command']
+    command = entryDict.get('command', "")
     userName = entryDict.get('username', "")
     stockSymbol = entryDict.get('stockSymbol', "")
     fileName = entryDict.get('filename', "")
@@ -187,7 +189,8 @@ def parseDebug(entryDict):
     DebugType += '    <timestamp>' + str(timeStamp) + '</timestamp>\n'
     DebugType += '    <server>' + server + '</server>\n'
     DebugType += '    <transactionNum>' + transactionNum + '</transactionNum>\n'
-    DebugType += '    <command>' + command + '</command>\n'
+    if (command != ""):
+        DebugType += '    <command>' + command + '</command>\n'
     if (userName!=""):
         DebugType += '    <username>' + userName + '</username>\n'
     if (stockSymbol!=""):
