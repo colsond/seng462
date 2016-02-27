@@ -264,7 +264,7 @@ def audit_error_event(
 
 	if funds: 
 		#funds = "{:.2f}".format(float(funds)/100)
-		audit_dict["funds"] = str(int(funds)/100) + '.' + "{:02d}".format(float(funds)%100)
+		audit_dict["funds"] = str(int(funds/100)) + '.' + "{:02d}".format(int(funds%100))
 
 	if errorMessage:
 		audit_dict["errorMessage"] = errorMessage
@@ -306,8 +306,10 @@ def audit_debug(
 		audit_dict["filename"] = filename
 
 	if funds: 
-#		funds = str(float(funds) / 100)
-		audit_dict["funds"] = str(int(funds)/100) + '.' + "{:02d}".format(float(funds)%100)
+		print funds
+		print type(funds)
+		#funds = str(float(funds) / 100)
+		audit_dict["funds"] = str(int(float(funds)/100)) + '.' + "{:02d}".format(int(funds%100))
 		
 
 	if debugMessage:
@@ -332,7 +334,8 @@ def process_request(data, conn):
 	stock_id = data_dict.get('stock_id')
 	filename = data_dict.get('filename')
 	amount = data_dict.get('amount')
-
+	if amount:
+		amount = int(float(amount) * 100)
 
 	# -- DEBUG: store event in audit regardless of correctness
 	if __debug__:
@@ -409,8 +412,6 @@ def process_request(data, conn):
 
 
 			# -- Convert amounts to pennies to avoid decimals
-			if amount is not None:
-				amount = int(float(amount)*100)
 
 			# Store request before processing
 			audit_user_command_event(
