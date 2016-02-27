@@ -32,7 +32,7 @@ def parseUserCommand(entryDict):
     command = entryDict['command']
     userName = entryDict.get('username', "")
     stockSymbol = entryDict.get('stockSymbol', "")
-    filename = entryDict.get('filename', "")
+    fileName = entryDict.get('filename', "")
     funds = entryDict.get('funds', "")
 
     userCommandType = ''
@@ -45,7 +45,7 @@ def parseUserCommand(entryDict):
         userCommandType += '    <username>' + userName + '</username>\n'
     if (stockSymbol!=""):
         userCommandType += '    <stockSymbol>' + stockSymbol + '</stockSymbol>\n'
-    if (filename!=""):
+    if (fileName!=""):
         userCommandType += '    <filename>' + filename + '</filename>\n'
     if (funds!=""):
         userCommandType += '    <funds>' + str(funds) + '</funds>\n'
@@ -161,7 +161,7 @@ def parseErrorEvent(entryDict):
         errorEventType += '    <username>' + userName + '</username>\n'
     if (stockSymbol!=""):
         errorEventType += '    <stockSymbol>' + stockSymbol + '</stockSymbol>\n'
-    if (filename!=""):
+    if (fileName!=""):
         errorEventType += '    <filename>' + filename + '</filename>\n'
     if (funds!=""):
         errorEventType += '    <funds>' + str(funds) + '</funds>\n'
@@ -195,7 +195,7 @@ def parseDebug(entryDict):
         DebugType += '    <username>' + userName + '</username>\n'
     if (stockSymbol!=""):
         DebugType += '    <stockSymbol>' + stockSymbol + '</stockSymbol>\n'
-    if (filename!=""):
+    if (fileName!=""):
         DebugType += '    <filename>' + filename + '</filename>\n'
     if (funds!=""):
         DebugType += '    <funds>' + str(funds) + '</funds>\n'
