@@ -140,7 +140,7 @@ def audit_user_command_event(
 
 	if funds:
 		#funds = "{:.2f}".format(float(funds)/100)
-		audit_dict["funds"] = str(int(funds/100)) + '.' + "{:02d}".format(int(funds%100))
+		audit_dict["funds"] = str(int(funds)/100) + '.' + "{:02d}".format(int(funds)%100)
 	
 	send_audit_entry(str(audit_dict))
 
@@ -161,7 +161,7 @@ def audit_quote_server_event(
 		"timestamp": timestamp,
 		"server": server,
 		"transactionNum": transactionNum,
-		"price" : str(int(price/100)) + '.' + "{:02d}".format(int(price%100)),
+		"price" : str(int(price)/100) + '.' + "{:02d}".format(int(price)%100),
 		#"price": "{:.2f}".format(float(price)/100),
 		"stockSymbol": stockSymbol,
 		"username": username,
@@ -188,7 +188,7 @@ def audit_transaction_event(
 		"transactionNum": transactionNum,
 		"action": action,
 		"username": username,
-		"funds" : str(int(funds/100)) + '.' + "{:02d}".format(int(funds%100))
+		"funds" : str(int(funds)/100) + '.' + "{:02d}".format(int(funds)%100)
 	}
 
 	send_audit_entry(str(audit_dict))
@@ -224,7 +224,7 @@ def audit_system_event(
 
 	if funds:
 		#funds = "{:.2f}".format(float(funds)/100)
-		audit_dict["funds"] = str(int(funds/100)) + '.' + "{:02d}".format(int(funds%100))
+		audit_dict["funds"] = str(int(funds)/100) + '.' + "{:02d}".format(int(funds)%100)
 	
 	send_audit_entry(str(audit_dict))
 
@@ -264,7 +264,7 @@ def audit_error_event(
 
 	if funds: 
 		#funds = "{:.2f}".format(float(funds)/100)
-		audit_dict["funds"] = str(int(funds/100)) + '.' + "{:02d}".format(int(funds%100))
+		audit_dict["funds"] = str(int(funds)/100) + '.' + "{:02d}".format(int(funds)%100)
 
 	if errorMessage:
 		audit_dict["errorMessage"] = errorMessage
@@ -307,7 +307,7 @@ def audit_debug(
 
 	if funds: 
 #		funds = str(float(funds) / 100)
-		audit_dict["funds"] = str(int(funds/100)) + '.' + "{:02d}".format(int(funds%100))
+		audit_dict["funds"] = str(int(funds)/100) + '.' + "{:02d}".format(int(funds)%100)
 		
 
 	if debugMessage:
