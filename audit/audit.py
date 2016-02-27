@@ -144,11 +144,11 @@ def parseErrorEvent(entryDict):
     server = entryDict['server']
     transactionNum = entryDict['transactionNum']
     command = entryDict.get('command', "")
-    userName = entryDict.get('username')
-    stockSymbol = entryDict.get('stockSymbol')
-    fileName = entryDict.get('filename')
-    funds = entryDict.get('funds')
-    errorMessage = entryDict.get('errorMessage')
+    userName = entryDict.get('username', "")
+    stockSymbol = entryDict.get('stockSymbol', "")
+    fileName = entryDict.get('filename', "")
+    funds = entryDict.get('funds', "")
+    errorMessage = entryDict.get('errorMessage', "")
 
     errorEventType = ''
     errorEventType += '<errorEvent>\n'
