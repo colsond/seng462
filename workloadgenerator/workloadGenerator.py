@@ -5,12 +5,12 @@ import string
 import Queue
 from threading import Thread, current_thread
 
-
-web_server_address = 'b132.seng.uvic.ca'
+#workload generator aims for 4 transaction servers on b132-134 all looking for port 44422
+web_server_address = ['b132.seng.uvic.ca', 'b133.seng.uvic.ca', 'b134.seng.uvic.ca', 'b134.seng.uvic.ca']
 # web_server_address = 'localhost'
 # Port list, in case things are run on same machine
 # 44421	Audit
-# 44422-44425 Transaction ports, number below gets added to by the various thread ids (0-3)
+# 44422Transaction ports
 
 web_server_port = 44422
 
@@ -58,7 +58,7 @@ def make_request(pid, transaction_id, request_type, user=None, stock_id=None, am
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 	# Connect the socket to the port where the server is listening
-	server_address = (web_server_address, web_server_port+pid)
+	server_address = (web_server_address[pid], web_server_port)
 	print >>sys.stderr, 'connecting to %s port %s' % server_address
 	sock.connect(server_address)
 
