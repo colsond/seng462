@@ -392,7 +392,7 @@ def process_request(data, conn):
 			# database, and if not then add them; Store user's present balance.
 
 			if user:
-				balance = conn.select_record("balance", "Users", "id=%s" % user)[0]
+				balance = conn.select_record("balance", "Users", "user_id=%s" % user)[0]
 				# if not balance:
 				# # if user not in cache["users"]:
 				# 	conn.insert_record("Users", "id,balance", "%s,0" % user)
@@ -456,7 +456,7 @@ def process_request(data, conn):
 						response
 					)
 				else:
-					conn.update_record("Users", "balance", "balance=balance+%d" % amount, "id=%s" % user)
+					conn.update_record("Users", "balance", "balance=balance+%d" % amount, "user_id=%s" % user)
 					# cache["users"][user]["balance"] += amount
 					response = "Added."
 					audit_transaction_event(
@@ -553,7 +553,7 @@ def process_request(data, conn):
 			elif command == BUY:
 
 				# Check user balance
-				if conn.select_record("Users", "balance", "id=%s" % user)[0] >= amount:
+				if conn.select_record("Users", "balance", "user_id=%s" % user)[0] >= amount:
 				# if cache["users"][user]["balance"] >= amount:
 					# get quote and send to user to confirm
 
