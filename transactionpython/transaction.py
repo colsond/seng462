@@ -47,6 +47,8 @@ server_name = "transaction_server_1"
 
 web_server_address = 'b132.seng.uvic.ca'
 audit_server_address = 'b142.seng.uvic.ca'
+cache_server_address = 'b134.seng.uvic.ca'
+cache_server_port = '44420'
 SELF_HOST = ''
 
 # Port list, in case things are run on same machine
@@ -1220,7 +1222,7 @@ def get_quote(data):
     # Create a TCP/IP socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # Connect the socket to the port where the server is listening
-    server_address = (target_server_address, target_server_port)
+    server_address = (cache_server_address, cache_server_port)
     
     sock.connect(server_address)
     sock.sendall(str(data))
@@ -1264,7 +1266,7 @@ def main():
 	# Initialize Database
 	db = Database(
 		dbname="transactiondb",
-		dbuser="curtissmith",
+		dbuser="cusmith",
 		dbpass="",
 		minconn=1,
 		maxconn=1,
