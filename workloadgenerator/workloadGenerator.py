@@ -3,7 +3,7 @@ import socket
 import sys
 import string
 
-web_server_address = 'b132.seng.uvic.ca'
+web_server_address = 'b133.seng.uvic.ca'
 # web_server_address = 'localhost'
 # Port list, in case things are run on same machine
 # 44421	Audit
