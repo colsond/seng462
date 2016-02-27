@@ -46,7 +46,7 @@ def parseUserCommand(entryDict):
     if (stockSymbol!=""):
         userCommandType += '    <stockSymbol>' + stockSymbol + '</stockSymbol>\n'
     if (fileName!=""):
-        userCommandType += '    <filename>' + filename + '</filename>\n'
+        userCommandType += '    <filename>' + fileName + '</filename>\n'
     if (funds!=""):
         userCommandType += '    <funds>' + str(funds) + '</funds>\n'
     userCommandType += '</userCommand>\n'
@@ -129,7 +129,7 @@ def parseSystemEvent(entryDict):
     if (stockSymbol!=""):
         systemEventType += '    <stockSymbol>' + stockSymbol + '</stockSymbol>\n'
     if (fileName!=""):
-        systemEventType += '    <filename>' + filename + '</filename>\n'
+        systemEventType += '    <filename>' + fileName + '</filename>\n'
     if (funds!=""):
         systemEventType += '    <funds>' + str(funds) + '</funds>\n'
     systemEventType += '</systemEvent>\n'
@@ -162,7 +162,7 @@ def parseErrorEvent(entryDict):
     if (stockSymbol!=""):
         errorEventType += '    <stockSymbol>' + stockSymbol + '</stockSymbol>\n'
     if (fileName!=""):
-        errorEventType += '    <filename>' + filename + '</filename>\n'
+        errorEventType += '    <filename>' + fileName + '</filename>\n'
     if (funds!=""):
         errorEventType += '    <funds>' + str(funds) + '</funds>\n'
     if (errorMessage!=""):
@@ -196,7 +196,7 @@ def parseDebug(entryDict):
     if (stockSymbol!=""):
         DebugType += '    <stockSymbol>' + stockSymbol + '</stockSymbol>\n'
     if (fileName!=""):
-        DebugType += '    <filename>' + filename + '</filename>\n'
+        DebugType += '    <filename>' + fileName + '</filename>\n'
     if (funds!=""):
         DebugType += '    <funds>' + str(funds) + '</funds>\n'
     if (debugMessage!=""):
