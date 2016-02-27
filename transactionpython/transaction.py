@@ -1275,15 +1275,7 @@ def main():
 	db.initialize()
 
 	# Get a connection to the DB (Need to create threads here)
-	conn = db.get_connection()
-	print conn.select_record("user_id,balance", "Users", "user_id='jim'")[0]
-	conn.insert_record("Users", "user_id,balance", "'jim',200")
-	print conn.select_record("balance", "Users", "user_id='jim'")[0]
-	
-	cache = {
-		"users": {},
-		"stocks": {}
-	}
+	connection = db.get_connection()
 
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	s.bind((SELF_HOST, SELF_PORT))
@@ -1299,7 +1291,7 @@ def main():
 			if (data):
 				print 'Received: ' + data
 				
-				response = process_request(data, conn)
+				response = process_request(data, connection)
 				conn.send(response)
 			else:
 				break
