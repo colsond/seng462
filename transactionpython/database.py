@@ -48,10 +48,8 @@ class Database:
         self.conn.commit()
 
         try:
-            print 'we trying?'
             self.curs.execute("""CREATE TABLE PendingTrans (
                                     type text, user_id text, stock_id text, amount int, timestamp int)""")
-            print 'we trying?'
 
         except Exception as e:
             print e
@@ -60,6 +58,15 @@ class Database:
             self.curs.execute("""CREATE TABLE PendingTrans (
                                     type text, user_id text, stock_id text, amount int, timestamp int)""")
         self.conn.commit()
+
+        try:
+            self.curs.execute("""CREATE TABLE Trigger (
+                                    type text, user_id text, stock_id text, amount integer, trigger integer)""")
+        except:
+            self.conn.rollback()
+            self.curs.execute("""DROP TABLE Trigger""")
+            self.curs.execute("""CREATE TABLE Trigger (
+                                    type text, user_id text, stock_id text, amount integer, trigger integer)""")
 
     # Return a Database Connection from the pool
     def get_connection(self):
