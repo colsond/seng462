@@ -514,7 +514,7 @@ def process_request(data, conn):
 # 							amount,
 # 							'Sending quote request')
 
-				current_quote = get_quote({"user":user,"stock_id":stock_id,"transaction_id":transaction_id})
+				current_quote = get_quote(data_dict)
 
 					# UPDATE WITH QUOTE CACHE
 					# if current_quote[1] == stock_id:
@@ -586,7 +586,7 @@ def process_request(data, conn):
 							amount,
 							'Sending quote request')
 
-					current_quote = get_quote({"user":user,"stock_id":stock_id,"transaction_id":transaction_id})
+					current_quote = get_quote(data_dict)
 
 					# if current_quote[1] == stock_id:
 					# 	# UPDATE WITH QUOTE CACHE
@@ -740,7 +740,7 @@ def process_request(data, conn):
 								amount,
 								'Sending quote request')
 
-						current_quote = get_quote({"user":user,"stock_id":stock_id,"transaction_id":transaction_id})
+						current_quote = get_quote(data_dict)
 
 						# audit_quote_server_event(
 						# 	now(),
