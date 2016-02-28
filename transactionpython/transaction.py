@@ -381,34 +381,11 @@ def process_request(data, conn):
 			)
 		else:
 
-			# -- If there is a transaction id and request type then check if there
-			# is a user id in the request, check if that user id exists in the 
-			# database, and if not then add them; Store user's present balance.
-
 			if user:
 				balance = conn.select_record("balance", "Users", "user_id='%s'" % user)[0]
 				if balance == None:
 					conn.insert_record("Users", "user_id,balance", "'%s',%d" % (user,0))
 					balance = 0
-				# if not balance:
-				# # if user not in cache["users"]:
-				# 	conn.insert_record("Users", "id,balance", "%s,0" % user)
-				# 	# cache["users"][user] = {
-				# 	# 	"balance": 0,
-				# 	# 	"stocks": {},
-				# 	# 	"quotes": {},
-				# 	# 	"pending_buy": {},
-				# 	# 	"pending_sell": {},
-				# 	# 	"buy_trigger": {},
-				# 	#   		"sell_trigger": {},
-				# 	# }
-				# 	balance = None
-				# else:
-				# 	balance = user_record[0]
-			# No action if no user in request
-
-
-			# -- Convert amounts to pennies to avoid decimals
 
 			# Store request before processing
 			audit_user_command_event(
@@ -454,7 +431,6 @@ def process_request(data, conn):
 					)
 				else:
 					conn.update_record("Users", "balance=balance+%d" % amount, "user_id='%s'" % user)
-					# cache["users"][user]["balance"] += amount
 					response = "Added."
 
 					audit_transaction_event(
@@ -471,8 +447,6 @@ def process_request(data, conn):
 # ----------------
 			elif command == QUOTE:
 				current_quote = get_quote(data_dict)
-
-				# UPDATE WITH QUOTE CACHE
 				response = str(stock_id) + ':' + str(current_quote['price'])
 
 # --------------
