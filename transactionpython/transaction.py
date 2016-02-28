@@ -456,7 +456,7 @@ def process_request(data, conn):
 						response
 					)
 				else:
-					conn.update_record("Users", "balance", "balance=balance+%d" % amount, "user_id='%s'" % user)
+					conn.update_record("Users", "balance=balance+%d" % amount, "user_id='%s'" % user)
 					# cache["users"][user]["balance"] += amount
 					response = "Added."
 					audit_transaction_event(
