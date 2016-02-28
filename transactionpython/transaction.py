@@ -393,6 +393,9 @@ def process_request(data, conn):
 
 			if user:
 				balance = conn.select_record("balance", "Users", "user_id='%s'" % user)[0]
+				if balance == None:
+					conn.insert_record("Users", "user_id,balance", "%s,%d" % (user,0))
+					balance = 0
 				# if not balance:
 				# # if user not in cache["users"]:
 				# 	conn.insert_record("Users", "id,balance", "%s,0" % user)
@@ -459,13 +462,14 @@ def process_request(data, conn):
 					conn.update_record("Users", "balance=balance+%d" % amount, "user_id='%s'" % user)
 					# cache["users"][user]["balance"] += amount
 					response = "Added."
+
 					audit_transaction_event(
 						now(),
 						server_name,
 						transaction_id,
 						command,
 						user,
-						conn.select_record("balance", "Users", "user_id='%s'" % user)[0]
+						balance + amount
 					)
 
 # ----------------
