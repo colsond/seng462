@@ -67,6 +67,7 @@ class Database:
             self.curs.execute("""DROP TABLE Trigger""")
             self.curs.execute("""CREATE TABLE Trigger (
                                     type text, user_id text, stock_id text, amount integer, trigger integer)""")
+        self.conn.commit()
 
     # Return a Database Connection from the pool
     def get_connection(self):
