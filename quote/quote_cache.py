@@ -17,9 +17,9 @@
 #
 #	Input/Output
 #	Expecting str(dict) with the following keys
-#		stock_id, user, transactionNum, command
+#		stock_id, user, transaction_id, command
 #	Responds with str(dict) with the following keys
-#		stock_id, user, transactionNum, price, timestamp, key
+#		stock_id, user, transaction_id, price, timestamp, key
 #
 #	Cache structure
 #	cache = {
@@ -56,7 +56,7 @@ QUOTE_SERVER_RECV = 100
 AUDIT_SERVER_ADDRESS = 'b142.seng.uvic.ca'
 AUDIT_SERVER_PORT = 44421
 
-QUOTE_LIFE = 30	# in seconds
+QUOTE_LIFE = 30000	# in seconds
 
 MAX_THREADS = 100
 
@@ -75,7 +75,7 @@ cache = {
 }
 
 def now():
-	return int(time.time())
+	return int(time.time() * 1000)
 
 def init_listen():
 
@@ -95,7 +95,7 @@ def init_listen():
 
 	return 1
 
-def get_quote(stock_id, user, transactionNum):
+def get_quote(stock_id, user, transaction_id):
 
 	outgoing_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -122,7 +122,7 @@ def get_quote(stock_id, user, transactionNum):
 		"cryptokey" : response[4]
 	}
 	
-	audit_event("quote",message["timestamp"],transactionNum,None,message["user"],message["stock_id"],message["price"],message["timestamp"],message["cryptokey"],None)
+	audit_event("quote",message["timestamp"],transaction_id,None,message["user"],message["stock_id"],message["price"],message["timestamp"],message["cryptokey"],None)
 	
 	if __debug__:
 		print '[' + response[0] + ':' + response[1] + ':' + response [2] + ':' + response[3] + ':' + response[4] + ']\n'
@@ -159,7 +159,7 @@ def send_audit(message):
 def audit_event(
 		type,
 		timestamp,
-		transactionNum, 
+		transaction_id, 
 		command, 
 		username, 
 		stockSymbol,
@@ -173,7 +173,7 @@ def audit_event(
 			"logType": "SystemEventType",
 			"timestamp": timestamp,
 			"server" : MY_NAME,
-			"transactionNum" : transactionNum,
+			"transaction_id" : transaction_id,
 			"command" : command,
 			"username" : username,
 			"stockSymbol" : stockSymbol
@@ -184,7 +184,7 @@ def audit_event(
 			"logType": "QuoteServerType",
 			"timestamp": timestamp,
 			"server" : MY_NAME,
-			"transactionNum" : transactionNum,
+			"transaction_id" : transaction_id,
 			"price" : amount,
 			"stockSymbol" : stockSymbol,
 			"username" : username,
@@ -197,7 +197,7 @@ def audit_event(
 			"logType": "ErrorEventType",
 			"timestamp": timestamp,
 			"server" : MY_NAME,
-			"transactionNum" : transactionNum,
+			"transaction_id" : transaction_id,
 			"command" : command,
 			"username" : username,
 			"stockSymbol" : stockSymbol,
@@ -267,16 +267,16 @@ def thread_conn_handler(conn):
 	data = conn.recv(1024)
 	data = ast.literal_eval(data)
 	
-	#	from outside: stock_id, user, transactionNum, command
-	audit_event ("incoming", now(), data.get('transactionNum',0), data.get('command',"missing command"), data.get('user','No User'), data.get('stock_id',"---"), None, None, None, None)	
+	#	from outside: stock_id, user, transaction_id, command
+	audit_event ("incoming", now(), data.get('transaction_id',0), data.get('command',"missing command"), data.get('user','No User'), data.get('stock_id',"---"), None, None, None, None)	
 	
 	if data.get("command") == "BUY" or data.get("command") == "SELL":
-		quote = get_quote(data.get("stock_id"),data.get("user"),data.get("transactionNum"))
+		quote = get_quote(data.get("stock_id"),data.get("user"),data.get("transaction_id"))
 		update_cache(quote)
 	elif data.get("command") == "QUOTE":
 		quote = scan_cache(data.get("stock_id"))
 		if quote["status"] != "success":
-			quote = get_quote(data.get("stock_id"),data.get("user"),data.get("transactionNum"))
+			quote = get_quote(data.get("stock_id"),data.get("user"),data.get("transaction_id"))
 			update_cache(quote)
 	else:
 		quote = error_quote()

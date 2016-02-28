@@ -45,17 +45,22 @@ from database import Database
 
 server_name = "transaction_server_1"
 
-web_server_address = 'b132.seng.uvic.ca'
+web_server_address = 'b132.seng.uvic.ca' # Workload Generator
+
 audit_server_address = 'b142.seng.uvic.ca'
+audit_server_port = 44421
+
 cache_server_address = 'b134.seng.uvic.ca'
 cache_server_port = 44420
+
 SELF_HOST = ''
+SELF_PORT = 44422
 
 # Port list, in case things are run on same machine
 # 44421	Audit
 # 44422 Transaction
-audit_server_port = 44421
-SELF_PORT = 44422
+
+
 
 # Commands
 ADD = "ADD"
@@ -75,18 +80,6 @@ CANCEL_SET_SELL = "CANCEL_SET_SELL"
 DUMPLOG = "DUMPLOG"
 DISPLAY_SUMMARY = "DISPLAY_SUMMARY"
 
-# Database Constants
-DATABASE_TX = 'transactiondb'
-USERNAME = 'curtissmith'
-PASSWORD = ''
-
-TABLE_USER = 'Users'
-ID = 'id'
-BALANCE = 'balance'
-
-TABLE_STOCK = 'Stock'
-QUOTE = 'quote'
-TIMESTAMP = 'timestamp'
 
 def now():
 	return int(time.time() * 1000)
