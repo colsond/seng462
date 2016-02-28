@@ -394,7 +394,7 @@ def process_request(data, conn):
 			if user:
 				balance = conn.select_record("balance", "Users", "user_id='%s'" % user)[0]
 				if balance == None:
-					conn.insert_record("Users", "user_id,balance", "%s,%d" % (user,0))
+					conn.insert_record("Users", "user_id,balance", "'%s',%d" % (user,0))
 					balance = 0
 				# if not balance:
 				# # if user not in cache["users"]:
@@ -783,9 +783,9 @@ def process_request(data, conn):
 						timestamp = current_quote["timestamp"]
 						
 						if db.select_record("*", "PendingTrans", "type='sell',user_id='%s'" % user)[0]:
-							db.update_record("PendingTrans", "stock_id,amount,timestamp", "%s,%d,%d" % (stock_id, amount, timestamp), "user_id='%s',type='sell'")
+							db.update_record("PendingTrans", "stock_id,amount,timestamp", "'%s',%d,%d" % (stock_id, amount, timestamp), "user_id='%s',type='sell'")
 						else:
-							db.insert_record("PendingTrans", "type,user_id,stock_id,amount,timestamp", "'sell',%s,%s,%d,%d" % (user,stock_id,amount,timestamp))
+							db.insert_record("PendingTrans", "type,user_id,stock_id,amount,timestamp", "'sell','%s','%s',%d,%d" % (user,stock_id,amount,timestamp))
 						# Set pending sell to new values (should overwrite existing entry)
 						# cache["users"][user]["pending_sell"]["stock_id"] = stock_id
 						# cache["users"][user]["pending_sell"]["amount"] = price
@@ -926,7 +926,7 @@ def process_request(data, conn):
 						)
 			
 						# Set up buy trigger with stock and amount to spend
-						db.insert_record("Trigger", "type,user_id,stock_id,amount,trigger", "'buy',%s,%s,%d,%d" % (user,stock_id,amount,0))
+						db.insert_record("Trigger", "type,user_id,stock_id,amount,trigger", "'buy','%s','%s',%d,%d" % (user,stock_id,amount,0))
 						# cache["users"][user]["buy_trigger"] = {
 						# 	stock_id: {
 						# 		"amount" : amount,
