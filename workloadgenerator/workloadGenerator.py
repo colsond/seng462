@@ -5,12 +5,13 @@ import string
 import Queue
 from threading import Thread, current_thread
 
-#workload generator aims for 4 transaction servers on b132-134 all looking for port 44422
-web_server_address = ['b132.seng.uvic.ca', 'b133.seng.uvic.ca', 'b134.seng.uvic.ca', 'b134.seng.uvic.ca']
-# web_server_address = 'localhost'
+#workload generator aims for however many transaction servers are set in the list below, all looking on port 44422 
+tx_server_address = ['b132.seng.uvic.ca', 'b133.seng.uvic.ca', 'b134.seng.uvic.ca', 'b134.seng.uvic.ca']
+NUM_WORKER_THREADS = len(tx_server_address)
+# tx_server_address = 'localhost'
 # Port list, in case things are run on same machine
 # 44421	Audit
-# 44422Transaction ports
+# 44422 Transaction port
 
 web_server_port = 44422
 
@@ -30,7 +31,7 @@ SET_SELL_TRIGGER = "SET_SELL_TRIGGER"
 CANCEL_SET_SELL = "CANCEL_SET_SELL"
 DUMPLOG = "DUMPLOG"
 DISPLAY_SUMMARY = "DISPLAY_SUMMARY"
-NUM_WORKER_THREADS = 4
+
 
 q = Queue.Queue()
 
@@ -58,7 +59,7 @@ def make_request(pid, transaction_id, request_type, user=None, stock_id=None, am
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 	# Connect the socket to the port where the server is listening
-	server_address = (web_server_address[pid], web_server_port)
+	server_address = (tx_server_address[pid], web_server_port)
 	print >>sys.stderr, 'connecting to %s port %s' % server_address
 	sock.connect(server_address)
 
@@ -98,7 +99,6 @@ def processWorkloadFile(sourceDir, targetDir, workloadFile):
 		#need to decide what to do with the dump command
 		if commandInfo[0]==DUMPLOG:
 			fileDict['last']=line
-			userList.append('last')
 		else:
 			if user not in userList:
 				userList.append(user)
@@ -242,6 +242,8 @@ def main():
 	    q.put(item)
 
 	q.join() #blocks until everything is done
+	#then send last command
+	sendWorkload("last", 0)
 
 
 
