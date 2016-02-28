@@ -609,16 +609,16 @@ def process_request(data, conn):
 					# 		'Quoted stock name [' + str(current_quote[1]) + '] does not match requested stock name.'
 						# )
 
-					audit_quote_server_event(
-						now(),
-						server_name,
-						transaction_id,
-						current_quote[0],
-						current_quote[1],
-						current_quote[2],
-						int(current_quote[3]),
-						current_quote[4]
-					)
+					# audit_quote_server_event(
+					# 	now(),
+					# 	server_name,
+					# 	transaction_id,
+					# 	current_quote[0],
+					# 	current_quote[1],
+					# 	current_quote[2],
+					# 	int(current_quote[3]),
+					# 	current_quote[4]
+					# )
 
 # END QUOTE SECTION
 					
