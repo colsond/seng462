@@ -161,7 +161,8 @@ def audit_quote_server_event(
 		"timestamp": timestamp,
 		"server": server,
 		"transactionNum": transactionNum,
-		"price" : str(int(price/100)) + '.' + "{:02d}".format(int(price%100)),
+		"price": str(price),
+		# "price" : str(int(price/100)) + '.' + "{:02d}".format(int(price%100)),
 		#"price": "{:.2f}".format(float(price)/100),
 		"stockSymbol": stockSymbol,
 		"username": username,
@@ -624,7 +625,7 @@ def process_request(data, conn):
 					
 					# price = cache["users"][user]["quotes"][stock_id]["price"]
 					# timestamp = cache["users"][user]["quotes"][stock_id]["timestamp"]
-					price = int(current_quote["price"])
+					price = current_quote["price"]
 					timestamp = int(current_quote["timestamp"])
 			
 					# Set pending buy to new values (should overwrite existing entry)
@@ -779,7 +780,7 @@ def process_request(data, conn):
 
 						# price = cache["users"][user]["quotes"][stock_id]["price"]
 						# timestamp = cache["users"][user]["quotes"][stock_id]["timestamp"]
-						price = int(current_quote["price"])
+						price = current_quote["price"]
 						timestamp = int(current_quote["timestamp"])
 						
 						if conn.select_record("*", "PendingTrans", "type='sell' AND user_id='%s'" % user)[0]:
