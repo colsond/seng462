@@ -39,7 +39,7 @@ def parseUserCommand(entryDict):
     userCommandType += '<userCommand>\n'
     userCommandType += '    <timestamp>' + str(timeStamp) + '</timestamp>\n'
     userCommandType += '    <server>' + server + '</server>\n'
-    userCommandType += '    <transactionNum>' + transactionNum +'</transactionNum>\n'
+    userCommandType += '    <transactionNum>' + str(transactionNum) +'</transactionNum>\n'
     userCommandType += '    <command>' + command + '</command>\n'
     if (userName!=""):
         userCommandType += '    <username>' + userName + '</username>\n'
@@ -71,7 +71,7 @@ def pareseQuoteServer(entryDict):
     quoteServerType += '<quoteServer>\n'
     quoteServerType += '    <timestamp>' + str(timeStamp) + '</timestamp>\n'
     quoteServerType += '    <server>' + server + '</server>\n'
-    quoteServerType += '    <transactionNum>' + transactionNum + '</transactionNum>\n'
+    quoteServerType += '    <transactionNum>' + str(transactionNum) + '</transactionNum>\n'
     quoteServerType += '    <quoteServerTime>' + str(quoteServerTime) + '</quoteServerTime>\n'
     quoteServerType += '    <username>' + userName + '</username>\n'
     quoteServerType += '    <stockSymbol>' + stockSymbol + '</stockSymbol>\n'
@@ -97,7 +97,7 @@ def parseAccountTransaction(entryDict):
     accountTransactionType += '<accountTransaction>\n'
     accountTransactionType += '    <timestamp>' + str(timeStamp) + '</timestamp>\n'
     accountTransactionType += '    <server>' + server + '</server>\n'
-    accountTransactionType += '    <transactionNum>' + transactionNum + '</transactionNum>\n'
+    accountTransactionType += '    <transactionNum>' + str(transactionNum) + '</transactionNum>\n'
     accountTransactionType += '    <action>' + action + '</action>\n'
     accountTransactionType += '    <username>' + userName + '</username>\n'
     accountTransactionType += '    <funds>' + str(funds) + '</funds>\n'
@@ -121,7 +121,7 @@ def parseSystemEvent(entryDict):
     systemEventType += '<systemEvent>\n'
     systemEventType += '    <timestamp>' + str(timeStamp) + '</timestamp>\n'
     systemEventType += '    <server>' + server + '</server>\n'
-    systemEventType += '    <transactionNum>' + transactionNum + '</transactionNum>\n'
+    systemEventType += '    <transactionNum>' + str(transactionNum) + '</transactionNum>\n'
     if (command != ""):
         systemEventType += '    <command>' + command + '</command>\n'
     if (userName!=""):
@@ -154,7 +154,7 @@ def parseErrorEvent(entryDict):
     errorEventType += '<errorEvent>\n'
     errorEventType += '    <timestamp>' + str(timeStamp) + '</timestamp>\n'
     errorEventType += '    <server>' + server + '</server>\n'
-    errorEventType += '    <transactionNum>' + transactionNum + '</transactionNum>\n'
+    errorEventType += '    <transactionNum>' + str(transactionNum) + '</transactionNum>\n'
     if (command != ""):
         errorEventType += '    <command>' + command + '</command>\n'
     if (userName!=""):
@@ -188,7 +188,7 @@ def parseDebug(entryDict):
     DebugType += '<debugEvent>\n'
     DebugType += '    <timestamp>' + str(timeStamp) + '</timestamp>\n'
     DebugType += '    <server>' + server + '</server>\n'
-    DebugType += '    <transactionNum>' + transactionNum + '</transactionNum>\n'
+    DebugType += '    <transactionNum>' + str(transactionNum) + '</transactionNum>\n'
     if (command != ""):
         DebugType += '    <command>' + command + '</command>\n'
     if (userName!=""):
