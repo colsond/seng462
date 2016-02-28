@@ -624,11 +624,11 @@ def process_request(data, conn):
 					
 					# price = cache["users"][user]["quotes"][stock_id]["price"]
 					# timestamp = cache["users"][user]["quotes"][stock_id]["timestamp"]
-					price = current_quote["price"]
-					timestamp = current_quote["timestamp"]
+					price = int(current_quote["price"])
+					timestamp = int(current_quote["timestamp"])
 			
 					# Set pending buy to new values (should overwrite existing entry)
-					conn.update_record("PendingTrans", "stock_id='%s',amount='%s',timestamp=%d" % (stock_id, price, timestamp), "user_id='%s'" % user)
+					conn.update_record("PendingTrans", "stock_id='%s',amount='%s',timestamp='%s'" % (stock_id, price, timestamp), "user_id='%s'" % user)
 					# cache["users"][user]["pending_buy"]["stock_id"] = stock_id
 					# cache["users"][user]["pending_buy"]["amount"] = price
 					# cache["users"][user]["pending_buy"]["timestamp"] = timestamp
@@ -645,7 +645,7 @@ def process_request(data, conn):
 				# Check if timestamp is still valid
 				pending_buy = conn.select_record("timestamp,amount,stock_id", "PendingTrans", "type='buy' AND user_id='%s'" % user)
 				if pending_buy:
-					if now() - 60000 <= pending_buy[0]:
+					if now() - 60000 <= int(pending_buy[0]):
 					# if now() - 60000 <= cache["users"][user]["pending_buy"]["timestamp"]:
 				
 						# Get stock_id and amount from pending_buy entry
@@ -779,13 +779,13 @@ def process_request(data, conn):
 
 						# price = cache["users"][user]["quotes"][stock_id]["price"]
 						# timestamp = cache["users"][user]["quotes"][stock_id]["timestamp"]
-						price = current_quote["price"]
-						timestamp = current_quote["timestamp"]
+						price = int(current_quote["price"])
+						timestamp = int(current_quote["timestamp"])
 						
 						if conn.select_record("*", "PendingTrans", "type='sell' AND user_id='%s'" % user)[0]:
-							conn.update_record("PendingTrans", "stock_id,amount,timestamp", "'%s',%d,%d" % (stock_id, amount, timestamp), "user_id='%s' AND type='sell'" % user)
+							conn.update_record("PendingTrans", "stock_id,amount,timestamp", "'%s',%d,'%s'" % (stock_id, amount, timestamp), "user_id='%s' AND type='sell'" % user)
 						else:
-							conn.insert_record("PendingTrans", "type,user_id,stock_id,amount,timestamp", "'sell','%s','%s',%d,%d" % (user,stock_id,amount,timestamp))
+							conn.insert_record("PendingTrans", "type,user_id,stock_id,amount,timestamp", "'sell','%s','%s',%d,'%s'" % (user,stock_id,amount,timestamp))
 						# Set pending sell to new values (should overwrite existing entry)
 						# cache["users"][user]["pending_sell"]["stock_id"] = stock_id
 						# cache["users"][user]["pending_sell"]["amount"] = price
@@ -825,7 +825,7 @@ def process_request(data, conn):
 				# if cache["users"][user]["pending_sell"]:
 				pending_sell = conn.select_record("timestamp,amount,stock_id", "PendingTrans", "type='sell' AND user_id='%s'" % user)
 				if pending_sell:
-					if now() - 60000 <= pending_sell[0]:
+					if now() - 60000 <= int(pending_sell[0]):
 				
 						# Get stock_id and amount from pending_buy entry
 						# amount = int(cache["users"][user]["pending_sell"]["amount"])
