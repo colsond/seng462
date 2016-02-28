@@ -161,7 +161,7 @@ def audit_quote_server_event(
 		"timestamp": timestamp,
 		"server": server,
 		"transactionNum": transactionNum,
-		"price": str(price),g
+		"price": str(price),
 		# "price" : str(int(price/100)) + '.' + "{:02d}".format(int(price%100)),
 		#"price": "{:.2f}".format(float(price)/100),
 		"stockSymbol": stockSymbol,
@@ -620,7 +620,7 @@ def process_request(data, conn):
 					# 	int(current_quote[3]),
 					# 	current_quote[4]
 					# )
-
+g
 # END QUOTE SECTION
 					
 					# price = cache["users"][user]["quotes"][stock_id]["price"]
