@@ -825,7 +825,7 @@ def process_request(data, conn):
 				# Check if timestamp is still valid
 				# if cache["users"][user]["pending_sell"]:
 				pending_sell = conn.select_record("timestamp,amount,stock_id", "PendingTrans", "type='sell' AND user_id='%s'" % user)
-				if pending_sell:
+				if pending_sell[0]:
 					if now() - 60000 <= int(pending_sell[0]):
 				
 						# Get stock_id and amount from pending_buy entry
