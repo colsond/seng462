@@ -28,9 +28,9 @@ DUMPLOG = "DUMPLOG"
 DISPLAY_SUMMARY = "DISPLAY_SUMMARY"
 
 
-def make_request(transaction_id, command, user=None, stock_id=None, amount=None, filename=None):
+def make_request(transactionNum, command, user=None, stock_id=None, amount=None, filename=None):
 	data = {
-		'transaction_id': transaction_id,
+		'transactionNum': transactionNum,
 		'command': command,
 	}
 
@@ -89,8 +89,8 @@ def main():
 
 		tokens = line.split(' ')
 
-		transaction_id = tokens[0]
-		transaction_id = transaction_id.translate(None, bad_chars)
+		transactionNum = tokens[0]
+		transactionNum = transactionNum.translate(None, bad_chars)
 
 		request = tokens[1].split(',')
 
@@ -99,89 +99,89 @@ def main():
 		if command == ADD:
 			user = request[1]
 			amount = request[2]
-			make_request(transaction_id, command, user, amount=amount)
+			make_request(transactionNum, command, user, amount=amount)
 
 		elif command == QUOTE:
 			user = request[1]
 			stock_id = request[2]
-			make_request(transaction_id, command, user, stock_id)
+			make_request(transactionNum, command, user, stock_id)
 
 		elif command == BUY:
 			user = request[1]
 			stock_id = request[2]
 			amount = request[3]
-			make_request(transaction_id, command, user, stock_id, amount)
+			make_request(transactionNum, command, user, stock_id, amount)
 
 		elif command == COMMIT_BUY:
 			user = request[1]
-			make_request(transaction_id, command, user)
+			make_request(transactionNum, command, user)
 			
 		elif command == CANCEL_BUY:
 			user = request[1]
-			make_request(transaction_id, command, user)
+			make_request(transactionNum, command, user)
 			
 		elif command == SELL:
 			user = request[1]
 			stock_id = request[2]
 			amount = request[3]
-			make_request(transaction_id, command, user, stock_id, amount)
+			make_request(transactionNum, command, user, stock_id, amount)
 
 		elif command == COMMIT_SELL:
 			user = request[1]
-			make_request(transaction_id, command, user)
+			make_request(transactionNum, command, user)
 
 		elif command == CANCEL_SELL:
 			user = request[1]
-			make_request(transaction_id, command, user)
+			make_request(transactionNum, command, user)
 
 		elif command == SET_BUY_AMOUNT:
 			user = request[1]
 			stock_id = request[2]
 			amount = request[3]
-			make_request(transaction_id, command, user, stock_id, amount)
+			make_request(transactionNum, command, user, stock_id, amount)
 			
 		elif command == CANCEL_SET_BUY:
 			user = request[1]
 			stock_id = request[2]
-			make_request(transaction_id, command, user, stock_id)
+			make_request(transactionNum, command, user, stock_id)
 			
 		elif command == SET_BUY_TRIGGER:
 			user = request[1]
 			stock_id = request[2]
 			amount = request[3]
-			make_request(transaction_id, command, user, stock_id, amount)
+			make_request(transactionNum, command, user, stock_id, amount)
 			
 		elif command == SET_SELL_AMOUNT:
 			user = request[1]
 			stock_id = request[2]
 			amount = request[3]
-			make_request(transaction_id, command, user, stock_id, amount)
+			make_request(transactionNum, command, user, stock_id, amount)
 			
 		elif command == SET_SELL_TRIGGER:
 			user = request[1]
 			stock_id = request[2]
 			amount = request[3]
-			make_request(transaction_id, command, user, stock_id, amount)
+			make_request(transactionNum, command, user, stock_id, amount)
 			
 		elif command == CANCEL_SET_SELL:
 			user = request[1]
 			stock_id = request[2]
-			make_request(transaction_id, command, user, stock_id)
+			make_request(transactionNum, command, user, stock_id)
 			
 		elif command == DUMPLOG:
 			if len(request) == 2:
 				#filename
 				filename = request[1]
-				make_request(transaction_id, command, filename=filename)
+				make_request(transactionNum, command, filename=filename)
 			elif len(request) == 3:
 				#userid, filename
 				user = request[1]
 				filename = request[2]
-				make_request(transaction_id, command, user, filename=filename)
+				make_request(transactionNum, command, user, filename=filename)
 
 		elif command == DISPLAY_SUMMARY:
 			user = request[1]
-			make_request(transaction_id, command, user)
+			make_request(transactionNum, command, user)
 
 		else:
 			# INVALID REQUEST

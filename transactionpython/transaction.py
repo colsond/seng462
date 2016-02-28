@@ -322,7 +322,7 @@ def process_request(data, conn):
 	print "\n"
 
 	response = "Request not processed."
-	transaction_id = data_dict.get('transaction_id')
+	transactionNum = data_dict.get('transactionNum')
 	command = data_dict.get('command')
 	user = data_dict.get('user')
 	stock_id = data_dict.get('stock_id')
@@ -336,7 +336,7 @@ def process_request(data, conn):
 		audit_debug(
 			now(),
 			server_name,
-			transaction_id,
+			transactionNum,
 			command,
 			user,
 			stock_id,
@@ -351,12 +351,12 @@ def process_request(data, conn):
 # ---------------------------------------------------------
 
 	# -- Check for transaction id and request type
-	if transaction_id is None:
+	if transactionNum is None:
 		response = "Missing transaction id. Transaction ignored."
 		audit_error_event(
 			now(),
 			server_name,
-			transaction_id,
+			transactionNum,
 			command,
 			user,
 			stock_id,
@@ -371,7 +371,7 @@ def process_request(data, conn):
 			audit_error_event(
 				now(),
 				server_name,
-				transaction_id,
+				transactionNum,
 				command,
 				user,
 				stock_id,
@@ -414,7 +414,7 @@ def process_request(data, conn):
 			audit_user_command_event(
 				now(),
 				server_name,
-				transaction_id,
+				transactionNum,
 				command,
 				user,
 				stock_id,
@@ -431,7 +431,7 @@ def process_request(data, conn):
 					audit_error_event(
 						now(),
 						server_name,
-						transaction_id,
+						transactionNum,
 						command,
 						user,
 						stock_id,
@@ -444,7 +444,7 @@ def process_request(data, conn):
 					audit_error_event(
 						now(),
 						server_name,
-						transaction_id,
+						transactionNum,
 						command,
 						user,
 						stock_id,
@@ -460,7 +460,7 @@ def process_request(data, conn):
 					audit_transaction_event(
 						now(),
 						server_name,
-						transaction_id,
+						transactionNum,
 						command,
 						user,
 						balance + amount
@@ -470,77 +470,7 @@ def process_request(data, conn):
 # -- QUOTE REQUEST
 # ----------------
 			elif command == QUOTE:
-				# UPDATE WITH QUOTE CACHE
-				# if stock_id in cache["users"][user]["quotes"]:
-				# 	existing_timestamp = cache["users"][user]["quotes"][stock_id].get("timestamp",0)
-				# else:
-				# 	existing_timestamp = None
-					
-				# if __debug__:
-				# 	print "existing timestamp: " + str(existing_timestamp)
-				# 	print "current time: " + str(now())
-
-				# If there is no existing quote for this user/stock_id, or the existing quote has expired, get a new one
-# 				req_time = now()
-# 				audit_debug(
-# 						req_time,
-# 						server_name,
-# 						transaction_id,
-# 						command,
-# 						user,
-# 						stock_id,
-# 						None,
-# 						None,
-# 						"Timestamp: " + str(existing_timestamp))
-
-# 				if not existing_timestamp or req_time - int(existing_timestamp) > 60000:
-# #				if not existing_timestamp or now() - int(existing_timestamp) > 60000:
-
-# 					if __debug__:
-# 						audit_debug(
-# 							now(),
-# 							server_name,
-# 							transaction_id,
-# 							command,
-# 							user,
-# 							stock_id,
-# 							None,#filename
-# 							amount,
-# 							'Sending quote request')
-
 				current_quote = get_quote(data_dict)
-
-					# UPDATE WITH QUOTE CACHE
-					# if current_quote[1] == stock_id:
-					# 	cache["users"][user]["quotes"][current_quote[1]] = {
-					# 		"price": current_quote[0],
-					# 		"user": current_quote[2],
-					# 		"timestamp": int(current_quote[3]),
-					# 		"cryptokey": current_quote[4]
-					# 	}
-					# else:
-					# 	audit_error_event(
-					# 		now(),
-					# 		server_name,
-					# 		transaction_id,
-					# 		command,
-					# 		user,
-					# 		stock_id,
-					# 		None,#filename
-					# 		None,#amount
-					# 		'Quoted stock name [' + str(current_quote[1]) + '] does not match requested stock name.'
-					# 	)
-
-					# audit_quote_server_event(
-					# 	now(),
-					# 	server_name,
-					# 	transaction_id,
-					# 	current_quote[0],
-					# 	current_quote[1],
-					# 	current_quote[2],
-					# 	int(current_quote[3]),
-					# 	current_quote[4]
-					# )
 
 				# UPDATE WITH QUOTE CACHE
 				response = str(stock_id) + ':' + str(current_quote['price'])
@@ -572,7 +502,7 @@ def process_request(data, conn):
 						audit_debug(
 							now(),
 							server_name,
-							transaction_id,
+							transactionNum,
 							command,
 							user,
 							stock_id,
@@ -594,7 +524,7 @@ def process_request(data, conn):
 					# 	audit_error_event(
 					# 		now(),
 					# 		server_name,
-					# 		transaction_id,
+					# 		transactionNum,
 					# 		command,
 					# 		user,
 					# 		stock_id,
@@ -606,7 +536,7 @@ def process_request(data, conn):
 					# audit_quote_server_event(
 					# 	now(),
 					# 	server_name,
-					# 	transaction_id,
+					# 	transactionNum,
 					# 	current_quote[0],
 					# 	current_quote[1],
 					# 	current_quote[2],
@@ -665,7 +595,7 @@ def process_request(data, conn):
 						audit_transaction_event(
 							now(),
 							server_name,
-							transaction_id,
+							transactionNum,
 							command,
 							user,
 							amount)
@@ -681,7 +611,7 @@ def process_request(data, conn):
 						audit_error_event(
 							now(),
 							server_name,
-							transaction_id,
+							transactionNum,
 							command,
 							user,
 							None,#stock
@@ -693,7 +623,7 @@ def process_request(data, conn):
 					audit_error_event(
 						now(),
 						server_name,
-						transaction_id,
+						transactionNum,
 						command,
 						user,
 						None,#stock
@@ -726,7 +656,7 @@ def process_request(data, conn):
 							audit_debug(
 								now(),
 								server_name,
-								transaction_id,
+								transactionNum,
 								command,
 								user,
 								stock_id,
@@ -739,7 +669,7 @@ def process_request(data, conn):
 						# audit_quote_server_event(
 						# 	now(),
 						# 	server_name,
-						# 	transaction_id,
+						# 	transactionNum,
 						# 	current_quote[0],
 						# 	current_quote[1],
 						# 	current_quote[2],
@@ -752,7 +682,7 @@ def process_request(data, conn):
 						# 	audit_error_event(
 						# 		now(),
 						# 		server_name,
-						# 		transaction_id,
+						# 		transactionNum,
 						# 		command,
 						# 		user,
 						# 		stock_id,
@@ -791,7 +721,7 @@ def process_request(data, conn):
 						audit_error_event(
 							now(),
 							server_name,
-							transaction_id,
+							transactionNum,
 							command,
 							user,
 							stock_id,
@@ -803,7 +733,7 @@ def process_request(data, conn):
 					audit_error_event(
 						now(),
 						server_name,
-						transaction_id,
+						transactionNum,
 						command,
 						user,
 						stock_id,
@@ -838,7 +768,7 @@ def process_request(data, conn):
 						audit_transaction_event(
 							now(),
 							server_name,
-							transaction_id,
+							transactionNum,
 							command,
 							user,
 							amount
@@ -854,7 +784,7 @@ def process_request(data, conn):
 						audit_error_event(
 							now(),
 							server_name,
-							transaction_id,
+							transactionNum,
 							command,
 							user,
 							None,#stock
@@ -866,7 +796,7 @@ def process_request(data, conn):
 					audit_error_event(
 						now(),
 						server_name,
-						transaction_id,
+						transactionNum,
 						command,
 						user,
 						None,#stock
@@ -898,7 +828,7 @@ def process_request(data, conn):
 						audit_error_event(
 							now(),
 							server_name,
-							transaction_id,
+							transactionNum,
 							command,
 							user,
 							stock_id,
@@ -913,7 +843,7 @@ def process_request(data, conn):
 						audit_transaction_event(
 							now(),
 							server_name,
-							transaction_id,
+							transactionNum,
 							command,
 							user,
 							amount
@@ -932,7 +862,7 @@ def process_request(data, conn):
 					audit_error_event(
 						now(),
 						server_name,
-						transaction_id,
+						transactionNum,
 						command,
 						user,
 						stock_id,
@@ -952,7 +882,7 @@ def process_request(data, conn):
 					audit_error_event(
 						now(),
 						server_name,
-						transaction_id,
+						transactionNum,
 						command,
 						user,
 						stock_id,
@@ -971,7 +901,7 @@ def process_request(data, conn):
 					audit_transaction_event(
 						now(),
 						server_name,
-						transaction_id,
+						transactionNum,
 						command,
 						user,
 						amount
@@ -998,7 +928,7 @@ def process_request(data, conn):
 								audit_error_event(
 									now(),
 									server_name,
-									transaction_id,
+									transactionNum,
 									command,
 									user,
 									stock_id,
@@ -1010,7 +940,7 @@ def process_request(data, conn):
 							audit_error_event(
 								now(),
 								server_name,
-								transaction_id,
+								transactionNum,
 								command,
 								user,
 								stock_id,
@@ -1023,7 +953,7 @@ def process_request(data, conn):
 						audit_error_event(
 							now(),
 							server_name,
-							transaction_id,
+							transactionNum,
 							command,
 							user,
 							stock_id,
@@ -1036,7 +966,7 @@ def process_request(data, conn):
 					audit_error_event(
 						now(),
 						server_name,
-						transaction_id,
+						transactionNum,
 						command,
 						user,
 						stock_id,
@@ -1057,7 +987,7 @@ def process_request(data, conn):
 							audit_error_event(
 								now(),
 								server_name,
-								transaction_id,
+								transactionNum,
 								command,
 								user,
 								stock_id,
@@ -1081,7 +1011,7 @@ def process_request(data, conn):
 						audit_error_event(
 							now(),
 							server_name,
-							transaction_id,
+							transactionNum,
 							command,
 							user,
 							stock_id,
@@ -1093,7 +1023,7 @@ def process_request(data, conn):
 					audit_error_event(
 						now(),
 						server_name,
-						transaction_id,
+						transactionNum,
 						command,
 						user,
 						stock_id,
@@ -1117,7 +1047,7 @@ def process_request(data, conn):
 							audit_error_event(
 								now(),
 								server_name,
-								transaction_id,
+								transactionNum,
 								command,
 								user,
 								stock_id,
@@ -1129,7 +1059,7 @@ def process_request(data, conn):
 						audit_error_event(
 							now(),
 							server_name,
-							transaction_id,
+							transactionNum,
 							command,
 							user,
 							stock_id,
@@ -1141,7 +1071,7 @@ def process_request(data, conn):
 					audit_error_event(
 						now(),
 						server_name,
-						transaction_id,
+						transactionNum,
 						command,
 						user,
 						stock_id,
@@ -1170,7 +1100,7 @@ def process_request(data, conn):
 						audit_error_event(
 							now(),
 							server_name,
-							transaction_id,
+							transactionNum,
 							command,
 							user,
 							stock_id,
@@ -1182,7 +1112,7 @@ def process_request(data, conn):
 					audit_error_event(
 						now(),
 						server_name,
-						transaction_id,
+						transactionNum,
 						command,
 						user,
 						stock_id,
@@ -1233,7 +1163,7 @@ def get_quote(data):
 # def get_quote(data):
 # 	user = data['user']
 # 	stock_id = data['stock_id']
-# 	transaction_id = data['transaction_id']
+# 	transactionNum = data['transactionNum']
 
 # 	if __debug__:
 # 		print "HITTING QUOTE SERVER \n HITTING QUOTE SERVER \n OMG \n!!!"
