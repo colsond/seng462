@@ -620,7 +620,7 @@ def process_request(data, conn):
 					# 	int(current_quote[3]),
 					# 	current_quote[4]
 					# )
-g
+
 # END QUOTE SECTION
 					
 					# price = cache["users"][user]["quotes"][stock_id]["price"]
