@@ -204,7 +204,7 @@ def parseDebug(entryDict):
 # This function handles the data package recieved thru the socket and dumps it into the audit log
 def handleEntry(strdict):
     xmlPacket = ''
-    print strdict
+    #print strdict
     #unpack string into dictionary
     entryDict = ast.literal_eval(strdict)
     

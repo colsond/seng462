@@ -456,22 +456,7 @@ def process_request(data, conn):
 
 				# Check user balance
 				if conn.select_record("balance", "Users", "user_id='%s'" % user)[0] >= amount:
-				# if cache["users"][user]["balance"] >= amount:
-					# get quote and send to user to confirm
-
-# FROM QUOTE REQUEST
-
-					# UNCOMMENT IF CACHED QUOTES CAN BE USED FOR BUY REQUESTS
-					#existing_timestamp = cache["users"][user]["quotes"][stock_id].get("timestamp")
-					#if __debug__:
-					#	print "existing timestamp: " + str(existing_timestamp)
-					#	print "current time: " + now()
-
-					## If there is no existing quote for this user/stock_id, or the existing quote has expired, get a new one
-					#if not existing_timestamp or now() - int(existing_timestamp) > 60000:
-
-					#TAB REMAINING CODE IN QUOTE SECTION IF ENABLING CACHING
-
+				
 					if __debug__:
 						audit_debug(
 							now(),
@@ -486,50 +471,11 @@ def process_request(data, conn):
 
 					current_quote = get_quote(data_dict)
 
-					# if current_quote[1] == stock_id:
-					# 	# UPDATE WITH QUOTE CACHE
-					# 	cache["users"][user]["quotes"][current_quote[1]] = {
-					# 		"price": current_quote[0],
-					# 		"user": current_quote[2],
-					# 		"timestamp": now(),
-					# 		"cryptokey": current_quote[4]
-					# 	}
-					# else:
-					# 	audit_error_event(
-					# 		now(),
-					# 		server_name,
-					# 		transactionNum,
-					# 		command,
-					# 		user,
-					# 		stock_id,
-					# 		None,#filename
-					# 		None,#amount
-					# 		'Quoted stock name [' + str(current_quote[1]) + '] does not match requested stock name.'
-						# )
-
-					# audit_quote_server_event(
-					# 	now(),
-					# 	server_name,
-					# 	transactionNum,
-					# 	current_quote[0],
-					# 	current_quote[1],
-					# 	current_quote[2],
-					# 	int(current_quote[3]),
-					# 	current_quote[4]
-					# )
-
-# END QUOTE SECTION
-					
-					# price = cache["users"][user]["quotes"][stock_id]["price"]
-					# timestamp = cache["users"][user]["quotes"][stock_id]["timestamp"]
 					price = current_quote["price"]
 					timestamp = int(current_quote["timestamp"])
 			
 					# Set pending buy to new values (should overwrite existing entry)
 					conn.update_record("PendingTrans", "stock_id='%s',amount=%d,timestamp=%d" % (stock_id, amount, timestamp), "user_id='%s'" % user)
-					# cache["users"][user]["pending_buy"]["stock_id"] = stock_id
-					# cache["users"][user]["pending_buy"]["amount"] = price
-					# cache["users"][user]["pending_buy"]["timestamp"] = timestamp
 					
 					response = str(stock_id) + ":" + str(price)
 
@@ -544,27 +490,18 @@ def process_request(data, conn):
 				pending_buy = conn.select_record("timestamp,amount,stock_id", "PendingTrans", "type='buy' AND user_id='%s'" % user)
 				if pending_buy[0]:
 					if now() - 60000 <= int(pending_buy[0]):
-					# if now() - 60000 <= cache["users"][user]["pending_buy"]["timestamp"]:
-				
-						# Get stock_id and amount from pending_buy entry
-						# amount = int(cache["users"][user]["pending_buy"]["amount"])
-						# stock_id = cache["users"][user]["pending_buy"]["stock_id"]
 						amount = pending_buy[1]
 						stock_id = pending_buy[2]
 				
 						# Update user balance
-						# cache["users"][user]["balance"] = cache["users"][user]["balance"] - amount
 						conn.update_record("Users", "balance=balance-%d" % amount, "user_id='%s'" % user)
 
 						# Create or update stock entry for user
-						stock = conn.select_record("*", "Stock", "stock_id='%s' AND user_id='%s'" % (stock_id, user))
-						# if stock_id not in cache["users"][user]["stocks"]:
-						if stock:
+						stock = conn.select_record("amount", "Stock", "stock_id='%s' AND user_id='%s'" % (stock_id, user))
+						if stock[0] != None:
 							conn.update_record("Stock", "amount=amount+%d" % amount, "stock_id='%s' AND user_id='%s'" % (stock_id, user))
-							# cache["users"][user]["stocks"][stock_id] = amount
 						else:
 							conn.insert_record("Stock", "stock_id,user_id,amount", "%s,%s,%d" % (stock_id, user, amount))
-							# cache["users"][user]["stocks"][stock_id] += amount
 							
 						audit_transaction_event(
 							now(),
@@ -575,7 +512,6 @@ def process_request(data, conn):
 							amount)
 				
 						# Remove the pending entry
-						# cache["users"][user]["pending_buy"] = {}
 						conn.delete_record("PendingTrans", "type='buy' AND user_id='%s'" % user)
 
 						response = "Last buy order committed."
@@ -611,7 +547,6 @@ def process_request(data, conn):
 # ---------------------
 			elif command == CANCEL_BUY:
 				conn.delete_record("PendingTrans", "type='buy' AND user_id='%s'" % user)
-				# cache["users"][user]["pending_buy"] = {}
 				response = "Buy cancelled."
 				
 # ---------------
@@ -620,11 +555,7 @@ def process_request(data, conn):
 			elif command == SELL:
 				# Check user stock amount
 				if amount > 0:
-					# if cache["users"][user]["stocks"].get(stock_id, 0) >= amount:
 					if conn.select_record("amount", "Stock", "user_id='%s' AND stock_id='%s'" % (user, stock_id))[0] >= amount:
-						# get quote and send to user to confirm
-						
-# FROM QUOTE REQUEST
 
 						if __debug__:
 							audit_debug(
@@ -639,55 +570,13 @@ def process_request(data, conn):
 								'Sending quote request')
 
 						current_quote = get_quote(data_dict)
-
-						# audit_quote_server_event(
-						# 	now(),
-						# 	server_name,
-						# 	transactionNum,
-						# 	current_quote[0],
-						# 	current_quote[1],
-						# 	current_quote[2],
-						# 	int(current_quote[3]),
-						# 	current_quote[4]
-						# )
-
-						# if current_quote[1] != stock_id:
-						# 	response = 'Quoted stock name [' + current_quote[1] + '] does not match requested stock name.'
-						# 	audit_error_event(
-						# 		now(),
-						# 		server_name,
-						# 		transactionNum,
-						# 		command,
-						# 		user,
-						# 		stock_id,
-						# 		None,#filename
-						# 		None,#amount
-						# 		response
-						# 	)
-						# else:
-						# 	# REPLACE WITH QUOTE CACHE
-						# 	cache["users"][user]["quotes"][current_quote[1]] = {
-						# 		"price": current_quote[0],
-						# 		"user": current_quote[2],
-						# 		"timestamp": now(),
-						# 		"cryptokey": current_quote[4]
-						# 	}
-
-# END QUOTE SECTION
-
-						# price = cache["users"][user]["quotes"][stock_id]["price"]
-						# timestamp = cache["users"][user]["quotes"][stock_id]["timestamp"]
 						price = current_quote["price"]
 						timestamp = int(current_quote["timestamp"])
 						
-						if conn.select_record("*", "PendingTrans", "type='sell' AND user_id='%s'" % user)[0]:
+						if conn.select_record("amount", "PendingTrans", "type='sell' AND user_id='%s'" % user)[0]:
 							conn.update_record("PendingTrans", "stock_id,amount,timestamp", "'%s',%d,'%s'" % (stock_id, amount, timestamp), "user_id='%s' AND type='sell'" % user)
 						else:
 							conn.insert_record("PendingTrans", "type,user_id,stock_id,amount,timestamp", "'sell','%s','%s',%d,'%s'" % (user,stock_id,amount,timestamp))
-						# Set pending sell to new values (should overwrite existing entry)
-						# cache["users"][user]["pending_sell"]["stock_id"] = stock_id
-						# cache["users"][user]["pending_sell"]["amount"] = price
-						# cache["users"][user]["pending_sell"]["timestamp"] = timestamp
 						response = str(stock_id) + ":" + str(price)
 
 					else:
@@ -719,24 +608,16 @@ def process_request(data, conn):
 # -- COMMIT SELL REQUEST
 # ----------------------
 			elif command == COMMIT_SELL:
-				# Check if timestamp is still valid
-				# if cache["users"][user]["pending_sell"]:
 				pending_sell = conn.select_record("timestamp,amount,stock_id", "PendingTrans", "type='sell' AND user_id='%s'" % user)
 				if pending_sell[0]:
 					if now() - 60000 <= int(pending_sell[0]):
-				
-						# Get stock_id and amount from pending_buy entry
-						# amount = int(cache["users"][user]["pending_sell"]["amount"])
-						# stock_id = cache["users"][user]["pending_sell"]["stock_id"]
 						amount = pending_sell[1]
 						stock_id = pending_sell[2]
 
 						# Update user stock value
-						# cache["users"][user]["stocks"][stock_id] -= amount
 						conn.update_record("Stock", "amount=amount-%d" % amount, "stock_id='%s' AND user_id='%s'" % (stock_id, user_id))
 				
 						# Update user balance
-						# cache["users"][user]["balance"] += amount
 						conn.update_record("Users", "balance=balance+%d" % amount, "user_id='%s'" % user)
 						
 						audit_transaction_event(
@@ -750,7 +631,6 @@ def process_request(data, conn):
 				
 						# Remove the pending entry
 						conn.delete_record("PendingTrans", "user_id='%s' AND type='sell'" % user)
-						# cache["users"][user]["pending_sell"] = {}
 				
 						response = "Sell committed."
 					else:
@@ -782,7 +662,6 @@ def process_request(data, conn):
 # -- CANCEL SELL REQUEST
 # ----------------------
 			elif command == CANCEL_SELL:
-				# cache["users"][user]["pending_sell"] = {}
 				conn.delete_record("PendingTrans", "type='sell' AND user_id='%s'" % user)
 				response = "Sell cancelled."
 				
@@ -791,12 +670,8 @@ def process_request(data, conn):
 # -------------------------
 			elif command == SET_BUY_AMOUNT:
 			
-				# Check user balance
-				# if cache["users"][user]["balance"] >= amount:
+				# Check user balance\
 				if conn.select_record("balance", "Users", "user_id='%s'" % user)[0] >= amount:
-					# Check if there is an existing trigger for the stock
-					# if stock_id in cache["users"][user]["buy_trigger"] and cache["users"][user]["buy_trigger"][stock_id].get("trigger",0) > 0:
-					# REPLACE WITH QUOTE CACHE
 					if conn.select_record("*", "Trigger", "type='buy' AND user_id='%s' AND stock_id='%s'" % (user, stock_id)):
 						response = "Trigger already set for stock."
 						audit_error_event(
@@ -812,7 +687,6 @@ def process_request(data, conn):
 					else:
 						# Update user balance
 						conn.update_record("Users", "balance=balance-%d" % amount, "user_id='%s'" % user)
-						# cache["users"][user]["balance"] -= amount
 						
 						audit_transaction_event(
 							now(),
@@ -825,12 +699,6 @@ def process_request(data, conn):
 			
 						# Set up buy trigger with stock and amount to spend
 						conn.insert_record("Trigger", "type,user_id,stock_id,amount,trigger", "'buy','%s','%s',%d,%d" % (user,stock_id,amount,0))
-						# cache["users"][user]["buy_trigger"] = {
-						# 	stock_id: {
-						# 		"amount" : amount,
-						# 		"trigger" : 0
-						# 	}
-						# }
 				else:
 					response = "Insufficient funds to set trigger."
 					audit_error_event(
@@ -848,7 +716,6 @@ def process_request(data, conn):
 # -- CANCEL SET BUY REQUEST
 # -------------------------
 			elif command == CANCEL_SET_BUY:
-				# if stock_id not in cache["users"][user]["buy_trigger"] or cache["users"][user]["buy_trigger"][stock_id].get("trigger",0) == 0:
 				amount = conn.select_record("amount", "Trigger", "type='buy' AND user_id='%s' AND stock_id='%s'" % (user, stock_id))[0]
 				if not amount:
 					#if there was no trigger
@@ -866,10 +733,6 @@ def process_request(data, conn):
 				else:
 					# put the money back into the user account
 					conn.delete_record("Trigger", "type='buy' AND user_id='%s' AND stock_id='%s'" % (user, stock_id))
-					# cache["users"][user]["buy_trigger"][stock_id]["trigger"] = 0
-					# cache["users"][user]["buy_trigger"][stock_id]["amount"] = 0
-					
-					# cache["users"][user]["balance"] += amount
 					conn.update_record("Users", "balance=balance+%d" % amount, "user_id='%s'" % user)	
 
 					audit_transaction_event(
@@ -894,7 +757,6 @@ def process_request(data, conn):
 					if buy_trigger[0] > 0:
 						if buy_trigger[1] == 0:
 							if amount > 0:
-								# cache["users"][user]["buy_trigger"][stock_id]["trigger"] = amount;
 								conn.update_record("Trigger", "trigger=%d" % amount, "type='buy' AND user_id='%s' AND stock_id='%s'" % (user,stock_id))
 								response = "Buy trigger set."
 							else:
@@ -954,7 +816,6 @@ def process_request(data, conn):
 			elif command == SET_SELL_AMOUNT:
 				sell_trigger = conn.select_record("amount,trigger", "Trigger", "type='sell' AND user_id='%s' AND stock_id='%s'" % (user, stock_id))
 				if sell_trigger:
-					# if cache["users"][user]["stocks"][stock_id] >= amount:
 					if conn.select_record("amount", "Stock", "user_id='%s' AND stock_id='%s'")[0] >= amount:
 						if sell_trigger[1] > 0:
 							response = "Active sell trigger for stock."
@@ -970,15 +831,8 @@ def process_request(data, conn):
 								response)
 						else:
 							conn.update_record("Stock", "amount=amount-%d" % amount, "stock_id='%s' AND user_id='%s'" % (stock_id,user))
-							# cache["users"][user]["stocks"][stock_id] -= amount
 							
 							conn.update_record("Trigger", "amount=%d,trigger=%d" % (amount,0), "type='sell' AND user_id='%s' AND stock_id='%s'" % (user,stock_id))
-							# cache["users"][user]["sell_trigger"] = {
-							# 	stock_id: {
-							# 		"amount" : amount,
-							# 		"trigger" : 0
-							# 	}
-							# }
 							response = "Sell trigger initialised."
 					else:
 						response = "Insufficient stock to set trigger."
@@ -1060,13 +914,8 @@ def process_request(data, conn):
 				sell_trigger = conn.select_record("trigger", "Trigger", "user_id='%s' AND stock_id='%s' AND type='sell'" % (user,stock_id))
 				if sell_trigger[0] != None:
 					if sell_trigger[0] > 0:
-				# if stock_id in cache["users"][user]["sell_trigger"]:
-				# 	if cache["users"][user]["sell_trigger"][stock_id]["trigger"] > 0:
 						conn.update_record("Stock", "amount=amount+%d" % amount, "stock_id='%s' AND user_id='%s'" % (stock_id,user))
-						# cache["users"][user]["stocks"][stock_id] += cache["users"][user]["sell_trigger"][stock_id]["amount"]
 						conn.delete_record("Trigger", "type='sell' AND user_id='%s' AND stock_id='%s'" % (user,stock_id))
-						# cache["users"][user]["sell_trigger"][stock_id]["amount"] = 0
-						# cache["users"][user]["sell_trigger"][stock_id]["trigger"] = 0
 						
 						response = "Sell trigger cancelled."
 					else:
@@ -1134,36 +983,6 @@ def get_quote(data):
     sock.close()
     return  response
 
-# def get_quote(data):
-# 	user = data['user']
-# 	stock_id = data['stock_id']
-# 	transactionNum = data['transactionNum']
-
-# 	if __debug__:
-# 		print "HITTING QUOTE SERVER \n HITTING QUOTE SERVER \n OMG \n!!!"
-
-# 	request = stock_id + ", " + user + "\r"
-
-# 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-# 	s.connect(('quoteserve.seng.uvic.ca', 4444))
-# 	s.send(request)
-# 	response = s.recv(1024)
-# 	s.close()
-
-# 	if __debug__:
-# 		print "quote server response: " + str(response)
-
-# 	response = response.split(',')
-	
-# 	#convert dollars to cents
-# 	#response[0] = int(float(response[0])*100)
-# 	price = str(response[0]).split('.')
-# 	response[0] = int(price[0] + price[1])
-	
-# 	#remove newline from cryptokey
-# 	response[4] = response[4].translate(None,'\n')
-
-# 	return response
 
 def main():
 	# Initialize Database

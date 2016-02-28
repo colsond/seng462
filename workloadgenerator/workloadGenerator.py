@@ -2,12 +2,16 @@ import io
 import socket
 import sys
 import string
+import Queue
+from threading import Thread, current_thread
+
 
 web_server_address = 'b133.seng.uvic.ca'
 # web_server_address = 'localhost'
 # Port list, in case things are run on same machine
 # 44421	Audit
-# 44422 Transaction
+# 44422-44425 Transaction ports, number below gets added to by the various thread ids (0-3)
+
 web_server_port = 44422
 
 ADD = "ADD"
@@ -26,9 +30,11 @@ SET_SELL_TRIGGER = "SET_SELL_TRIGGER"
 CANCEL_SET_SELL = "CANCEL_SET_SELL"
 DUMPLOG = "DUMPLOG"
 DISPLAY_SUMMARY = "DISPLAY_SUMMARY"
+NUM_WORKER_THREADS = 4
 
+q = Queue.Queue()
 
-def make_request(transactionNum, command, user=None, stock_id=None, amount=None, filename=None):
+def make_request(pid, transactionNum, command, user=None, stock_id=None, amount=None, filename=None):
 	data = {
 		'transactionNum': transactionNum,
 		'command': command,
@@ -52,7 +58,7 @@ def make_request(transactionNum, command, user=None, stock_id=None, amount=None,
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 	# Connect the socket to the port where the server is listening
-	server_address = (web_server_address, web_server_port)
+	server_address = (web_server_address, web_server_port+pid)
 	print >>sys.stderr, 'connecting to %s port %s' % server_address
 	sock.connect(server_address)
 
@@ -80,11 +86,39 @@ def make_request(transactionNum, command, user=None, stock_id=None, amount=None,
 
 	return response
 
-def main():
+def processWorkloadFile(sourceDir, targetDir, workloadFile):
+	fileDict = {}
+	userList = []
+	f = open (workloadFile, 'r')
+	for line in f:
+		tokens = line.split(' ')
+		commandInfo = tokens[1].split(',')
+		user = commandInfo[1]
 
+		#need to decide what to do with the dump command
+		if commandInfo[0]==DUMPLOG:
+			fileDict['last']=line
+			userList.append('last')
+		else:
+			if user not in userList:
+				userList.append(user)
+			if user in fileDict:
+				fileDict[user] += line
+			else:
+				fileDict[user] = line
+	f.close()
+	for user in userList:
+		f = open ((targetDir+ user + '.txt'), 'w')
+		f.write(fileDict[user])
+		f.close()
+	return userList
+
+
+
+def sendWorkload(user, pid):
 	bad_chars = '[]'
 
-	f = open("activeWorkLoad.txt", 'r')
+	f = open('./seperatedWorkload/' + user + '.txt', 'r')
 	for line in f:
 
 		tokens = line.split(' ')
@@ -99,93 +133,123 @@ def main():
 		if command == ADD:
 			user = request[1]
 			amount = request[2]
-			make_request(transactionNum, command, user, amount=amount)
+			make_request(pid, transactionNum, command, user, amount=amount)
 
 		elif command == QUOTE:
 			user = request[1]
 			stock_id = request[2]
-			make_request(transactionNum, command, user, stock_id)
+			make_request(pid, transactionNum, command, user, stock_id)
 
 		elif command == BUY:
 			user = request[1]
 			stock_id = request[2]
 			amount = request[3]
-			make_request(transactionNum, command, user, stock_id, amount)
+			make_request(pid, transactionNum, command, user, stock_id, amount)
 
 		elif command == COMMIT_BUY:
 			user = request[1]
-			make_request(transactionNum, command, user)
+			make_request(pid, transactionNum, command, user)
 			
 		elif command == CANCEL_BUY:
 			user = request[1]
-			make_request(transactionNum, command, user)
+			make_request(pid, transactionNum, command, user)
 			
 		elif command == SELL:
 			user = request[1]
 			stock_id = request[2]
 			amount = request[3]
-			make_request(transactionNum, command, user, stock_id, amount)
+			make_request(pid, transactionNum, command, user, stock_id, amount)
 
 		elif command == COMMIT_SELL:
 			user = request[1]
-			make_request(transactionNum, command, user)
+			make_request(pid, transactionNum, command, user)
 
 		elif command == CANCEL_SELL:
 			user = request[1]
-			make_request(transactionNum, command, user)
+			make_request(pid, transactionNum, command, user)
 
 		elif command == SET_BUY_AMOUNT:
 			user = request[1]
 			stock_id = request[2]
 			amount = request[3]
-			make_request(transactionNum, command, user, stock_id, amount)
+			make_request(pid, transactionNum, command, user, stock_id, amount)
 			
 		elif command == CANCEL_SET_BUY:
 			user = request[1]
 			stock_id = request[2]
-			make_request(transactionNum, command, user, stock_id)
+			make_request(pid, transactionNum, command, user, stock_id)
+
 			
 		elif command == SET_BUY_TRIGGER:
 			user = request[1]
 			stock_id = request[2]
 			amount = request[3]
-			make_request(transactionNum, command, user, stock_id, amount)
+			make_request(pid, transactionNum, command, user, stock_id, amount)
+
 			
 		elif command == SET_SELL_AMOUNT:
 			user = request[1]
 			stock_id = request[2]
 			amount = request[3]
-			make_request(transactionNum, command, user, stock_id, amount)
+			make_request(pid, transactionNum, command, user, stock_id, amount)
+
 			
 		elif command == SET_SELL_TRIGGER:
 			user = request[1]
 			stock_id = request[2]
 			amount = request[3]
-			make_request(transactionNum, command, user, stock_id, amount)
+			make_request(pid, transactionNum, command, user, stock_id, amount)
+
 			
 		elif command == CANCEL_SET_SELL:
 			user = request[1]
 			stock_id = request[2]
-			make_request(transactionNum, command, user, stock_id)
+			make_request(pid, transactionNum, command, user, stock_id)
+
 			
 		elif command == DUMPLOG:
 			if len(request) == 2:
 				#filename
 				filename = request[1]
-				make_request(transactionNum, command, filename=filename)
+				make_request(pid, transactionNum, command, filename=filename)
+
 			elif len(request) == 3:
 				#userid, filename
 				user = request[1]
 				filename = request[2]
-				make_request(transactionNum, command, user, filename=filename)
+				make_request(pid, transactionNum, command, user, filename=filename)
 
 		elif command == DISPLAY_SUMMARY:
 			user = request[1]
-			make_request(transactionNum, command, user)
+			make_request(pid, transactionNum, command, user)
+
 
 		else:
 			# INVALID REQUEST
 			print "invalid request: " + request[0]
+
+
+def worker(id):
+	while True:
+	    user = q.get()
+	    process = id
+	    sendWorkload(user, process)
+	    q.task_done()
+
+def main():
+	userList = processWorkloadFile('/','./seperatedWorkload/','10User_testWorkLoad.txt')
+
+
+	for i in range(NUM_WORKER_THREADS):
+		t = Thread(target=worker, args=(i,))
+		t.daemon = True
+		t.start()
+
+	for item in userList:
+	    q.put(item)
+
+	q.join() #blocks until everything is done
+
 
 
 if __name__ == "__main__":
