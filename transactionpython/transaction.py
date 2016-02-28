@@ -48,7 +48,7 @@ server_name = "transaction_server_1"
 web_server_address = 'b132.seng.uvic.ca'
 audit_server_address = 'b142.seng.uvic.ca'
 cache_server_address = 'b134.seng.uvic.ca'
-cache_server_port = '44420'
+cache_server_port = 44420
 SELF_HOST = ''
 
 # Port list, in case things are run on same machine
