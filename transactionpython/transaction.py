@@ -782,10 +782,10 @@ def process_request(data, conn):
 						price = current_quote["price"]
 						timestamp = current_quote["timestamp"]
 						
-						if db.select_record("*", "PendingTrans", "type='sell',user_id='%s'" % user)[0]:
-							db.update_record("PendingTrans", "stock_id,amount,timestamp", "'%s',%d,%d" % (stock_id, amount, timestamp), "user_id='%s',type='sell'")
+						if conn.select_record("*", "PendingTrans", "type='sell',user_id='%s'" % user)[0]:
+							conn.update_record("PendingTrans", "stock_id,amount,timestamp", "'%s',%d,%d" % (stock_id, amount, timestamp), "user_id='%s',type='sell'")
 						else:
-							db.insert_record("PendingTrans", "type,user_id,stock_id,amount,timestamp", "'sell','%s','%s',%d,%d" % (user,stock_id,amount,timestamp))
+							conn.insert_record("PendingTrans", "type,user_id,stock_id,amount,timestamp", "'sell','%s','%s',%d,%d" % (user,stock_id,amount,timestamp))
 						# Set pending sell to new values (should overwrite existing entry)
 						# cache["users"][user]["pending_sell"]["stock_id"] = stock_id
 						# cache["users"][user]["pending_sell"]["amount"] = price
@@ -823,7 +823,7 @@ def process_request(data, conn):
 			elif command == COMMIT_SELL:
 				# Check if timestamp is still valid
 				# if cache["users"][user]["pending_sell"]:
-				pending_sell = db.select_record("timestamp,amount,stock_id", "PendingTrans", "type='sell',user_id='%s'" % user)
+				pending_sell = conn.select_record("timestamp,amount,stock_id", "PendingTrans", "type='sell',user_id='%s'" % user)
 				if pending_sell:
 					if now() - 60000 <= pending_sell[0]:
 				
@@ -835,11 +835,11 @@ def process_request(data, conn):
 
 						# Update user stock value
 						# cache["users"][user]["stocks"][stock_id] -= amount
-						db.update_record("Stock", "amount=amount-%d" % amount, "stock_id='%s',user_id='%s'" % (stock_id, user_id))
+						conn.update_record("Stock", "amount=amount-%d" % amount, "stock_id='%s',user_id='%s'" % (stock_id, user_id))
 				
 						# Update user balance
 						# cache["users"][user]["balance"] += amount
-						db.update_record("Users", "balance=balance+%d" % amount, "user_id='%s'" % user)
+						conn.update_record("Users", "balance=balance+%d" % amount, "user_id='%s'" % user)
 						
 						audit_transaction_event(
 							now(),
@@ -851,7 +851,7 @@ def process_request(data, conn):
 						)
 				
 						# Remove the pending entry
-						db.delete_record("PendingTrans", "user_id='%s',type='sell'" % user)
+						conn.delete_record("PendingTrans", "user_id='%s',type='sell'" % user)
 						# cache["users"][user]["pending_sell"] = {}
 				
 						response = "Sell committed."
@@ -885,7 +885,7 @@ def process_request(data, conn):
 # ----------------------
 			elif command == CANCEL_SELL:
 				# cache["users"][user]["pending_sell"] = {}
-				db.delete_record("PendingTrans", "type='sell',user_id='%s'" % user)
+				conn.delete_record("PendingTrans", "type='sell',user_id='%s'" % user)
 				response = "Sell cancelled."
 				
 # -------------------------
@@ -895,11 +895,11 @@ def process_request(data, conn):
 			
 				# Check user balance
 				# if cache["users"][user]["balance"] >= amount:
-				if db.select_record("balance", "Users", "user_id='%s'" % user)[0] >= amount:
+				if conn.select_record("balance", "Users", "user_id='%s'" % user)[0] >= amount:
 					# Check if there is an existing trigger for the stock
 					# if stock_id in cache["users"][user]["buy_trigger"] and cache["users"][user]["buy_trigger"][stock_id].get("trigger",0) > 0:
 					# REPLACE WITH QUOTE CACHE
-					if db.select_record("*", "Trigger", "type='buy',user_id='%s',stock_id='%s'" % (user, stock_id)):
+					if conn.select_record("*", "Trigger", "type='buy',user_id='%s',stock_id='%s'" % (user, stock_id)):
 						response = "Trigger already set for stock."
 						audit_error_event(
 							now(),
@@ -913,7 +913,7 @@ def process_request(data, conn):
 							response)
 					else:
 						# Update user balance
-						db.update_record("Users", "balance=balance-%d" % amount, "user_id='%s'" % user)
+						conn.update_record("Users", "balance=balance-%d" % amount, "user_id='%s'" % user)
 						# cache["users"][user]["balance"] -= amount
 						
 						audit_transaction_event(
@@ -926,7 +926,7 @@ def process_request(data, conn):
 						)
 			
 						# Set up buy trigger with stock and amount to spend
-						db.insert_record("Trigger", "type,user_id,stock_id,amount,trigger", "'buy','%s','%s',%d,%d" % (user,stock_id,amount,0))
+						conn.insert_record("Trigger", "type,user_id,stock_id,amount,trigger", "'buy','%s','%s',%d,%d" % (user,stock_id,amount,0))
 						# cache["users"][user]["buy_trigger"] = {
 						# 	stock_id: {
 						# 		"amount" : amount,
@@ -951,7 +951,7 @@ def process_request(data, conn):
 # -------------------------
 			elif command == CANCEL_SET_BUY:
 				# if stock_id not in cache["users"][user]["buy_trigger"] or cache["users"][user]["buy_trigger"][stock_id].get("trigger",0) == 0:
-				amount = db.select_record("amount", "Trigger", "type='buy',user_id='%s',stock_id='%s'" % (user, stock_id))[0]
+				amount = conn.select_record("amount", "Trigger", "type='buy',user_id='%s',stock_id='%s'" % (user, stock_id))[0]
 				if not amount:
 					#if there was no trigger
 					response = "No trigger listed for stock."
@@ -972,7 +972,7 @@ def process_request(data, conn):
 					# cache["users"][user]["buy_trigger"][stock_id]["amount"] = 0
 					
 					# cache["users"][user]["balance"] += amount
-					db.update_record("Users", "balance=balance+%d" % amount, "user_id='%s'" % user)	
+					conn.update_record("Users", "balance=balance+%d" % amount, "user_id='%s'" % user)	
 
 					audit_transaction_event(
 						now(),
@@ -991,7 +991,7 @@ def process_request(data, conn):
 # --------------------------
 			elif command == SET_BUY_TRIGGER:
 				# Stock should exist in buy trigger list, and have amount set, but no trigger value set
-				buy_trigger = db.select_record("amount,trigger", "Trigger", "type='buy',user_id='%s',stock_id='%s'" % (user,stock_id))
+				buy_trigger = conn.select_record("amount,trigger", "Trigger", "type='buy',user_id='%s',stock_id='%s'" % (user,stock_id))
 				if buy_trigger:
 					if buy_trigger[0] > 0:
 						if buy_trigger[1] == 0:
@@ -1054,10 +1054,10 @@ def process_request(data, conn):
 # -- SET SELL AMOUNT REQUEST
 # --------------------------
 			elif command == SET_SELL_AMOUNT:
-				sell_trigger = db.select_record("amount,trigger", "Trigger", "type='sell',user_id='%s',stock_id='%s'" % (user, stock_id))
+				sell_trigger = conn.select_record("amount,trigger", "Trigger", "type='sell',user_id='%s',stock_id='%s'" % (user, stock_id))
 				if sell_trigger:
 					# if cache["users"][user]["stocks"][stock_id] >= amount:
-					if db.select_record("amount", "Stocks", "user_id='%s',stock_id='%s'")[0] >= amount:
+					if conn.select_record("amount", "Stocks", "user_id='%s',stock_id='%s'")[0] >= amount:
 						if sell_trigger[1] > 0:
 							response = "Active sell trigger for stock."
 							audit_error_event(
@@ -1071,10 +1071,10 @@ def process_request(data, conn):
 								amount,
 								response)
 						else:
-							db.update_record("Stock", "amount=amount-%d" % amount, "stock_id='%s',user_id='%s'" % (stock_id,user))
+							conn.update_record("Stock", "amount=amount-%d" % amount, "stock_id='%s',user_id='%s'" % (stock_id,user))
 							# cache["users"][user]["stocks"][stock_id] -= amount
 							
-							db.update_record("Trigger", "amount=%d,trigger=%d" % (amount,0), "type='sell',user_id='%s',stock_id='%s'" % (user,stock_id))
+							conn.update_record("Trigger", "amount=%d,trigger=%d" % (amount,0), "type='sell',user_id='%s',stock_id='%s'" % (user,stock_id))
 							# cache["users"][user]["sell_trigger"] = {
 							# 	stock_id: {
 							# 		"amount" : amount,
@@ -1111,11 +1111,11 @@ def process_request(data, conn):
 # -- SET SELL TRIGGER REQUEST
 # ---------------------------
 			elif command == SET_SELL_TRIGGER:			
-				sell_trigger = db.select_record("amount", "Trigger", "user_id='%s',stock_id='%s',type='sell'" % (user, stock_id))
+				sell_trigger = conn.select_record("amount", "Trigger", "user_id='%s',stock_id='%s',type='sell'" % (user, stock_id))
 				if sell_trigger[0] != None:
 					if sell_trigger[0] > 0:
 						if amount > 0:
-							db.update_record("Trigger", "amount=%d" % amount, "user_id='%s',stock_id='%s',type='sell'" % (user,stock_id))
+							conn.update_record("Trigger", "amount=%d" % amount, "user_id='%s',stock_id='%s',type='sell'" % (user,stock_id))
 							cache["users"][user]["sell_trigger"][stock_id]["trigger"] = amount
 							response = "Sell trigger set."
 						else:
@@ -1159,14 +1159,14 @@ def process_request(data, conn):
 # -- CANCEL SET SELL REQUEST
 # --------------------------
 			elif command == CANCEL_SET_SELL:
-				sell_trigger = db.select_record("trigger", "Trigger", "user_id='%s',stock_id='%s',type='sell'" % (user,stock_id))
+				sell_trigger = conn.select_record("trigger", "Trigger", "user_id='%s',stock_id='%s',type='sell'" % (user,stock_id))
 				if sell_trigger[0] != None:
 					if sell_trigger[0] > 0:
 				# if stock_id in cache["users"][user]["sell_trigger"]:
 				# 	if cache["users"][user]["sell_trigger"][stock_id]["trigger"] > 0:
-						db.update_record("Stock", "amount=amount+%d" % amount, "stock_id='%s',user_id='%s'" % (stock_id,user))
+						conn.update_record("Stock", "amount=amount+%d" % amount, "stock_id='%s',user_id='%s'" % (stock_id,user))
 						# cache["users"][user]["stocks"][stock_id] += cache["users"][user]["sell_trigger"][stock_id]["amount"]
-						db.delete_record("Trigger", "type='sell',user_id='%s',stock_id='%s'" % (user,stock_id))
+						conn.delete_record("Trigger", "type='sell',user_id='%s',stock_id='%s'" % (user,stock_id))
 						# cache["users"][user]["sell_trigger"][stock_id]["amount"] = 0
 						# cache["users"][user]["sell_trigger"][stock_id]["trigger"] = 0
 						
@@ -1207,7 +1207,7 @@ def process_request(data, conn):
 						print "Dump engaged. Honest.\n"
 
 			elif command == DISPLAY_SUMMARY:
-				print db.select_record("*", "Users", "user_id='%s'" % (user))
+				print conn.select_record("*", "Users", "user_id='%s'" % (user))
 		
 			else:
 				print "Invalid command.\n"
