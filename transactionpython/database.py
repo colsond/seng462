@@ -90,7 +90,7 @@ class DatabaseConnection:
         except Exception as e:
             print e
         result = self.curs.fetchall()
-
+        print result
         # Format to always return a tuple of the single record, with each value.
         if len(result) > 1:
             print 'more than one value returned!!!?'

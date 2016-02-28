@@ -645,7 +645,7 @@ def process_request(data, conn):
 			elif command == COMMIT_BUY: 
 				# Check if timestamp is still valid
 				pending_buy = conn.select_record("timestamp,amount,stock_id", "PendingTrans", "type='buy' AND user_id='%s'" % user)
-				if pending_buy:
+				if pending_buy[0]:
 					if now() - 60000 <= int(pending_buy[0]):
 					# if now() - 60000 <= cache["users"][user]["pending_buy"]["timestamp"]:
 				
