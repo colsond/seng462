@@ -723,7 +723,7 @@ def process_request(data, conn):
 				# Check user stock amount
 				if amount > 0:
 					# if cache["users"][user]["stocks"].get(stock_id, 0) >= amount:
-					if conn.select_record("amount", "Stocks", "user_id='%s' AND stock_id='%s'" % (user, stock_id))[0] >= amount:
+					if conn.select_record("amount", "Stock", "user_id='%s' AND stock_id='%s'" % (user, stock_id))[0] >= amount:
 						# get quote and send to user to confirm
 						
 # FROM QUOTE REQUEST
@@ -1057,7 +1057,7 @@ def process_request(data, conn):
 				sell_trigger = conn.select_record("amount,trigger", "Trigger", "type='sell' AND user_id='%s' AND stock_id='%s'" % (user, stock_id))
 				if sell_trigger:
 					# if cache["users"][user]["stocks"][stock_id] >= amount:
-					if conn.select_record("amount", "Stocks", "user_id='%s' AND stock_id='%s'")[0] >= amount:
+					if conn.select_record("amount", "Stock", "user_id='%s' AND stock_id='%s'")[0] >= amount:
 						if sell_trigger[1] > 0:
 							response = "Active sell trigger for stock."
 							audit_error_event(
