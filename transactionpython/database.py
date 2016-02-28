@@ -67,7 +67,7 @@ class Database:
             self.curs.execute("""DROP TABLE Trigger""")
             self.curs.execute("""CREATE TABLE Trigger (
                                     type text, user_id text, stock_id text, amount integer, trigger integer)""")
-        self.conn.commit()
+        self.conn.commit()g
 
     # Return a Database Connection from the pool
     def get_connection(self):
@@ -85,7 +85,10 @@ class DatabaseConnection:
 
         # call like: select_record("Users", "id,balance", "id='jim' AND balance=200")
     def select_record(self, values, table, constraints):
-        self.curs.execute("""SELECT %s FROM %s WHERE %s""" % (values, table, constraints))
+        try:
+            self.curs.execute("""SELECT %s FROM %s WHERE %s""" % (values, table, constraints))
+        except Exception as e:
+            print e
         result = self.curs.fetchall()
 
         # Format to always return a tuple of the single record, with each value.
@@ -98,10 +101,19 @@ class DatabaseConnection:
             return result[0]
 
     def insert_record(self, table, columns, values):
-        self.curs.execute("""INSERT INTO %s (%s) VALUES (%s)""" % (table, columns, values))
+        try:
+            self.curs.execute("""INSERT INTO %s (%s) VALUES (%s)""" % (table, columns, values))
+        except Exception as e:
+            print e
 
     def update_record(self, table, values, constraints):
-        self.curs.execute("""UPDATE %s SET %s WHERE %s""" % (table, values, constraints))
+        try:
+            self.curs.execute("""UPDATE %s SET %s WHERE %s""" % (table, values, constraints))
+        except Exception as e:
+            print e
 
     def delete_record(self, table, constraints):
-        self.curs.execute("""DELETE FROM %s WHERE %s""" % (table, constraints))
+        try:
+            self.curs.execute("""DELETE FROM %s WHERE %s""" % (table, constraints))
+        except Exception as e:
+            print e
