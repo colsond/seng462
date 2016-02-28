@@ -557,7 +557,7 @@ def process_request(data, conn):
 			elif command == BUY:
 
 				# Check user balance
-				if conn.select_record("Users", "balance", "user_id='%s'" % user)[0] >= amount:
+				if conn.select_record("balance", "Users", "user_id='%s'" % user)[0] >= amount:
 				# if cache["users"][user]["balance"] >= amount:
 					# get quote and send to user to confirm
 
