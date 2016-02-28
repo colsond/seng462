@@ -628,7 +628,7 @@ def process_request(data, conn):
 					timestamp = int(current_quote["timestamp"])
 			
 					# Set pending buy to new values (should overwrite existing entry)
-					conn.update_record("PendingTrans", "stock_id='%s',amount='%s',timestamp='%s'" % (stock_id, price, timestamp), "user_id='%s'" % user)
+					conn.update_record("PendingTrans", "stock_id='%s',amount='%s',timestamp=%d" % (stock_id, price, timestamp), "user_id='%s'" % user)
 					# cache["users"][user]["pending_buy"]["stock_id"] = stock_id
 					# cache["users"][user]["pending_buy"]["amount"] = price
 					# cache["users"][user]["pending_buy"]["timestamp"] = timestamp
