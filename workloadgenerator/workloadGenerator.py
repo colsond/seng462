@@ -5,10 +5,12 @@ import string
 import Queue
 from threading import Thread, current_thread
 
+
 #workload generator aims for however many transaction servers are set in the list below, all looking on port 44422 
 tx_server_address = ['b132.seng.uvic.ca', 'b133.seng.uvic.ca', 'b134.seng.uvic.ca', 'b134.seng.uvic.ca']
 NUM_WORKER_THREADS = len(tx_server_address)
 # tx_server_address = 'localhost'
+
 # Port list, in case things are run on same machine
 # 44421	Audit
 # 44422 Transaction port
@@ -35,9 +37,9 @@ DISPLAY_SUMMARY = "DISPLAY_SUMMARY"
 
 q = Queue.Queue()
 
-def make_request(pid, transaction_id, command, user=None, stock_id=None, amount=None, filename=None):
+def make_request(pid, transactionNum, command, user=None, stock_id=None, amount=None, filename=None):
 	data = {
-		'transaction_id': transaction_id,
+		'transactionNum': transactionNum,
 		'command': command,
 	}
 
@@ -123,8 +125,8 @@ def sendWorkload(user, pid):
 
 		tokens = line.split(' ')
 
-		transaction_id = tokens[0]
-		transaction_id = transaction_id.translate(None, bad_chars)
+		transactionNum = tokens[0]
+		transactionNum = transactionNum.translate(None, bad_chars)
 
 		request = tokens[1].split(',')
 
@@ -133,89 +135,96 @@ def sendWorkload(user, pid):
 		if command == ADD:
 			user = request[1]
 			amount = request[2]
-			make_request(pid, transaction_id, command, user, amount=amount)
+			make_request(pid, transactionNum, command, user, amount=amount)
 
 		elif command == QUOTE:
 			user = request[1]
 			stock_id = request[2]
-			make_request(pid, transaction_id, command, user, stock_id)
+			make_request(pid, transactionNum, command, user, stock_id)
 
 		elif command == BUY:
 			user = request[1]
 			stock_id = request[2]
 			amount = request[3]
-			make_request(pid, transaction_id, command, user, stock_id, amount)
+			make_request(pid, transactionNum, command, user, stock_id, amount)
 
 		elif command == COMMIT_BUY:
 			user = request[1]
-			make_request(pid, transaction_id, command, user)
+			make_request(pid, transactionNum, command, user)
 			
 		elif command == CANCEL_BUY:
 			user = request[1]
-			make_request(pid, transaction_id, command, user)
+			make_request(pid, transactionNum, command, user)
 			
 		elif command == SELL:
 			user = request[1]
 			stock_id = request[2]
 			amount = request[3]
-			make_request(pid, transaction_id, command, user, stock_id, amount)
+			make_request(pid, transactionNum, command, user, stock_id, amount)
 
 		elif command == COMMIT_SELL:
 			user = request[1]
-			make_request(pid, transaction_id, command, user)
+			make_request(pid, transactionNum, command, user)
 
 		elif command == CANCEL_SELL:
 			user = request[1]
-			make_request(pid, transaction_id, command, user)
+			make_request(pid, transactionNum, command, user)
 
 		elif command == SET_BUY_AMOUNT:
 			user = request[1]
 			stock_id = request[2]
 			amount = request[3]
-			make_request(pid, transaction_id, command, user, stock_id, amount)
+			make_request(pid, transactionNum, command, user, stock_id, amount)
 			
 		elif command == CANCEL_SET_BUY:
 			user = request[1]
 			stock_id = request[2]
-			make_request(pid, transaction_id, command, user, stock_id)
+			make_request(pid, transactionNum, command, user, stock_id)
+
 			
 		elif command == SET_BUY_TRIGGER:
 			user = request[1]
 			stock_id = request[2]
 			amount = request[3]
-			make_request(pid, transaction_id, command, user, stock_id, amount)
+			make_request(pid, transactionNum, command, user, stock_id, amount)
+
 			
 		elif command == SET_SELL_AMOUNT:
 			user = request[1]
 			stock_id = request[2]
 			amount = request[3]
-			make_request(pid, transaction_id, command, user, stock_id, amount)
+			make_request(pid, transactionNum, command, user, stock_id, amount)
+
 			
 		elif command == SET_SELL_TRIGGER:
 			user = request[1]
 			stock_id = request[2]
 			amount = request[3]
-			make_request(pid, transaction_id, command, user, stock_id, amount)
+			make_request(pid, transactionNum, command, user, stock_id, amount)
+
 			
 		elif command == CANCEL_SET_SELL:
 			user = request[1]
 			stock_id = request[2]
-			make_request(pid, transaction_id, command, user, stock_id)
+			make_request(pid, transactionNum, command, user, stock_id)
+
 			
 		elif command == DUMPLOG:
 			if len(request) == 2:
 				#filename
 				filename = request[1]
-				make_request(pid, transaction_id, command, filename=filename)
+				make_request(pid, transactionNum, command, filename=filename)
+
 			elif len(request) == 3:
 				#userid, filename
 				user = request[1]
 				filename = request[2]
-				make_request(pid, transaction_id, command, user, filename=filename)
+				make_request(pid, transactionNum, command, user, filename=filename)
 
 		elif command == DISPLAY_SUMMARY:
 			user = request[1]
-			make_request(pid, transaction_id, command, user)
+			make_request(pid, transactionNum, command, user)
+
 
 		else:
 			# INVALID REQUEST

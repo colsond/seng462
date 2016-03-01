@@ -56,7 +56,7 @@ QUOTE_SERVER_RECV = 100
 AUDIT_SERVER_ADDRESS = 'b142.seng.uvic.ca'
 AUDIT_SERVER_PORT = 44421
 
-QUOTE_LIFE = 45	# in seconds
+QUOTE_LIFE = 45000	# in seconds
 
 MAX_THREADS = 100
 
@@ -75,7 +75,7 @@ cache = {
 }
 
 def now():
-	return int(time.time())
+	return int(time.time() * 1000)
 
 def init_listen():
 
