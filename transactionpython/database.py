@@ -4,24 +4,24 @@ from psycopg2.pool import ThreadedConnectionPool
 
 class Database:
 
-    def __init__(self, dbname, dbuser, dbpass, minconn=1, maxconn=1):
+    def __init__(self, host, port, dbname, dbuser, dbpass, minconn=1, maxconn=1):
         # Thread pool
         self.pool = ThreadedConnectionPool(
             minconn=minconn,
             maxconn=maxconn,
-            # host=conf_hostname,
+            host=host,
             database=dbname,
             user=dbuser,
             password=dbpass,
-            # port=conf_dbport
+            port=port
         )
         # Base connection for initialization
         self.conn = psycopg2.connect(
-            # host=conf_hostname,
+            host=host,
             database=dbname,
             user=dbuser,
             password=dbpass,
-            # port=conf_dbport
+            port=port
         )
         self.curs = self.conn.cursor()
 

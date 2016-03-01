@@ -987,6 +987,8 @@ def get_quote(data):
 def main():
 	# Initialize Database
 	db = Database(
+		host="cusmith@b133.seng.uvic.ca",
+		port="5432",
 		dbname="transactiondb",
 		dbuser="cusmith",
 		dbpass="",
