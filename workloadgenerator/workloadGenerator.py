@@ -10,17 +10,18 @@ from threading import Thread, current_thread
 
 #workload generator aims for however many transaction servers are set in the list below, all looking on port 44422 
 tx_server_address = ['b132.seng.uvic.ca', 'b133.seng.uvic.ca', 'b134.seng.uvic.ca', 'b134.seng.uvic.ca']
-tx_server_port = [44422,44422,44422,44422]
+tx_server_port = 44422
 
 AUDIT_SERVER_ADDRESS = 'b142.seng.uvic.ca'
 AUDIT_SERVER_PORT = 44421
 
-NUM_WORKER_THREADS = len(tx_server_address)
+NUM_WORKER_THREADS = 40
 
 web_server_port = 44422
 
 MY_NAME = "Workload"
 
+workload_file = '100User_testWorkLoad.txt'
 working_dir = './separatedWorkload/'
 
 ADD = "ADD"
@@ -69,7 +70,7 @@ def make_request(pid, transactionNum, command, user=None, stock_id=None, amount=
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 	# Connect the socket to the port where the server is listening
-	server_address = (tx_server_address[pid], tx_server_port[pid])
+	server_address = (tx_server_address[pid%len(tx_server_address)], tx_server_port)
 	print >>sys.stderr, 'connecting to %s port %s' % server_address
 	sock.connect(server_address)
 
@@ -380,19 +381,19 @@ def audit_event(
 
 
 def main():
-	userList = processWorkloadFile('/',working_dir,'activeWorkLoad.txt')
+	userList = processWorkloadFile('/',working_dir, workload_file)
 
-	#for i in range(NUM_WORKER_THREADS):
-	#	t = Thread(target=worker, args=(i,))
-	#	t.daemon = True
-	#	t.start()
+	for i in range(NUM_WORKER_THREADS):
+		t = Thread(target=worker, args=(i,))
+		t.daemon = True
+		t.start()
 
-	#for item in userList:
-	#    q.put(item)
+	for item in userList:
+	    q.put(item)
 
-	#q.join() #blocks until everything is done
-	#then send last command
-	#sendWorkload("last", 0)
+	q.join() #blocks until everything is done
+	# then send last command
+	sendWorkload("last", 0)
 
 if __name__ == "__main__":
     main()
