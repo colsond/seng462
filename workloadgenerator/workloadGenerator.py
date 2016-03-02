@@ -389,6 +389,7 @@ def audit_event(
 
 def main():
 	global active_threads
+	p_rank = 0
 	try:
 		f = open (workloadFile, 'r')
 	except IOError as err:
@@ -405,8 +406,15 @@ def main():
 					try: 
 						#start a new thread with tokens and an id of the current number of processes
 						print 'Starting new Thread: %d\n' % active_threads
-						start_new_thread(workLoadThread, (line, active_threads))
+						start_new_thread(workLoadThread, (line, p_rank))
 						active_threads +=1
+						#if p_rank is at the highest possible rank loop to zero
+						print p_rank
+						if(p_rank == len(tx_server_address)-1):
+							p_rank = 0
+						#else add one
+						else:
+							p_rank += 1
 						break
 					except:
 						print "Recieved User interrupt or unknown error from threads\n"
