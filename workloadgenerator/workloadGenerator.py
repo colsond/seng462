@@ -3,19 +3,25 @@ import socket
 import sys
 import string
 import Queue
+import os
+
 from threading import Thread, current_thread
 
 
 #workload generator aims for however many transaction servers are set in the list below, all looking on port 44422 
 tx_server_address = ['b132.seng.uvic.ca', 'b133.seng.uvic.ca', 'b134.seng.uvic.ca', 'b134.seng.uvic.ca']
-NUM_WORKER_THREADS = len(tx_server_address)
-# tx_server_address = 'localhost'
+tx_server_port = [44422,44422,44422,44422]
 
-# Port list, in case things are run on same machine
-# 44421	Audit
-# 44422 Transaction port
+AUDIT_SERVER_ADDRESS = 'b142.seng.uvic.ca'
+AUDIT_SERVER_PORT = 44421
+
+NUM_WORKER_THREADS = len(tx_server_address)
 
 web_server_port = 44422
+
+MY_NAME = "Workload"
+
+working_dir = './separatedWorkload/'
 
 ADD = "ADD"
 QUOTE = "QUOTE"
@@ -34,9 +40,11 @@ CANCEL_SET_SELL = "CANCEL_SET_SELL"
 DUMPLOG = "DUMPLOG"
 DISPLAY_SUMMARY = "DISPLAY_SUMMARY"
 
-
 q = Queue.Queue()
 
+
+#-----------------------------------------------------------------------------
+#
 def make_request(pid, transactionNum, command, user=None, stock_id=None, amount=None, filename=None):
 	data = {
 		'transactionNum': transactionNum,
@@ -61,10 +69,9 @@ def make_request(pid, transactionNum, command, user=None, stock_id=None, amount=
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 	# Connect the socket to the port where the server is listening
-	server_address = (tx_server_address[pid], web_server_port)
+	server_address = (tx_server_address[pid], tx_server_port[pid])
 	print >>sys.stderr, 'connecting to %s port %s' % server_address
 	sock.connect(server_address)
-
 
 	try:
 			# Send data
@@ -89,10 +96,20 @@ def make_request(pid, transactionNum, command, user=None, stock_id=None, amount=
 
 	return response
 
+
+#-----------------------------------------------------------------------------
+#
 def processWorkloadFile(sourceDir, targetDir, workloadFile):
 	fileDict = {}
 	userList = []
-	f = open (workloadFile, 'r')
+
+	try:
+		f = open (workloadFile, 'r')
+	except IOError as err:
+		if err[0] == 2:
+			print "Workload file [" + workloadFile + "] does not exist. Exiting.\n"
+			exit()
+
 	for line in f:
 		tokens = line.split(' ')
 		commandInfo = tokens[1].split(',')
@@ -100,27 +117,55 @@ def processWorkloadFile(sourceDir, targetDir, workloadFile):
 
 		#need to decide what to do with the dump command
 		if commandInfo[0]==DUMPLOG:
-			fileDict['last']=line
+			if 'last' in fileDict:
+				fileDict['last']+=line
+			else:
+				fileDict['last']=line
 		else:
-			if user not in userList:
+			if user not in userList: 
 				userList.append(user)
 			if user in fileDict:
 				fileDict[user] += line
 			else:
 				fileDict[user] = line
+
 	f.close()
+
+	# try to make the target directory; if it errors for a reason other than 
+	# the directory already exists, then raise an exception
+	try:
+		os.makedirs(targetDir)
+	except OSError:
+		if not os.path.isdir(targetDir):
+				raise
+
 	for user in userList:
-		f = open ((targetDir+ user + '.txt'), 'w')
+		try:
+			f = open ((targetDir + user + '.txt'), 'w')
+		except IOError as err:
+			print err
+
 		f.write(fileDict[user])
 		f.close()
+
+	# Keep 'last' out of the userlist
+	try:
+		f = open ((targetDir + 'last.txt'), 'w')
+	except IOError as err:
+		print err
+
+	f.write(fileDict['last'])
+	f.close()
+
 	return userList
 
 
-
+#-----------------------------------------------------------------------------
+#
 def sendWorkload(user, pid):
 	bad_chars = '[]'
 
-	f = open('./seperatedWorkload/' + user + '.txt', 'r')
+	f = open(working_dir + user + '.txt', 'r')
 	for line in f:
 
 		tokens = line.split(' ')
@@ -231,6 +276,9 @@ def sendWorkload(user, pid):
 			print "invalid request: " + request[0]
 
 
+
+#-----------------------------------------------------------------------------
+#
 def worker(id):
 	while True:
 	    user = q.get()
@@ -238,23 +286,113 @@ def worker(id):
 	    sendWorkload(user, process)
 	    q.task_done()
 
-def main():
-	userList = processWorkloadFile('/','./seperatedWorkload/','10User_testWorkLoad.txt')
+#-----------------------------------------------------------------------------
+# send_audit
+# Send formatted message to the audit server
+def send_audit(message):
 
+	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-	for i in range(NUM_WORKER_THREADS):
-		t = Thread(target=worker, args=(i,))
-		t.daemon = True
+	# Connect the socket to the port where the server is listening
+	server_address = (AUDIT_SERVER_ADDRESS, AUDIT_SERVER_PORT)
+	
+	if __debug__:
+		print 'connecting to ' + AUDIT_SERVER_ADDRESS + ' port ' + str(AUDIT_SERVER_PORT) + '\n'
+		
+	sock.connect(server_address)
+
+	try:
+		sock.sendall(str(message))
+		response = sock.recv(1024)
+		
+		if __debug__:
+			print >>sys.stderr, 'sent "%s"\n' % message
+			print >>sys.stderr, 'received "%s"\n' % response
+
+	finally:
+		if __debug__:
+			print >>sys.stderr, 'closing socket'
+		sock.close()
+
+	return
+	
+#-----------------------------------------------------------------------------
+# audit_event
+# Format message to send to the audit server
+def audit_event(
+		type,
+		timestamp,
+		transactionNum, 
+		command, 
+		username, 
+		stockSymbol,
+		amount,
+		quoteServerTime,
+		cryptokey,
+		errorMessage):
+
+	message = {"logtype" : "invalid"}
+
+	if type == "command":
+		message = {
+			"logType": "UserCommandType",
+			"timestamp": timestamp,
+			"server" : MY_NAME,
+			"transactionNum" : transactionNum,
+			"command" : command
+		}
+
+		if username:
+			message["username"] = username
+
+		if stockSymbol:
+			message["stockSymbol"] = stockSymbol
+
+		if filename:
+			message["filename"] = filename
+
+		if funds:
+			message["funds"] = str(int(funds/100)) + '.' + "{:02d}".format(int(funds%100))
+
+	elif type == "error":
+		message = {
+			"logType": "ErrorEventType",
+			"timestamp": timestamp,
+			"server" : MY_NAME,
+			"transactionNum" : transactionNum,
+			"command" : command,
+			"username" : username,
+			"stockSymbol" : stockSymbol,
+			"funds" : amount,
+			"errorMessage" : errorMessage
+		}
+	else:
+		pass
+
+	if message.get('logtype') != 'invalid':
+		while threading.active_count() > MAX_THREADS:
+			pass
+		t = threading.Thread(target=send_audit, args=(message,))
 		t.start()
+	#send_audit(str(message))
+	
+	return
 
-	for item in userList:
-	    q.put(item)
 
-	q.join() #blocks until everything is done
+def main():
+	userList = processWorkloadFile('/',working_dir,'activeWorkLoad.txt')
+
+	#for i in range(NUM_WORKER_THREADS):
+	#	t = Thread(target=worker, args=(i,))
+	#	t.daemon = True
+	#	t.start()
+
+	#for item in userList:
+	#    q.put(item)
+
+	#q.join() #blocks until everything is done
 	#then send last command
-	sendWorkload("last", 0)
-
-
+	#sendWorkload("last", 0)
 
 if __name__ == "__main__":
     main()
