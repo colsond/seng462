@@ -58,7 +58,7 @@ SELF_HOST = ''
 SELF_PORT = 44422
 
 MAX_THREADS = 10
-active_threads = 0
+#active_threads = 0
 
 # Port list, in case things are run on same machine
 # 44421	Audit
@@ -991,7 +991,7 @@ def get_quote(data):
 
 
 def transactionWorkerthread(conn):
-	global active_threads
+	#global active_threads
 	while 1:
 			data = conn.recv(1024)
 			if (data):
@@ -1002,7 +1002,7 @@ def transactionWorkerthread(conn):
 			else:
 				break
 	conn.close()
-	active_threads -= 1
+	#active_threads -= 1
         sys.exit(0) 
 
 
@@ -1019,30 +1019,29 @@ def main():
 		maxconn=1,
 	)
 	db.initialize()
-	global active_threads
+	#global active_threads
 
 	# Get a connection to the DB (Need to create threads here)
 	connection = db.get_connection()
 
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	s.bind((SELF_HOST, SELF_PORT))
+	s.bind((SELF_HOST, SELF_HOST))
 
 	while 1:
-	    try:
-		    
-	    	if(active_threads < MAX_THREADS):
+		try:
+			if(threading.activeCount() < MAX_THREADS):
 			    #wait to accept a connection - blocking call
 			    conn, addr = s.accept()
 			    #print 'Connected with ' + addr[0] + ':' + str(addr[1])
 			     
 			    #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
 			    start_new_thread(transactionWorkerthread ,(conn,))
-			    active_threads +=1
+			    #active_threads +=1
 			    print 'Starting thread %d\n' % active_threads
-            except:
-                            print 'Recieved user interrupt'
-			    sys.exit(0)
-			    break
+		except:
+			print 'Recieved user interrupt'
+			sys.exit(0)
+			break
 	s.close()
 
 
