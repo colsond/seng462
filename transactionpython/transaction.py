@@ -998,7 +998,7 @@ def transactionWorkerthread(conn):
         if (data):
             print 'Received: ' + data
             try:
-            	response = process_request(data, connection)
+            	response = process_request(data, conn)
             except Exception as e:
             	print e
             	break
