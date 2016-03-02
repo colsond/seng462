@@ -1037,7 +1037,11 @@ def main():
 			    #print 'Connected with ' + addr[0] + ':' + str(addr[1])
 			     
 			    #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
-                            start_new_thread(transactionWorkerthread ,(conn,))
+			    try:
+                    start_new_thread(transactionWorkerthread ,(conn,))
+                except Exception as e:
+                	print e
+                	break
 			    #active_threads +=1
 			    print 'Starting thread %d\n' % active_threads
 		except:
