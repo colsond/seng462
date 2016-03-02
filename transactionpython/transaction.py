@@ -1003,7 +1003,7 @@ def transactionWorkerthread(conn):
 				break
 	conn.close()
 	active_threads -= 1
-    sys.exit(0) 
+        sys.exit(0) 
 
 
 
@@ -1030,7 +1030,7 @@ def main():
 	while 1:
 	    try:
 		    
-	    	if(active_threads < MAX_THREADS)
+	    	if(active_threads < MAX_THREADS):
 			    #wait to accept a connection - blocking call
 			    conn, addr = s.accept()
 			    #print 'Connected with ' + addr[0] + ':' + str(addr[1])
@@ -1039,10 +1039,10 @@ def main():
 			    start_new_thread(transactionWorkerthread ,(conn,))
 			    active_threads +=1
 			    print 'Starting thread %d\n' % active_threads
-		except:
-			print 'Recieved user interrupt'
-			sys.exit(0)
-			break
+            except:
+                            print 'Recieved user interrupt'
+			    sys.exit(0)
+			    break
 	s.close()
 
 
