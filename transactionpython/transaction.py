@@ -1037,8 +1037,9 @@ def main():
 			    active_threads +=1
 			    print 'Starting thread %d\n' % active_threads
 		except:
-
-	    sys.exit(0) 
+			print 'Recieved user interrupt'
+			sys.exit(0)
+			break
 	s.close()
 
 
