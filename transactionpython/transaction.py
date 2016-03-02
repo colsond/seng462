@@ -1025,7 +1025,7 @@ def main():
 	connection = db.get_connection()
 
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	s.bind((SELF_HOST, SELF_HOST))
+	s.bind((SELF_HOST, SELF_PORT))
 
 	while 1:
 		try:
