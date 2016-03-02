@@ -8,7 +8,7 @@ import time
 from thread import *
 from threading import Thread, current_thread, activeCount
 
-#from database import Database
+from database import Database
 
 # -- REMEMBER: to not run in debug mode:
 #				python -O transaction.py
@@ -1009,7 +1009,6 @@ def transactionWorkerthread(conn):
 
 
 def main():
-        '''
 	# Initialize Database
 	db = Database(
 		host="b133.seng.uvic.ca",
@@ -1025,7 +1024,6 @@ def main():
 
 	# Get a connection to the DB (Need to create threads here)
 	connection = db.get_connection()
-        '''
 	
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	s.bind((SELF_HOST, SELF_PORT))
