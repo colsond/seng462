@@ -1031,7 +1031,7 @@ def main():
 	global MAX_THREADS
 	while 1:
 		try:
-			if(threading.activeCount() < MAX_THREADS):
+			if(thread.threading.activeCount() < MAX_THREADS):
 			    #wait to accept a connection - blocking call
 			    conn, addr = s.accept()
 			    #print 'Connected with ' + addr[0] + ':' + str(addr[1])
