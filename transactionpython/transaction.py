@@ -1036,6 +1036,11 @@ def main():
 			    start_new_thread(transactionWorkerthread ,(conn,))
 			    active_threads +=1
 			    print 'Starting thread %d\n' % active_threads
+		except:
+
+	    sys.exit(0) 
+	s.close()
+
 
 
 if __name__ == "__main__":
