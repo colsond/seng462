@@ -5,6 +5,7 @@ import socket
 import string
 import sys
 import time
+from thread import *
 
 from database import Database
 
@@ -990,6 +991,7 @@ def get_quote(data):
 
 
 def transactionWorkerthread(conn):
+	global active_threads
 	while 1:
 			data = conn.recv(1024)
 			if (data):
@@ -1017,6 +1019,7 @@ def main():
 		maxconn=1,
 	)
 	db.initialize()
+	global active_threads
 
 	# Get a connection to the DB (Need to create threads here)
 	connection = db.get_connection()
