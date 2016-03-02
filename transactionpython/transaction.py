@@ -6,6 +6,7 @@ import string
 import sys
 import time
 from thread import *
+from threading import *
 
 from database import Database
 
@@ -1027,6 +1028,7 @@ def main():
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	s.bind((SELF_HOST, SELF_PORT))
 
+	global MAX_THREADS
 	while 1:
 		try:
 			if(threading.activeCount() < MAX_THREADS):
