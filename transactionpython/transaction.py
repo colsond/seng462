@@ -56,6 +56,9 @@ cache_server_port = 44420
 SELF_HOST = ''
 SELF_PORT = 44422
 
+MAX_THREADS = 10
+active_threads = 0
+
 # Port list, in case things are run on same machine
 # 44421	Audit
 # 44422 Transaction
@@ -984,6 +987,24 @@ def get_quote(data):
     return  response
 
 
+
+
+def transactionWorkerthread(conn):
+	while 1:
+			data = conn.recv(1024)
+			if (data):
+				print 'Received: ' + data
+				
+				response = process_request(data, connection)
+				conn.send(response)
+			else:
+				break
+	conn.close()
+	active_threads -= 1
+    sys.exit(0) 
+
+
+
 def main():
 	# Initialize Database
 	db = Database(
@@ -1004,20 +1025,17 @@ def main():
 	s.bind((SELF_HOST, SELF_PORT))
 
 	while 1:
-		print 'Main: waiting\n'
-		s.listen(1)
-		conn, addr = s.accept()
-		print 'Connection from ' + addr[0] + '\n'
-		
-		while 1:
-			data = conn.recv(1024)
-			if (data):
-				print 'Received: ' + data
-				
-				response = process_request(data, connection)
-				conn.send(response)
-			else:
-				break
+	    try:
+		    
+	    	if(active_threads < MAX_THREADS)
+			    #wait to accept a connection - blocking call
+			    conn, addr = s.accept()
+			    #print 'Connected with ' + addr[0] + ':' + str(addr[1])
+			     
+			    #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
+			    start_new_thread(transactionWorkerthread ,(conn,))
+			    active_threads +=1
+			    print 'Starting thread %d\n' % active_threads
 
 
 if __name__ == "__main__":
