@@ -50,7 +50,7 @@ web_server_address = 'b132.seng.uvic.ca' # Workload Generator
 audit_server_address = 'b142.seng.uvic.ca'
 audit_server_port = 44421
 
-cache_server_address = 'b134.seng.uvic.ca'
+cache_server_address = 'b143.seng.uvic.ca'
 cache_server_port = 44420
 
 SELF_HOST = ''
@@ -987,6 +987,8 @@ def get_quote(data):
 def main():
 	# Initialize Database
 	db = Database(
+		host="b133.seng.uvic.ca",
+		port="44429",
 		dbname="transactiondb",
 		dbuser="cusmith",
 		dbpass="",
