@@ -988,7 +988,7 @@ def main():
 	# Initialize Database
 	db = Database(
 		host="b133.seng.uvic.ca",
-		port="5432",
+		port="44429",
 		dbname="transactiondb",
 		dbuser="cusmith",
 		dbpass="",
