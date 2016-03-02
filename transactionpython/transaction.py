@@ -1004,7 +1004,7 @@ def transactionWorkerthread(conn):
             break
     conn.close()
     #active_threads -= 1
-        sys.exit(0) 
+    sys.exit(0) 
 
 
 
