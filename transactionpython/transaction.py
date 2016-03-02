@@ -6,9 +6,9 @@ import string
 import sys
 import time
 from thread import *
-from threading import *
+from threading import Thread, current_thread, activeCount
 
-from database import Database
+#from database import Database
 
 # -- REMEMBER: to not run in debug mode:
 #				python -O transaction.py
@@ -1009,6 +1009,7 @@ def transactionWorkerthread(conn):
 
 
 def main():
+        '''
 	# Initialize Database
 	db = Database(
 		host="b133.seng.uvic.ca",
@@ -1024,20 +1025,21 @@ def main():
 
 	# Get a connection to the DB (Need to create threads here)
 	connection = db.get_connection()
-
-	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        '''
+	
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	s.bind((SELF_HOST, SELF_PORT))
-
+        s.listen(1)
 	global MAX_THREADS
 	while 1:
 		try:
-			if(thread.threading.activeCount() < MAX_THREADS):
-			    #wait to accept a connection - blocking call
+			if(activeCount() < MAX_THREADS):
+                            #wait to accept a connection - blocking call
 			    conn, addr = s.accept()
 			    #print 'Connected with ' + addr[0] + ':' + str(addr[1])
 			     
 			    #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
-			    start_new_thread(transactionWorkerthread ,(conn,))
+                            start_new_thread(transactionWorkerthread ,(conn,))
 			    #active_threads +=1
 			    print 'Starting thread %d\n' % active_threads
 		except:
