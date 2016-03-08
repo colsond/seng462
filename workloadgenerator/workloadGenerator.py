@@ -2,8 +2,9 @@ import io
 import socket
 import sys
 import string
+import Queue
 import os
-from thread import *
+
 from threading import Thread, current_thread
 
 
@@ -14,17 +15,14 @@ tx_server_port = 44422
 AUDIT_SERVER_ADDRESS = 'b142.seng.uvic.ca'
 AUDIT_SERVER_PORT = 44421
 
-MAX_THREADS = 40
-active_threads = 0
+NUM_WORKER_THREADS = 40
 
 web_server_port = 44422
 
 MY_NAME = "Workload"
 
-
 workload_file = '100User_testWorkLoad.txt'
 working_dir = './separatedWorkload/'
-
 
 ADD = "ADD"
 QUOTE = "QUOTE"
@@ -43,6 +41,7 @@ CANCEL_SET_SELL = "CANCEL_SET_SELL"
 DUMPLOG = "DUMPLOG"
 DISPLAY_SUMMARY = "DISPLAY_SUMMARY"
 
+q = Queue.Queue()
 
 
 #-----------------------------------------------------------------------------
@@ -91,9 +90,6 @@ def make_request(pid, transactionNum, command, user=None, stock_id=None, amount=
 #	    while response[-1:] != "\n":
 #	        response_data = sock.recv(16)
 #	        response += response_data
-	except:
-			print "Can't connect to tx server, exiting"
-			exit(0)
 
 	finally:
 	    print >>sys.stderr, 'closing socket'
@@ -101,7 +97,7 @@ def make_request(pid, transactionNum, command, user=None, stock_id=None, amount=
 
 	return response
 
-'''DEPRICATED
+
 #-----------------------------------------------------------------------------
 #
 def processWorkloadFile(sourceDir, targetDir, workloadFile):
@@ -163,140 +159,135 @@ def processWorkloadFile(sourceDir, targetDir, workloadFile):
 	f.close()
 
 	return userList
-'''
 
 
 #-----------------------------------------------------------------------------
-# #MODIFIED FOR NEW THREADED VERSIOB
-def sendWorkload(line, pid):
+#
+def sendWorkload(user, pid):
 	bad_chars = '[]'
 
-	tokens = line.split(' ')
+	f = open(working_dir + user + '.txt', 'r')
+	for line in f:
 
-	transactionNum = tokens[0]
-	transactionNum = transactionNum.translate(None, bad_chars)
+		tokens = line.split(' ')
 
-	request = tokens[1].split(',')
+		transactionNum = tokens[0]
+		transactionNum = transactionNum.translate(None, bad_chars)
 
-	command = request[0]
+		request = tokens[1].split(',')
 
-	if command == ADD:
-		user = request[1]
-		amount = request[2]
-		make_request(pid, transactionNum, command, user, amount=amount)
+		command = request[0]
 
-	elif command == QUOTE:
-		user = request[1]
-		stock_id = request[2]
-		make_request(pid, transactionNum, command, user, stock_id)
-
-	elif command == BUY:
-		user = request[1]
-		stock_id = request[2]
-		amount = request[3]
-		make_request(pid, transactionNum, command, user, stock_id, amount)
-
-	elif command == COMMIT_BUY:
-		user = request[1]
-		make_request(pid, transactionNum, command, user)
-		
-	elif command == CANCEL_BUY:
-		user = request[1]
-		make_request(pid, transactionNum, command, user)
-		
-	elif command == SELL:
-		user = request[1]
-		stock_id = request[2]
-		amount = request[3]
-		make_request(pid, transactionNum, command, user, stock_id, amount)
-
-	elif command == COMMIT_SELL:
-		user = request[1]
-		make_request(pid, transactionNum, command, user)
-
-	elif command == CANCEL_SELL:
-		user = request[1]
-		make_request(pid, transactionNum, command, user)
-
-	elif command == SET_BUY_AMOUNT:
-		user = request[1]
-		stock_id = request[2]
-		amount = request[3]
-		make_request(pid, transactionNum, command, user, stock_id, amount)
-		
-	elif command == CANCEL_SET_BUY:
-		user = request[1]
-		stock_id = request[2]
-		make_request(pid, transactionNum, command, user, stock_id)
-
-		
-	elif command == SET_BUY_TRIGGER:
-		user = request[1]
-		stock_id = request[2]
-		amount = request[3]
-		make_request(pid, transactionNum, command, user, stock_id, amount)
-
-		
-	elif command == SET_SELL_AMOUNT:
-		user = request[1]
-		stock_id = request[2]
-		amount = request[3]
-		make_request(pid, transactionNum, command, user, stock_id, amount)
-
-		
-	elif command == SET_SELL_TRIGGER:
-		user = request[1]
-		stock_id = request[2]
-		amount = request[3]
-		make_request(pid, transactionNum, command, user, stock_id, amount)
-
-		
-	elif command == CANCEL_SET_SELL:
-		user = request[1]
-		stock_id = request[2]
-		make_request(pid, transactionNum, command, user, stock_id)
-
-		
-	elif command == DUMPLOG:
-		if len(request) == 2:
-			#filename
-			filename = request[1]
-			make_request(pid, transactionNum, command, filename=filename)
-
-		elif len(request) == 3:
-			#userid, filename
+		if command == ADD:
 			user = request[1]
-			filename = request[2]
-			make_request(pid, transactionNum, command, user, filename=filename)
+			amount = request[2]
+			make_request(pid, transactionNum, command, user, amount=amount)
 
-	elif command == DISPLAY_SUMMARY:
-		user = request[1]
-		make_request(pid, transactionNum, command, user)
+		elif command == QUOTE:
+			user = request[1]
+			stock_id = request[2]
+			make_request(pid, transactionNum, command, user, stock_id)
+
+		elif command == BUY:
+			user = request[1]
+			stock_id = request[2]
+			amount = request[3]
+			make_request(pid, transactionNum, command, user, stock_id, amount)
+
+		elif command == COMMIT_BUY:
+			user = request[1]
+			make_request(pid, transactionNum, command, user)
+			
+		elif command == CANCEL_BUY:
+			user = request[1]
+			make_request(pid, transactionNum, command, user)
+			
+		elif command == SELL:
+			user = request[1]
+			stock_id = request[2]
+			amount = request[3]
+			make_request(pid, transactionNum, command, user, stock_id, amount)
+
+		elif command == COMMIT_SELL:
+			user = request[1]
+			make_request(pid, transactionNum, command, user)
+
+		elif command == CANCEL_SELL:
+			user = request[1]
+			make_request(pid, transactionNum, command, user)
+
+		elif command == SET_BUY_AMOUNT:
+			user = request[1]
+			stock_id = request[2]
+			amount = request[3]
+			make_request(pid, transactionNum, command, user, stock_id, amount)
+			
+		elif command == CANCEL_SET_BUY:
+			user = request[1]
+			stock_id = request[2]
+			make_request(pid, transactionNum, command, user, stock_id)
+
+			
+		elif command == SET_BUY_TRIGGER:
+			user = request[1]
+			stock_id = request[2]
+			amount = request[3]
+			make_request(pid, transactionNum, command, user, stock_id, amount)
+
+			
+		elif command == SET_SELL_AMOUNT:
+			user = request[1]
+			stock_id = request[2]
+			amount = request[3]
+			make_request(pid, transactionNum, command, user, stock_id, amount)
+
+			
+		elif command == SET_SELL_TRIGGER:
+			user = request[1]
+			stock_id = request[2]
+			amount = request[3]
+			make_request(pid, transactionNum, command, user, stock_id, amount)
+
+			
+		elif command == CANCEL_SET_SELL:
+			user = request[1]
+			stock_id = request[2]
+			make_request(pid, transactionNum, command, user, stock_id)
+
+			
+		elif command == DUMPLOG:
+			if len(request) == 2:
+				#filename
+				filename = request[1]
+				make_request(pid, transactionNum, command, filename=filename)
+
+			elif len(request) == 3:
+				#userid, filename
+				user = request[1]
+				filename = request[2]
+				make_request(pid, transactionNum, command, user, filename=filename)
+
+		elif command == DISPLAY_SUMMARY:
+			user = request[1]
+			make_request(pid, transactionNum, command, user)
 
 
-	else:
-		# INVALID REQUEST
-		print "invalid request: " + request[0]
+		else:
+			# INVALID REQUEST
+			print "invalid request: " + request[0]
 
 
 
 #-----------------------------------------------------------------------------
 #
-def workLoadThread(line, pid):
-	print 'in thread'
-	print 'thread %d active' % pid
-	global active_threads
+def worker(id):
 	while True:
-	    responce = sendWorkload(line, pid)
-	    #May need improved logic here
-	    if responce:
-	    	break
-	active_threads -= 1
-	sys.exit(0) 
+	    user = q.get()
+	    process = id
+	    sendWorkload(user, process)
+	    q.task_done()
 
 #-----------------------------------------------------------------------------
-
-
 # send_audit
 # Send formatted message to the audit server
 def send_audit(message):
@@ -390,41 +381,6 @@ def audit_event(
 
 
 def main():
-	global active_threads
-	p_rank = 0
-	try:
-		f = open (workloadFile, 'r')
-	except IOError as err:
-		if err[0] == 2:
-			print "Workload file [" + workloadFile + "] does not exist. Exiting.\n"
-			exit()
-	while 1:
-		#for each command in the file
-		for line in f:
-			#wait until a thread is ready
-			while 1:
-				#when a thread is ready spawn a new one
-				if(active_threads < 40):
-					try: 
-						#start a new thread with tokens and an id of the current number of processes
-						print 'Starting new Thread: %d\n' % active_threads
-						start_new_thread(workLoadThread, (line, p_rank))
-						active_threads +=1
-						#if p_rank is at the highest possible rank loop to zero
-						print p_rank
-						if(p_rank == len(tx_server_address)-1):
-							p_rank = 0
-						#else add one
-						else:
-							p_rank += 1
-						break
-					except:
-						print "Recieved User interrupt or unknown error from threads\n"
-						exit()
-
-
-	''' # SPLIT WORKLOAD MAIN
-
 	userList = processWorkloadFile('/',working_dir, workload_file)
 
 	for i in range(NUM_WORKER_THREADS):
@@ -434,13 +390,10 @@ def main():
 
 	for item in userList:
 	    q.put(item)
-
-'''
-
+	    
 	q.join() #blocks until everything is done
 	# then send last command
 	sendWorkload("last", 0)
-
 
 if __name__ == "__main__":
     main()
