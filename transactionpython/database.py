@@ -75,6 +75,8 @@ class Database:
         cursor = connection.cursor()
         return DatabaseConnection(connection, cursor)
 
+    def close_connection(self, connection):
+	self.pool.putconn(connection)
 
 class DatabaseConnection:
 

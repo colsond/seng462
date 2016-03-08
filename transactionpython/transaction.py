@@ -1020,6 +1020,7 @@ def transactionWorkerthread(conn, db):
             	break
         else:
             break
+    db.close_connection(db_conn)
     conn.close()
     #active_threads -= 1 
     sys.exit(1)
