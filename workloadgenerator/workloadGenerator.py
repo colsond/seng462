@@ -1,282 +1,399 @@
-import ast
+import io
 import socket
 import sys
-import io
-from thread import *
- 
-HOST = ''   # Symbolic name meaning all available interfaces
-PORT = 44421 # Arbitrary non-privileged port
- 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-print 'Socket created'
- 
-#Bind socket to local host and port
-try:
-    s.bind((HOST, PORT))
-except socket.error , msg:
-    print 'Bind failed. Error Code : ' + str(msg[0]) + ' Message ' + msg[1]
-    sys.exit()
-     
-print 'Socket bind complete'
- 
-#Start listening on socket
-s.listen(10)
-print 'Socket now listening'
+import string
+import Queue
+import os
 
-###USER COMMAND TYPE
-def parseUserCommand(entryDict):
-#inputs
-    timeStamp = entryDict['timestamp']
-    server = entryDict['server']
-    transactionNum = entryDict['transactionNum']
-    command = entryDict['command']
-    userName = entryDict.get('username', "")
-    stockSymbol = entryDict.get('stockSymbol', "")
-    fileName = entryDict.get('filename', "")
-    funds = entryDict.get('funds', "")
-
-    userCommandType = ''
-    userCommandType += '<userCommand>\n'
-    userCommandType += '    <timestamp>' + str(timeStamp) + '</timestamp>\n'
-    userCommandType += '    <server>' + server + '</server>\n'
-    userCommandType += '    <transactionNum>' + str(transactionNum) +'</transactionNum>\n'
-    userCommandType += '    <command>' + command + '</command>\n'
-    if (userName!=""):
-        userCommandType += '    <username>' + userName + '</username>\n'
-    if (stockSymbol!=""):
-        userCommandType += '    <stockSymbol>' + stockSymbol + '</stockSymbol>\n'
-    if (fileName!=""):
-        userCommandType += '    <filename>' + fileName + '</filename>\n'
-    if (funds!=""):
-        userCommandType += '    <funds>' + str(funds) + '</funds>\n'
-    userCommandType += '</userCommand>\n'
-
-    return userCommandType
+from threading import Thread, current_thread
 
 
+#workload generator aims for however many transaction servers are set in the list below, all looking on port 44422 
+tx_server_address = ['b133.seng.uvic.ca', 'b134.seng.uvic.ca', 'b134.seng.uvic.ca','b135.seng.uvic.ca']
+tx_server_port = 44422
 
-##QUOTE SERVER TYPE
-def pareseQuoteServer(entryDict):
-#inputs
-    timeStamp = entryDict['timestamp']
-    server = entryDict['server']
-    transactionNum = entryDict['transactionNum']
-    price = entryDict['price']
-    stockSymbol = entryDict['stockSymbol']
-    userName = entryDict['username']
-    quoteServerTime = entryDict['quoteServerTime']
-    cryptokey = entryDict['cryptokey']
+AUDIT_SERVER_ADDRESS = 'b142.seng.uvic.ca'
+AUDIT_SERVER_PORT = 44421
 
-    quoteServerType = ''
-    quoteServerType += '<quoteServer>\n'
-    quoteServerType += '    <timestamp>' + str(timeStamp) + '</timestamp>\n'
-    quoteServerType += '    <server>' + server + '</server>\n'
-    quoteServerType += '    <transactionNum>' + str(transactionNum) + '</transactionNum>\n'
-    quoteServerType += '    <quoteServerTime>' + str(quoteServerTime) + '</quoteServerTime>\n'
-    quoteServerType += '    <username>' + userName + '</username>\n'
-    quoteServerType += '    <stockSymbol>' + stockSymbol + '</stockSymbol>\n'
-    quoteServerType += '    <price>' + str(price) + '</price>\n'
-    quoteServerType += '    <cryptokey>' + cryptokey + '</cryptokey>\n'
-    quoteServerType += '</quoteServer>\n'
+NUM_WORKER_THREADS = 40
 
-    return quoteServerType
+web_server_port = 44422
 
+MY_NAME = "Workload"
 
+workload_file = '100User_testWorkLoad.txt'
+working_dir = './separatedWorkload/'
 
-##Account Transaction Type
-def parseAccountTransaction(entryDict):
-#inputs
-    timeStamp = entryDict['timestamp']
-    server = entryDict['server']
-    transactionNum = entryDict['transactionNum']
-    action = entryDict['action']
-    userName = entryDict['username']
-    funds = entryDict['funds']
+ADD = "ADD"
+QUOTE = "QUOTE"
+BUY = "BUY"
+COMMIT_BUY = "COMMIT_BUY"
+CANCEL_BUY = "CANCEL_BUY"
+SELL = "SELL"
+COMMIT_SELL = "COMMIT_SELL"
+CANCEL_SELL = "CANCEL_SELL"
+SET_BUY_AMOUNT = "SET_BUY_AMOUNT"
+CANCEL_SET_BUY = "CANCEL_SET_BUY"
+SET_BUY_TRIGGER = "SET_BUY_TRIGGER"
+SET_SELL_AMOUNT = "SET_SELL_AMOUNT"
+SET_SELL_TRIGGER = "SET_SELL_TRIGGER"
+CANCEL_SET_SELL = "CANCEL_SET_SELL"
+DUMPLOG = "DUMPLOG"
+DISPLAY_SUMMARY = "DISPLAY_SUMMARY"
 
-    accountTransactionType = ''
-    accountTransactionType += '<accountTransaction>\n'
-    accountTransactionType += '    <timestamp>' + str(timeStamp) + '</timestamp>\n'
-    accountTransactionType += '    <server>' + server + '</server>\n'
-    accountTransactionType += '    <transactionNum>' + str(transactionNum) + '</transactionNum>\n'
-    accountTransactionType += '    <action>' + action + '</action>\n'
-    accountTransactionType += '    <username>' + userName + '</username>\n'
-    accountTransactionType += '    <funds>' + str(funds) + '</funds>\n'
-    accountTransactionType += '</accountTransaction>\n'
-
-    return accountTransactionType
-
-##System Event Type
-def parseSystemEvent(entryDict):
-#inputs
-    timeStamp = entryDict['timestamp']
-    server = entryDict['server']
-    transactionNum = entryDict['transactionNum']
-    command = entryDict['command']
-    userName = entryDict.get('username', "")
-    stockSymbol = entryDict.get('stockSymbol', "")
-    fileName = entryDict.get('filename', "")
-    funds = entryDict.get('funds', "")
-
-    systemEventType = ''
-    systemEventType += '<systemEvent>\n'
-    systemEventType += '    <timestamp>' + str(timeStamp) + '</timestamp>\n'
-    systemEventType += '    <server>' + server + '</server>\n'
-    systemEventType += '    <transactionNum>' + str(transactionNum) + '</transactionNum>\n'
-    systemEventType += '    <command>' + command + '</command>\n'
-    if (userName!=""):
-        systemEventType += '    <username>' + userName + '</username>\n'
-    if (stockSymbol!=""):
-        systemEventType += '    <stockSymbol>' + stockSymbol + '</stockSymbol>\n'
-    if (fileName!=""):
-        systemEventType += '    <filename>' + fileName + '</filename>\n'
-    if (funds!=""):
-        systemEventType += '    <funds>' + str(funds) + '</funds>\n'
-    systemEventType += '</systemEvent>\n'
-
-    return systemEventType
+q = Queue.Queue()
 
 
-##Error Event Type
-def parseErrorEvent(entryDict):
-    #inputs
-    timeStamp = entryDict['timestamp']
-    server = entryDict['server']
-    transactionNum = entryDict['transactionNum']
-    command = entryDict['command']
-    userName = entryDict.get('username', "")
-    stockSymbol = entryDict.get('stockSymbol', "")
-    fileName = entryDict.get('filename', "")
-    funds = entryDict.get('funds', "")
-    errorMessage = entryDict.get('errorMessage', "")
+#-----------------------------------------------------------------------------
+#
+def make_request(pid, transactionNum, command, user=None, stock_id=None, amount=None, filename=None):
+	data = {
+		'transactionNum': transactionNum,
+		'command': command,
+	}
 
-    errorEventType = ''
-    errorEventType += '<errorEvent>\n'
-    errorEventType += '    <timestamp>' + str(timeStamp) + '</timestamp>\n'
-    errorEventType += '    <server>' + server + '</server>\n'
-    errorEventType += '    <transactionNum>' + str(transactionNum) + '</transactionNum>\n'
-    errorEventType += '    <command>' + command + '</command>\n'
-    if (userName!=""):
-        errorEventType += '    <username>' + userName + '</username>\n'
-    if (stockSymbol!=""):
-        errorEventType += '    <stockSymbol>' + stockSymbol + '</stockSymbol>\n'
-    if (fileName!=""):
-        errorEventType += '    <filename>' + fileName + '</filename>\n'
-    if (funds!=""):
-        errorEventType += '    <funds>' + str(funds) + '</funds>\n'
-    if (errorMessage!=""):
-        errorEventType += '    <errorMessage>' + errorMessage + '</errorMessage>\n'
-    errorEventType += '</errorEvent>\n'
-    
-    return errorEventType
+	if user:
+		data['user'] = user
 
-##Debug Type
-def parseDebug(entryDict):
-    #inputs
-    timeStamp = entryDict['timestamp']
-    server = entryDict['server']
-    transactionNum = entryDict['transactionNum']
-    command = entryDict['command']
-    userName = entryDict.get('username', "")
-    stockSymbol = entryDict.get('stockSymbol', "")
-    fileName = entryDict.get('filename', "")
-    funds = entryDict.get('funds', "")
-    debugMessage = entryDict.get('debugMessage', "")
+	if stock_id:
+		data['stock_id'] = stock_id
 
-    DebugType = ''
-    DebugType += '<debugEvent>\n'
-    DebugType += '    <timestamp>' + str(timeStamp) + '</timestamp>\n'
-    DebugType += '    <server>' + server + '</server>\n'
-    DebugType += '    <transactionNum>' + str(transactionNum) + '</transactionNum>\n'
-    DebugType += '    <command>' + command + '</command>\n'
-    if (userName!=""):
-        DebugType += '    <username>' + userName + '</username>\n'
-    if (stockSymbol!=""):
-        DebugType += '    <stockSymbol>' + stockSymbol + '</stockSymbol>\n'
-    if (fileName!=""):
-        DebugType += '    <filename>' + fileName + '</filename>\n'
-    if (funds!=""):
-        DebugType += '    <funds>' + str(funds) + '</funds>\n'
-    if (debugMessage!=""):
-        DebugType += '    <debugMessage>' + debugMessage + '</debugMessage>\n'
-    DebugType += '</debugEvent>\n'
-    
-    return DebugType
-# This function handles the data package recieved thru the socket and dumps it into the audit log
-def handleEntry(strdict):
-    xmlPacket = ''
-    #print strdict
-    #unpack string into dictionary
-    entryDict = ast.literal_eval(strdict)
-    
-    #based on source parse the dict into an xml string and add it to the log
-    logType = entryDict['logType']
-   
-    #based on log type call the appropriate function to generate xml packet
-    if(logType == "UserCommandType"):
-        xmlPacket = parseUserCommand(entryDict)
-    elif(logType == "QuoteServerType"):
-        xmlPacket = pareseQuoteServer(entryDict)
-    elif(logType == "AccountTransactionType"):
-        xmlPacket = parseAccountTransaction(entryDict)
-    elif(logType == "SystemEventType"):
-        xmlPacket = parseSystemEvent(entryDict)
-    elif(logType == "ErrorEventType"):
-        xmlPacket = parseErrorEvent(entryDict)
-    elif(logType == "DebugType"):
-        xmlPacket = parseDebug(entryDict)
-    else:
-        print "unknown log type"
-        return "UNKNOWN_LOG_TYPE"
-    #unknown log type ?throw an error?
+	if amount:
+		data['amount'] = amount
+	
+	if filename:
+		data['filename'] = filename
 
-    #open log file to append to, may need to put this in a try block
-    f = open('logfile.xml', 'a')     
-    
-    #for debugging
-    #print xmlPacket
-    
-    f.write(xmlPacket)
-    f.close() 
-    return "OK"
+	print str(data)
+		
+	# Create a TCP/IP socket
+	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+	# Connect the socket to the port where the server is listening
+	server_address = (tx_server_address[pid%len(tx_server_address)], tx_server_port)
+	print >>sys.stderr, 'connecting to %s port %s' % server_address
+	sock.connect(server_address)
+
+	try:
+			# Send data
+			message = str(data)
+			sock.sendall(message)
+			print >>sys.stderr, 'sent "%s"' % message
+			response = sock.recv(1024)
+			print >>sys.stderr, 'received "%s"' % response
+			response = ' '
+
+	    # Look for the response
+#	    amount_expected = len(message)
+#	    response = ""
+
+#	    while response[-1:] != "\n":
+#	        response_data = sock.recv(16)
+#	        response += response_data
+
+	finally:
+	    print >>sys.stderr, 'closing socket'
+	    sock.close()
+
+	return response
 
 
+#-----------------------------------------------------------------------------
+#
+def processWorkloadFile(sourceDir, targetDir, workloadFile):
+	fileDict = {}
+	userList = []
 
-#Function for handling connections. This will be used to create threads
-def clientthread(conn):
-    #Sending message to connected client
-    #infinite loop so that function do not terminate and thread do not end.
-    while True:
-         
-        #Receiving from client
-    #this is where all the logic for logging will go.
-        data = conn.recv(4096)
-    #handle request here
-        if not data: 
-            break
-    #this function call handles the data package and returns ok or gives an unknown log error
-    	reply = handleEntry(data) 
-        conn.sendall(reply)
-     
-    #came out of loop
-    print "Ending transmission"
-    conn.close()
-    sys.exit(0) 
-#now keep talking with the client
-f = open('logfile.xml', 'a')
-f.write('<?xml version="1.0"?><log>')
-f.close()
-while 1:
-    try:
-	    #wait to accept a connection - blocking call
-	    conn, addr = s.accept()
-	    print 'Connected with ' + addr[0] + ':' + str(addr[1])
-	     
-	    #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
-	    start_new_thread(clientthread ,(conn,))
-    except:
-	    f = open('logfile.xml', 'a')
-	    f.write("</log>")
-	    f.close()
-	    sys.exit(0) 
+	try:
+		f = open (workloadFile, 'r')
+	except IOError as err:
+		if err[0] == 2:
+			print "Workload file [" + workloadFile + "] does not exist. Exiting.\n"
+			exit()
 
-s.close()
+	for line in f:
+		tokens = line.split(' ')
+		commandInfo = tokens[1].split(',')
+		user = commandInfo[1]
+
+		#need to decide what to do with the dump command
+		if commandInfo[0]==DUMPLOG:
+			if 'last' in fileDict:
+				fileDict['last']+=line
+			else:
+				fileDict['last']=line
+		else:
+			if user not in userList: 
+				userList.append(user)
+			if user in fileDict:
+				fileDict[user] += line
+			else:
+				fileDict[user] = line
+
+	f.close()
+
+	# try to make the target directory; if it errors for a reason other than 
+	# the directory already exists, then raise an exception
+	try:
+		os.makedirs(targetDir)
+	except OSError:
+		if not os.path.isdir(targetDir):
+				raise
+
+	for user in userList:
+		try:
+			f = open ((targetDir + user + '.txt'), 'w')
+		except IOError as err:
+			print err
+
+		f.write(fileDict[user])
+		f.close()
+
+	# Keep 'last' out of the userlist
+	try:
+		f = open ((targetDir + 'last.txt'), 'w')
+	except IOError as err:
+		print err
+
+	f.write(fileDict['last'])
+	f.close()
+
+	return userList
+
+
+#-----------------------------------------------------------------------------
+#
+def sendWorkload(user, pid):
+	bad_chars = '[]'
+
+	f = open(working_dir + user + '.txt', 'r')
+	for line in f:
+
+		tokens = line.split(' ')
+
+		transactionNum = tokens[0]
+		transactionNum = transactionNum.translate(None, bad_chars)
+
+		request = tokens[1].split(',')
+
+		command = request[0]
+
+		if command == ADD:
+			user = request[1]
+			amount = request[2]
+			make_request(pid, transactionNum, command, user, amount=amount)
+
+		elif command == QUOTE:
+			user = request[1]
+			stock_id = request[2]
+			make_request(pid, transactionNum, command, user, stock_id)
+
+		elif command == BUY:
+			user = request[1]
+			stock_id = request[2]
+			amount = request[3]
+			make_request(pid, transactionNum, command, user, stock_id, amount)
+
+		elif command == COMMIT_BUY:
+			user = request[1]
+			make_request(pid, transactionNum, command, user)
+			
+		elif command == CANCEL_BUY:
+			user = request[1]
+			make_request(pid, transactionNum, command, user)
+			
+		elif command == SELL:
+			user = request[1]
+			stock_id = request[2]
+			amount = request[3]
+			make_request(pid, transactionNum, command, user, stock_id, amount)
+
+		elif command == COMMIT_SELL:
+			user = request[1]
+			make_request(pid, transactionNum, command, user)
+
+		elif command == CANCEL_SELL:
+			user = request[1]
+			make_request(pid, transactionNum, command, user)
+
+		elif command == SET_BUY_AMOUNT:
+			user = request[1]
+			stock_id = request[2]
+			amount = request[3]
+			make_request(pid, transactionNum, command, user, stock_id, amount)
+			
+		elif command == CANCEL_SET_BUY:
+			user = request[1]
+			stock_id = request[2]
+			make_request(pid, transactionNum, command, user, stock_id)
+
+			
+		elif command == SET_BUY_TRIGGER:
+			user = request[1]
+			stock_id = request[2]
+			amount = request[3]
+			make_request(pid, transactionNum, command, user, stock_id, amount)
+
+			
+		elif command == SET_SELL_AMOUNT:
+			user = request[1]
+			stock_id = request[2]
+			amount = request[3]
+			make_request(pid, transactionNum, command, user, stock_id, amount)
+
+			
+		elif command == SET_SELL_TRIGGER:
+			user = request[1]
+			stock_id = request[2]
+			amount = request[3]
+			make_request(pid, transactionNum, command, user, stock_id, amount)
+
+			
+		elif command == CANCEL_SET_SELL:
+			user = request[1]
+			stock_id = request[2]
+			make_request(pid, transactionNum, command, user, stock_id)
+
+			
+		elif command == DUMPLOG:
+			if len(request) == 2:
+				#filename
+				filename = request[1]
+				make_request(pid, transactionNum, command, filename=filename)
+
+			elif len(request) == 3:
+				#userid, filename
+				user = request[1]
+				filename = request[2]
+				make_request(pid, transactionNum, command, user, filename=filename)
+
+		elif command == DISPLAY_SUMMARY:
+			user = request[1]
+			make_request(pid, transactionNum, command, user)
+
+
+		else:
+			# INVALID REQUEST
+			print "invalid request: " + request[0]
+
+
+
+#-----------------------------------------------------------------------------
+#
+def worker(id):
+	while True:
+	    user = q.get()
+	    process = id
+	    sendWorkload(user, process)
+	    q.task_done()
+
+#-----------------------------------------------------------------------------
+# send_audit
+# Send formatted message to the audit server
+def send_audit(message):
+
+	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+	# Connect the socket to the port where the server is listening
+	server_address = (AUDIT_SERVER_ADDRESS, AUDIT_SERVER_PORT)
+	
+	if __debug__:
+		print 'connecting to ' + AUDIT_SERVER_ADDRESS + ' port ' + str(AUDIT_SERVER_PORT) + '\n'
+		
+	sock.connect(server_address)
+
+	try:
+		sock.sendall(str(message))
+		response = sock.recv(1024)
+		
+		if __debug__:
+			print >>sys.stderr, 'sent "%s"\n' % message
+			print >>sys.stderr, 'received "%s"\n' % response
+
+	finally:
+		if __debug__:
+			print >>sys.stderr, 'closing socket'
+		sock.close()
+
+	return
+	
+#-----------------------------------------------------------------------------
+# audit_event
+# Format message to send to the audit server
+def audit_event(
+		type,
+		timestamp,
+		transactionNum, 
+		command, 
+		username, 
+		stockSymbol,
+		amount,
+		quoteServerTime,
+		cryptokey,
+		errorMessage):
+
+	message = {"logtype" : "invalid"}
+
+	if type == "command":
+		message = {
+			"logType": "UserCommandType",
+			"timestamp": timestamp,
+			"server" : MY_NAME,
+			"transactionNum" : transactionNum,
+			"command" : command
+		}
+
+		if username:
+			message["username"] = username
+
+		if stockSymbol:
+			message["stockSymbol"] = stockSymbol
+
+		if filename:
+			message["filename"] = filename
+
+		if funds:
+			message["funds"] = str(int(funds/100)) + '.' + "{:02d}".format(int(funds%100))
+
+	elif type == "error":
+		message = {
+			"logType": "ErrorEventType",
+			"timestamp": timestamp,
+			"server" : MY_NAME,
+			"transactionNum" : transactionNum,
+			"command" : command,
+			"username" : username,
+			"stockSymbol" : stockSymbol,
+			"funds" : amount,
+			"errorMessage" : errorMessage
+		}
+	else:
+		pass
+
+	if message.get('logtype') != 'invalid':
+		while threading.active_count() > MAX_THREADS:
+			pass
+		t = threading.Thread(target=send_audit, args=(message,))
+		t.start()
+	#send_audit(str(message))
+	
+	return
+
+
+def main():
+	userList = processWorkloadFile('/',working_dir, workload_file)
+
+	for i in range(NUM_WORKER_THREADS):
+		t = Thread(target=worker, args=(i,))
+		t.daemon = True
+		t.start()
+
+	for item in userList:
+	    q.put(item)
+
+	q.join() #blocks until everything is done
+	# then send last command
+	sendWorkload("last", 0)
+
+if __name__ == "__main__":
+    main()
