@@ -1042,31 +1042,31 @@ def main():
     while 1:
         try:
             try:
-            threads_free = activeCount() < 10
-        except Exception as e:
-            print e
-            break
-        print threads_free
-        if(threads_free):
-                            #wait to accept a connection - blocking call
-                try:
-                    conn, addr = s.accept()
-                except Exception as e:
-                    print e
-                    break
-                print 'Connected with ' + addr[0] + ':' + str(addr[1])
+                threads_free = activeCount() < 10
+            except Exception as e:
+                print e
+                break
+            print threads_free
+            if(threads_free):
+                                #wait to accept a connection - blocking call
+                    try:
+                        conn, addr = s.accept()
+                    except Exception as e:
+                        print e
+                        break
+                    print 'Connected with ' + addr[0] + ':' + str(addr[1])
 
-                #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
-                try:
-            print 'Starting new thread'
-                    value = start_new_thread(transactionWorkerthread, (conn, db))
-            print value
-                except Exception as e:
-                    print 'Exception:'
-            print e
-                    break
-                #active_threads +=1
-                print 'Starting thread %d\n' % active_threads
+                    #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
+                    try:
+                print 'Starting new thread'
+                        value = start_new_thread(transactionWorkerthread, (conn, db))
+                print value
+                    except Exception as e:
+                        print 'Exception:'
+                print e
+                        break
+                    #active_threads +=1
+                    print 'Starting thread %d\n' % active_threads
         except:
             print 'Recieved user interrupt'
             #sys.exit(0)
