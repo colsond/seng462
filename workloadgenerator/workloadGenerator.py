@@ -390,7 +390,7 @@ def main():
 
 	for item in userList:
 	    q.put(item)
-
+	    
 	q.join() #blocks until everything is done
 	# then send last command
 	sendWorkload("last", 0)
