@@ -73,25 +73,23 @@ class Database:
     def get_connection(self):
         connection = self.pool.getconn()
         cursor = connection.cursor()
-        return DatabaseConnection(connection, cursor)
+        return connection, cursor
 
     def close_connection(self, connection):
-	self.pool.putconn(connection)
-
-class DatabaseConnection:
-
-    def __init__(self, connection, cursor):
-        self.conn = connection
-        self.conn.autocommit = True
-        self.curs = cursor
+        self.pool.putconn(connection)
 
         # call like: select_record("Users", "id,balance", "id='jim' AND balance=200")
     def select_record(self, values, table, constraints):
+        connection, cursor = self.get_connection()
+
         try:
-            self.curs.execute("""SELECT %s FROM %s WHERE %s""" % (values, table, constraints))
+            cursor.execute("""SELECT %s FROM %s WHERE %s""" % (values, table, constraints))
         except Exception as e:
             print e
-        result = self.curs.fetchall()
+        result = cursor.fetchall()
+
+        self.close_connection(connection)
+
         print result
         # Format to always return a tuple of the single record, with each value.
         if len(result) > 1:
@@ -103,19 +101,31 @@ class DatabaseConnection:
             return result[0]
 
     def insert_record(self, table, columns, values):
+        connection, cursor = self.get_connection()
+
         try:
-            self.curs.execute("""INSERT INTO %s (%s) VALUES (%s)""" % (table, columns, values))
+            cursor.execute("""INSERT INTO %s (%s) VALUES (%s)""" % (table, columns, values))
         except Exception as e:
             print e
+
+        self.close_connection(connection)
 
     def update_record(self, table, values, constraints):
+        connection, cursor = self.get_connection()
+
         try:
-            self.curs.execute("""UPDATE %s SET %s WHERE %s""" % (table, values, constraints))
+            cursor.execute("""UPDATE %s SET %s WHERE %s""" % (table, values, constraints))
         except Exception as e:
             print e
 
+        self.close_connection(connection)
+
     def delete_record(self, table, constraints):
+        connection, cursor = self.get_connection()
+
         try:
-            self.curs.execute("""DELETE FROM %s WHERE %s""" % (table, constraints))
+            cursor.execute("""DELETE FROM %s WHERE %s""" % (table, constraints))
         except Exception as e:
             print e
+
+        self.close_connection(connection)
