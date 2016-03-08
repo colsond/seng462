@@ -8,7 +8,7 @@ from threading import Thread, current_thread
 
 
 #workload generator aims for however many transaction servers are set in the list below, all looking on port 44422 
-tx_server_address = ['b132.seng.uvic.ca', 'b133.seng.uvic.ca', 'b134.seng.uvic.ca', 'b134.seng.uvic.ca']
+tx_server_address = ['b133.seng.uvic.ca', 'b134.seng.uvic.ca', 'b135.seng.uvic.ca','b136.seng.uvic.ca']
 tx_server_port = 44422
 
 AUDIT_SERVER_ADDRESS = 'b142.seng.uvic.ca'
@@ -21,7 +21,9 @@ web_server_port = 44422
 
 MY_NAME = "Workload"
 
-workloadFile = "10User_testWorkLoad.txt"
+
+workload_file = '100User_testWorkLoad.txt'
+working_dir = './separatedWorkload/'
 
 
 ADD = "ADD"
@@ -422,20 +424,23 @@ def main():
 
 
 	''' # SPLIT WORKLOAD MAIN
-	#userList = processWorkloadFile('/',working_dir,'activeWorkLoad.txt')
 
-	#for i in range(NUM_WORKER_THREADS):
-	#	t = Thread(target=worker, args=(i,))
-	#	t.daemon = True
-	#	t.start()
+	userList = processWorkloadFile('/',working_dir, workload_file)
 
-	#for item in userList:
-	#    q.put(item)
+	for i in range(NUM_WORKER_THREADS):
+		t = Thread(target=worker, args=(i,))
+		t.daemon = True
+		t.start()
 
-	#q.join() #blocks until everything is done
-	#then send last command
-	#sendWorkload("last", 0)
-	'''
+	for item in userList:
+	    q.put(item)
+
+'''
+
+	q.join() #blocks until everything is done
+	# then send last command
+	sendWorkload("last", 0)
+
 
 if __name__ == "__main__":
     main()
