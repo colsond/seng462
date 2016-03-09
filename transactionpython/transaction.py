@@ -5,43 +5,10 @@ import socket
 import string
 import sys
 import time
+from thread import *
+from threading import Thread, current_thread, activeCount
 
 from database import Database
-
-# -- REMEMBER: to not run in debug mode:
-#				python -O transaction.py
-
-## Cache format:
-## cache = {
-##	"users": {
-##		"user": {
-##			"balance": 0,
-##			"stocks": {},
-##			"pending": {
-##				"stock_id": "id",
-##				"amount": 0,
-##				"timestamp": 0,
-##			},
-##			"buy_trigger": {
-##				"stock_id": {
-##      		"amount": 0,
-##					"trigger": 0
-##				}
-##			},
-##			"sell_trigger": {
-##				"stock_id": {
-##      		"amount": 0,
-##					"trigger": 0
-##				}
-##			},
-##			"quotes": {
-##				stock_id: {
-##
-##				}
-##			}
-##		}
-##	}
-##}
 
 server_name = "transaction_server_1"
 
@@ -56,11 +23,7 @@ cache_server_port = 44420
 SELF_HOST = ''
 SELF_PORT = 44422
 
-# Port list, in case things are run on same machine
-# 44421	Audit
-# 44422 Transaction
-
-
+MAX_THREADS = 20
 
 # Commands
 ADD = "ADD"
@@ -82,890 +45,874 @@ DISPLAY_SUMMARY = "DISPLAY_SUMMARY"
 
 
 def now():
-	return int(time.time() * 1000)
+    return int(time.time() * 1000)
 
 def send_audit_entry(message):
 
-	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-	# Connect the socket to the port where the server is listening
-	server_address = (audit_server_address, audit_server_port)
-	print >>sys.stderr, 'connecting to %s port %s' % server_address
-	sock.connect(server_address)
+    # Connect the socket to the port where the server is listening
+    server_address = (audit_server_address, audit_server_port)
+    sock.connect(server_address)
 
-	try:
-		sock.sendall(message)
-		print >>sys.stderr, 'sent "%s"' % message
-		response = sock.recv(1024)
-		print >>sys.stderr, 'received "%s"' % response
+    try:
+        sock.sendall(message)
+        response = sock.recv(1024)
 
-	finally:
-	    print >>sys.stderr, 'closing socket'
-	    sock.close()
+    finally:
+        sock.close()
 
-	return
+    return
 
 def audit_user_command_event(
-		timestamp, 
-		server, 
-		transactionNum, 
-		command, 
-		username="", 
-		stockSymbol="", 
-		filename="", 
-		funds=0):
+        timestamp, 
+        server, 
+        transactionNum, 
+        command, 
+        username="", 
+        stockSymbol="", 
+        filename="", 
+        funds=0):
 
-	audit_dict = {
-		"logType": "UserCommandType",
-		"timestamp": timestamp,
-		"server": server,
-		"transactionNum": transactionNum,
-		"command": command,
-	}
-	if username:
-		audit_dict["username"] = username
+    audit_dict = {
+        "logType": "UserCommandType",
+        "timestamp": timestamp,
+        "server": server,
+        "transactionNum": transactionNum,
+        "command": command,
+    }
+    if username:
+        audit_dict["username"] = username
 
-	if stockSymbol:
-		audit_dict["stockSymbol"] = stockSymbol
+    if stockSymbol:
+        audit_dict["stockSymbol"] = stockSymbol
 
-	if filename:
-		audit_dict["filename"] = filename
+    if filename:
+        audit_dict["filename"] = filename
 
-	if funds:
-		#funds = "{:.2f}".format(float(funds)/100)
-		audit_dict["funds"] = str(int(funds/100)) + '.' + "{:02d}".format(int(funds%100))
-	
-	send_audit_entry(str(audit_dict))
+    if funds:
+        audit_dict["funds"] = str(int(funds/100)) + '.' + "{:02d}".format(int(funds%100))
+    
+    send_audit_entry(str(audit_dict))
 
-	return
+    return
 
 def audit_quote_server_event(
-		timestamp,
-		server,
-		transactionNum,
-		price,
-		stockSymbol,
-		username,
-		quoteServerTime,
-		cryptokey):
-	
-	audit_dict = {
-		"logType": "QuoteServerType",
-		"timestamp": timestamp,
-		"server": server,
-		"transactionNum": transactionNum,
-		"price": str(price),
-		# "price" : str(int(price/100)) + '.' + "{:02d}".format(int(price%100)),
-		#"price": "{:.2f}".format(float(price)/100),
-		"stockSymbol": stockSymbol,
-		"username": username,
-		"quoteServerTime": quoteServerTime,
-		"cryptokey": cryptokey,
-	}
+        timestamp,
+        server,
+        transactionNum,
+        price,
+        stockSymbol,
+        username,
+        quoteServerTime,
+        cryptokey):
+    
+    audit_dict = {
+        "logType": "QuoteServerType",
+        "timestamp": timestamp,
+        "server": server,
+        "transactionNum": transactionNum,
+        "price": str(price),
+        "stockSymbol": stockSymbol,
+        "username": username,
+        "quoteServerTime": quoteServerTime,
+        "cryptokey": cryptokey,
+    }
 
-	send_audit_entry(str(audit_dict))
+    send_audit_entry(str(audit_dict))
 
-	return
+    return
 
 def audit_transaction_event(
-		timestamp,
-		server,
-		transactionNum,
-		action,
-		username,
-		funds):
+        timestamp,
+        server,
+        transactionNum,
+        action,
+        username,
+        funds):
 
-	audit_dict = {
-		"logType": "AccountTransactionType",
-		"timestamp": timestamp,
-		"server": server,
-		"transactionNum": transactionNum,
-		"action": action,
-		"username": username,
-		"funds" : str(int(funds/100)) + '.' + "{:02d}".format(int(funds%100))
-	}
+    audit_dict = {
+        "logType": "AccountTransactionType",
+        "timestamp": timestamp,
+        "server": server,
+        "transactionNum": transactionNum,
+        "action": action,
+        "username": username,
+        "funds" : str(int(funds/100)) + '.' + "{:02d}".format(int(funds%100))
+    }
 
-	send_audit_entry(str(audit_dict))
+    send_audit_entry(str(audit_dict))
 
-	return
-	
+    return
+    
 def audit_system_event(
-		timestamp,
-		server,
-		transactionNum,
-		command,
-		username="",
-		stockSymbol="",
-		filename="",
-		funds=0):
+        timestamp,
+        server,
+        transactionNum,
+        command,
+        username="",
+        stockSymbol="",
+        filename="",
+        funds=0):
 
-	audit_dict = {
-		"logType": "SystemEventType",
-		"timestamp": timestamp,
-		"server": server,
-		"transactionNum": transactionNum,
-		"command": command,
-	}
+    audit_dict = {
+        "logType": "SystemEventType",
+        "timestamp": timestamp,
+        "server": server,
+        "transactionNum": transactionNum,
+        "command": command,
+    }
 
-	if username:
-		audit_dict["username"] = username
+    if username:
+        audit_dict["username"] = username
 
-	if stockSymbol:
-		audit_dict["stockSymbol"] = stockSymbol
+    if stockSymbol:
+        audit_dict["stockSymbol"] = stockSymbol
 
-	if filename:
-		audit_dict["filename"] = filename
+    if filename:
+        audit_dict["filename"] = filename
 
-	if funds:
-		#funds = "{:.2f}".format(float(funds)/100)
-		audit_dict["funds"] = str(int(funds/100)) + '.' + "{:02d}".format(int(funds%100))
-	
-	send_audit_entry(str(audit_dict))
+    if funds:
+        audit_dict["funds"] = str(int(funds/100)) + '.' + "{:02d}".format(int(funds%100))
+    
+    send_audit_entry(str(audit_dict))
 
-	return
+    return
 
 def audit_error_event(
-		timestamp,
-		server,
-		transactionNum=None,
-		command=None,
-		username=None,
-		stockSymbol=None,
-		filename=None,
-		funds=None,
-		errorMessage=None):
+        timestamp,
+        server,
+        transactionNum=None,
+        command=None,
+        username=None,
+        stockSymbol=None,
+        filename=None,
+        funds=None,
+        errorMessage=None):
 
-	audit_dict = {
-		"logType": "ErrorEventType",
-		"timestamp": timestamp,
-		"server": server
-	}
+    audit_dict = {
+        "logType": "ErrorEventType",
+        "timestamp": timestamp,
+        "server": server
+    }
 
-	if transactionNum:
-		audit_dict["transactionNum"] = transactionNum
+    if transactionNum:
+        audit_dict["transactionNum"] = transactionNum
 
-	if command:
-		audit_dict["command"] = command
+    if command:
+        audit_dict["command"] = command
 
-	if username:
-		audit_dict["username"] = username
+    if username:
+        audit_dict["username"] = username
 
-	if stockSymbol:
-		audit_dict["stockSymbol"] = stockSymbol
+    if stockSymbol:
+        audit_dict["stockSymbol"] = stockSymbol
 
-	if filename:
-		audit_dict["filename"] = filename
+    if filename:
+        audit_dict["filename"] = filename
 
-	if funds: 
-		#funds = "{:.2f}".format(float(funds)/100)
-		audit_dict["funds"] = str(int(funds/100)) + '.' + "{:02d}".format(int(funds%100))
+    if funds: 
+        audit_dict["funds"] = str(int(funds/100)) + '.' + "{:02d}".format(int(funds%100))
 
-	if errorMessage:
-		audit_dict["errorMessage"] = errorMessage
-	
-	send_audit_entry(str(audit_dict))
+    if errorMessage:
+        audit_dict["errorMessage"] = errorMessage
+    
+    send_audit_entry(str(audit_dict))
 
-	return
+    return
 
 def audit_debug(
-		timestamp,
-		server,
-		transactionNum=None,
-		command=None,
-		username="",
-		stockSymbol="",
-		filename="",
-		funds=0,
-		debugMessage=""):
+        timestamp,
+        server,
+        transactionNum=None,
+        command=None,
+        username="",
+        stockSymbol="",
+        filename="",
+        funds=0,
+        debugMessage=""):
 
-	audit_dict = {
-		"logType": "DebugType",
-		"timestamp": timestamp,
-		"server": server
-	}
+    audit_dict = {
+        "logType": "DebugType",
+        "timestamp": timestamp,
+        "server": server
+    }
 
-	if transactionNum:
-		audit_dict["transactionNum"] = transactionNum
+    if transactionNum:
+        audit_dict["transactionNum"] = transactionNum
 
-	if command:
-		audit_dict["command"] = command
+    if command:
+        audit_dict["command"] = command
 
-	if username:
-		audit_dict["username"] = username
+    if username:
+        audit_dict["username"] = username
 
-	if stockSymbol:
-		audit_dict["stockSymbol"] = stockSymbol
+    if stockSymbol:
+        audit_dict["stockSymbol"] = stockSymbol
 
-	if filename:
-		audit_dict["filename"] = filename
+    if filename:
+        audit_dict["filename"] = filename
 
-	if funds: 
-		print funds
-		print type(funds)
-		#funds = str(float(funds) / 100)
-		audit_dict["funds"] = str(int(float(funds)/100)) + '.' + "{:02d}".format(int(funds%100))
-		
+    if funds: 
+        audit_dict["funds"] = str(int(float(funds)/100)) + '.' + "{:02d}".format(int(funds%100))
+        
 
-	if debugMessage:
-		audit_dict["debugMessage"] = debugMessage
-	
-	send_audit_entry(str(audit_dict))
+    if debugMessage:
+        audit_dict["debugMessage"] = debugMessage
+    
+    send_audit_entry(str(audit_dict))
 
-	return
+    return
 
 def process_request(data, conn):
-	# Convert Data to Dict
-	data_dict = ast.literal_eval(data)
+    # Convert Data to Dict
+    data_dict = ast.literal_eval(data)
 
-	print "\nNew transaction: "
-	print data_dict
-	print "\n"
+    response = "Request not processed."
+    transactionNum = data_dict.get('transactionNum')
+    command = data_dict.get('command')
+    user = data_dict.get('user')
+    stock_id = data_dict.get('stock_id')
+    filename = data_dict.get('filename')
+    amount = data_dict.get('amount')
+    if amount:
+        amount = int(float(amount) * 100)
 
-	response = "Request not processed."
-	transactionNum = data_dict.get('transactionNum')
-	command = data_dict.get('command')
-	user = data_dict.get('user')
-	stock_id = data_dict.get('stock_id')
-	filename = data_dict.get('filename')
-	amount = data_dict.get('amount')
-	if amount:
-		amount = int(float(amount) * 100)
-
-	# -- DEBUG: store event in audit regardless of correctness
-	if __debug__:
-		audit_debug(
-			now(),
-			server_name,
-			transactionNum,
-			command,
-			user,
-			stock_id,
-			filename,
-			amount,
-			"Storing command before processing."
-		)
+    # -- DEBUG: store event in audit regardless of correctness
+    if __debug__:
+        audit_debug(
+            now(),
+            server_name,
+            transactionNum,
+            command,
+            user,
+            stock_id,
+            filename,
+            amount,
+            "Storing command before processing."
+        )
 
 
 # ---------------------------------------------------------
 # Begin processing request
 # ---------------------------------------------------------
 
-	# -- Check for transaction id and request type
-	if transactionNum is None:
-		response = "Missing transaction id. Transaction ignored."
-		audit_error_event(
-			now(),
-			server_name,
-			transactionNum,
-			command,
-			user,
-			stock_id,
-			filename,
-			amount,
-			response
-		)
-	else:
+    # -- Check for transaction id and request type
+    if transactionNum is None:
+        response = "Missing transaction id. Transaction ignored."
+        audit_error_event(
+            now(),
+            server_name,
+            transactionNum,
+            command,
+            user,
+            stock_id,
+            filename,
+            amount,
+            response
+        )
+    else:
 
-		if command is None:
-			response = "Missing request command. Transaction ignored."
-			audit_error_event(
-				now(),
-				server_name,
-				transactionNum,
-				command,
-				user,
-				stock_id,
-				filename,
-				amount,
-				response
-			)
-		else:
+        if command is None:
+            response = "Missing request command. Transaction ignored."
+            audit_error_event(
+                now(),
+                server_name,
+                transactionNum,
+                command,
+                user,
+                stock_id,
+                filename,
+                amount,
+                response
+            )
+        else:
 
-			if user:
-				balance = conn.select_record("balance", "Users", "user_id='%s'" % user)[0]
-				if balance == None:
-					conn.insert_record("Users", "user_id,balance", "'%s',%d" % (user,0))
-					balance = 0
+            if user:
+                balance = conn.select_record("balance", "Users", "user_id='%s'" % user)[0]
+                if balance == None:
+                    conn.insert_record("Users", "user_id,balance", "'%s',%d" % (user,0))
+                    balance = 0
 
-			# Store request before processing
-			audit_user_command_event(
-				now(),
-				server_name,
-				transactionNum,
-				command,
-				user,
-				stock_id,
-				filename,
-				amount
-			)
+            # Store request before processing
+            audit_user_command_event(
+                now(),
+                server_name,
+                transactionNum,
+                command,
+                user,
+                stock_id,
+                filename,
+                amount
+            )
 
 # --------------
 # -- ADD REQUEST
 # --------------
-			if command == ADD:
-				if amount is None:
-					response = "Amount not specified."
-					audit_error_event(
-						now(),
-						server_name,
-						transactionNum,
-						command,
-						user,
-						stock_id,
-						None,#filename
-						amount,
-						response
-					)
-				elif amount < 0:
-					response = 'Attempting to add a negative amount.' 
-					audit_error_event(
-						now(),
-						server_name,
-						transactionNum,
-						command,
-						user,
-						stock_id,
-						None,#filename
-						amount,
-						response
-					)
-				else:
-					conn.update_record("Users", "balance=balance+%d" % amount, "user_id='%s'" % user)
-					response = "Added."
+            if command == ADD:
+                if amount is None:
+                    response = "Amount not specified."
+                    audit_error_event(
+                        now(),
+                        server_name,
+                        transactionNum,
+                        command,
+                        user,
+                        stock_id,
+                        None,#filename
+                        amount,
+                        response
+                    )
+                elif amount < 0:
+                    response = 'Attempting to add a negative amount.' 
+                    audit_error_event(
+                        now(),
+                        server_name,
+                        transactionNum,
+                        command,
+                        user,
+                        stock_id,
+                        None,#filename
+                        amount,
+                        response
+                    )
+                else:
+                    conn.update_record("Users", "balance=balance+%d" % amount, "user_id='%s'" % user)
+                    response = "Added."
 
-					audit_transaction_event(
-						now(),
-						server_name,
-						transactionNum,
-						command,
-						user,
-						balance + amount
-					)
+                    audit_transaction_event(
+                        now(),
+                        server_name,
+                        transactionNum,
+                        command,
+                        user,
+                        balance + amount
+                    )
 
 # ----------------
 # -- QUOTE REQUEST
 # ----------------
-			elif command == QUOTE:
-				current_quote = get_quote(data_dict)
-				response = str(stock_id) + ':' + str(current_quote['price'])
+            elif command == QUOTE:
+                current_quote = get_quote(data_dict)
+                response = str(stock_id) + ':' + str(current_quote['price'])
 
 # --------------
 # -- BUY REQUEST
 # --------------
-			elif command == BUY:
+            elif command == BUY:
 
-				# Check user balance
-				if conn.select_record("balance", "Users", "user_id='%s'" % user)[0] >= amount:
-				
-					if __debug__:
-						audit_debug(
-							now(),
-							server_name,
-							transactionNum,
-							command,
-							user,
-							stock_id,
-							None,#filename
-							amount,
-							'Sending quote request')
+                # Check user balance
+                if conn.select_record("balance", "Users", "user_id='%s'" % user)[0] >= amount:
+                
+                    if __debug__:
+                        audit_debug(
+                            now(),
+                            server_name,
+                            transactionNum,
+                            command,
+                            user,
+                            stock_id,
+                            None,#filename
+                            amount,
+                            'Sending quote request')
 
-					current_quote = get_quote(data_dict)
+                    current_quote = get_quote(data_dict)
 
-					price = current_quote["price"]
-					timestamp = int(current_quote["timestamp"])
-			
-					# Set pending buy to new values (should overwrite existing entry)
-					conn.update_record("PendingTrans", "stock_id='%s',amount=%d,timestamp=%d" % (stock_id, amount, timestamp), "user_id='%s'" % user)
-					
-					response = str(stock_id) + ":" + str(price)
+                    price = current_quote["price"]
+                    timestamp = int(current_quote["timestamp"])
+            
+                    # Set pending buy to new values (should overwrite existing entry)
+                    conn.update_record("PendingTrans", "stock_id='%s',amount=%d,timestamp=%d" % (stock_id, amount, timestamp), "user_id='%s'" % user)
+                    
+                    response = str(stock_id) + ":" + str(price)
 
-				else:
-					response = "Insufficient funds in account to place buy order."
+                else:
+                    response = "Insufficient funds in account to place buy order."
 
 # ---------------------
 # -- COMMIT BUY REQUEST
 # ---------------------
-			elif command == COMMIT_BUY: 
-				# Check if timestamp is still valid
-				pending_buy = conn.select_record("timestamp,amount,stock_id", "PendingTrans", "type='buy' AND user_id='%s'" % user)
-				if pending_buy[0]:
-					if now() - 60000 <= int(pending_buy[0]):
-						amount = pending_buy[1]
-						stock_id = pending_buy[2]
-				
-						# Update user balance
-						conn.update_record("Users", "balance=balance-%d" % amount, "user_id='%s'" % user)
+            elif command == COMMIT_BUY: 
+                # Check if timestamp is still valid
+                pending_buy = conn.select_record("timestamp,amount,stock_id", "PendingTrans", "type='buy' AND user_id='%s'" % user)
+                if pending_buy[0]:
+                    if now() - 60000 <= int(pending_buy[0]):
+                        amount = pending_buy[1]
+                        stock_id = pending_buy[2]
+                
+                        # Update user balance
+                        conn.update_record("Users", "balance=balance-%d" % amount, "user_id='%s'" % user)
 
-						# Create or update stock entry for user
-						stock = conn.select_record("amount", "Stock", "stock_id='%s' AND user_id='%s'" % (stock_id, user))
-						if stock[0] != None:
-							conn.update_record("Stock", "amount=amount+%d" % amount, "stock_id='%s' AND user_id='%s'" % (stock_id, user))
-						else:
-							conn.insert_record("Stock", "stock_id,user_id,amount", "%s,%s,%d" % (stock_id, user, amount))
-							
-						audit_transaction_event(
-							now(),
-							server_name,
-							transactionNum,
-							command,
-							user,
-							amount)
-				
-						# Remove the pending entry
-						conn.delete_record("PendingTrans", "type='buy' AND user_id='%s'" % user)
+                        # Create or update stock entry for user
+                        stock = conn.select_record("amount", "Stock", "stock_id='%s' AND user_id='%s'" % (stock_id, user))
+                        if stock[0] != None:
+                            conn.update_record("Stock", "amount=amount+%d" % amount, "stock_id='%s' AND user_id='%s'" % (stock_id, user))
+                        else:
+                            conn.insert_record("Stock", "stock_id,user_id,amount", "%s,%s,%d" % (stock_id, user, amount))
+                            
+                        audit_transaction_event(
+                            now(),
+                            server_name,
+                            transactionNum,
+                            command,
+                            user,
+                            amount)
+                
+                        # Remove the pending entry
+                        conn.delete_record("PendingTrans", "type='buy' AND user_id='%s'" % user)
 
-						response = "Last buy order committed."
-						
-					else:
-						response = "Time elapsed. Commit buy cancelled."
-						audit_error_event(
-							now(),
-							server_name,
-							transactionNum,
-							command,
-							user,
-							None,#stock
-							None,#filename
-							None,#amount
-							response)
-				else:
-					response = "No buy order in place. Commit buy cancelled."
-					audit_error_event(
-						now(),
-						server_name,
-						transactionNum,
-						command,
-						user,
-						None,#stock
-						None,#filename
-						None,#amount
-						response)
-						
+                        response = "Last buy order committed."
+                        
+                    else:
+                        response = "Time elapsed. Commit buy cancelled."
+                        audit_error_event(
+                            now(),
+                            server_name,
+                            transactionNum,
+                            command,
+                            user,
+                            None,#stock
+                            None,#filename
+                            None,#amount
+                            response)
+                else:
+                    response = "No buy order in place. Commit buy cancelled."
+                    audit_error_event(
+                        now(),
+                        server_name,
+                        transactionNum,
+                        command,
+                        user,
+                        None,#stock
+                        None,#filename
+                        None,#amount
+                        response)
+                        
 
 # ---------------------
 # -- CANCEL BUY REQUEST
 # ---------------------
-			elif command == CANCEL_BUY:
-				conn.delete_record("PendingTrans", "type='buy' AND user_id='%s'" % user)
-				response = "Buy cancelled."
-				
+            elif command == CANCEL_BUY:
+                conn.delete_record("PendingTrans", "type='buy' AND user_id='%s'" % user)
+                response = "Buy cancelled."
+                
 # ---------------
 # -- SELL REQUEST
 # ---------------
-			elif command == SELL:
-				# Check user stock amount
-				if amount > 0:
-					if conn.select_record("amount", "Stock", "user_id='%s' AND stock_id='%s'" % (user, stock_id))[0] >= amount:
+            elif command == SELL:
+                # Check user stock amount
+                if amount > 0:
+                    if conn.select_record("amount", "Stock", "user_id='%s' AND stock_id='%s'" % (user, stock_id))[0] >= amount:
 
-						if __debug__:
-							audit_debug(
-								now(),
-								server_name,
-								transactionNum,
-								command,
-								user,
-								stock_id,
-								None,#filename
-								amount,
-								'Sending quote request')
+                        if __debug__:
+                            audit_debug(
+                                now(),
+                                server_name,
+                                transactionNum,
+                                command,
+                                user,
+                                stock_id,
+                                None,#filename
+                                amount,
+                                'Sending quote request')
 
-						current_quote = get_quote(data_dict)
-						price = current_quote["price"]
-						timestamp = int(current_quote["timestamp"])
-						
-						if conn.select_record("amount", "PendingTrans", "type='sell' AND user_id='%s'" % user)[0]:
-							conn.update_record("PendingTrans", "stock_id,amount,timestamp", "'%s',%d,'%s'" % (stock_id, amount, timestamp), "user_id='%s' AND type='sell'" % user)
-						else:
-							conn.insert_record("PendingTrans", "type,user_id,stock_id,amount,timestamp", "'sell','%s','%s',%d,'%s'" % (user,stock_id,amount,timestamp))
-						response = str(stock_id) + ":" + str(price)
+                        current_quote = get_quote(data_dict)
+                        price = current_quote["price"]
+                        timestamp = int(current_quote["timestamp"])
+                        
+                        if conn.select_record("amount", "PendingTrans", "type='sell' AND user_id='%s'" % user)[0]:
+                            conn.update_record("PendingTrans", "stock_id,amount,timestamp", "'%s',%d,'%s'" % (stock_id, amount, timestamp), "user_id='%s' AND type='sell'" % user)
+                        else:
+                            conn.insert_record("PendingTrans", "type,user_id,stock_id,amount,timestamp", "'sell','%s','%s',%d,'%s'" % (user,stock_id,amount,timestamp))
+                        response = str(stock_id) + ":" + str(price)
 
-					else:
-						response = "Insufficient stock owned."
-						audit_error_event(
-							now(),
-							server_name,
-							transactionNum,
-							command,
-							user,
-							stock_id,
-							None,#filename
-							amount,
-							response)
-				else:
-					response = "Attempt to sell 0 or fewer shares."
-					audit_error_event(
-						now(),
-						server_name,
-						transactionNum,
-						command,
-						user,
-						stock_id,
-						None,#filename
-						amount,
-						response)
-					
+                    else:
+                        response = "Insufficient stock owned."
+                        audit_error_event(
+                            now(),
+                            server_name,
+                            transactionNum,
+                            command,
+                            user,
+                            stock_id,
+                            None,#filename
+                            amount,
+                            response)
+                else:
+                    response = "Attempt to sell 0 or fewer shares."
+                    audit_error_event(
+                        now(),
+                        server_name,
+                        transactionNum,
+                        command,
+                        user,
+                        stock_id,
+                        None,#filename
+                        amount,
+                        response)
+                    
 # ----------------------
 # -- COMMIT SELL REQUEST
 # ----------------------
-			elif command == COMMIT_SELL:
-				pending_sell = conn.select_record("timestamp,amount,stock_id", "PendingTrans", "type='sell' AND user_id='%s'" % user)
-				if pending_sell[0]:
-					if now() - 60000 <= int(pending_sell[0]):
-						amount = pending_sell[1]
-						stock_id = pending_sell[2]
+            elif command == COMMIT_SELL:
+                pending_sell = conn.select_record("timestamp,amount,stock_id", "PendingTrans", "type='sell' AND user_id='%s'" % user)
+                if pending_sell[0]:
+                    if now() - 60000 <= int(pending_sell[0]):
+                        amount = pending_sell[1]
+                        stock_id = pending_sell[2]
 
-						# Update user stock value
-						conn.update_record("Stock", "amount=amount-%d" % amount, "stock_id='%s' AND user_id='%s'" % (stock_id, user_id))
-				
-						# Update user balance
-						conn.update_record("Users", "balance=balance+%d" % amount, "user_id='%s'" % user)
-						
-						audit_transaction_event(
-							now(),
-							server_name,
-							transactionNum,
-							command,
-							user,
-							amount
-						)
-				
-						# Remove the pending entry
-						conn.delete_record("PendingTrans", "user_id='%s' AND type='sell'" % user)
-				
-						response = "Sell committed."
-					else:
-						response = "TIME WINDOW ELAPSED"
-						audit_error_event(
-							now(),
-							server_name,
-							transactionNum,
-							command,
-							user,
-							None,#stock
-							None,#filename
-							None,#amount
-							response)
-				else:
-					response = 'No sale pending.'
-					audit_error_event(
-						now(),
-						server_name,
-						transactionNum,
-						command,
-						user,
-						None,#stock
-						None,#filename
-						None,#amount
-						response)
-					
+                        # Update user stock value
+                        conn.update_record("Stock", "amount=amount-%d" % amount, "stock_id='%s' AND user_id='%s'" % (stock_id, user_id))
+                
+                        # Update user balance
+                        conn.update_record("Users", "balance=balance+%d" % amount, "user_id='%s'" % user)
+                        
+                        audit_transaction_event(
+                            now(),
+                            server_name,
+                            transactionNum,
+                            command,
+                            user,
+                            amount
+                        )
+                
+                        # Remove the pending entry
+                        conn.delete_record("PendingTrans", "user_id='%s' AND type='sell'" % user)
+                
+                        response = "Sell committed."
+                    else:
+                        response = "TIME WINDOW ELAPSED"
+                        audit_error_event(
+                            now(),
+                            server_name,
+                            transactionNum,
+                            command,
+                            user,
+                            None,#stock
+                            None,#filename
+                            None,#amount
+                            response)
+                else:
+                    response = 'No sale pending.'
+                    audit_error_event(
+                        now(),
+                        server_name,
+                        transactionNum,
+                        command,
+                        user,
+                        None,#stock
+                        None,#filename
+                        None,#amount
+                        response)
+                    
 # ----------------------
 # -- CANCEL SELL REQUEST
 # ----------------------
-			elif command == CANCEL_SELL:
-				conn.delete_record("PendingTrans", "type='sell' AND user_id='%s'" % user)
-				response = "Sell cancelled."
-				
+            elif command == CANCEL_SELL:
+                conn.delete_record("PendingTrans", "type='sell' AND user_id='%s'" % user)
+                response = "Sell cancelled."
+                
 # -------------------------
 # -- SET BUY AMOUNT REQUEST
 # -------------------------
-			elif command == SET_BUY_AMOUNT:
-			
-				# Check user balance\
-				if conn.select_record("balance", "Users", "user_id='%s'" % user)[0] >= amount:
-					if conn.select_record("*", "Trigger", "type='buy' AND user_id='%s' AND stock_id='%s'" % (user, stock_id)):
-						response = "Trigger already set for stock."
-						audit_error_event(
-							now(),
-							server_name,
-							transactionNum,
-							command,
-							user,
-							stock_id,
-							None,#filename
-							amount,
-							response)
-					else:
-						# Update user balance
-						conn.update_record("Users", "balance=balance-%d" % amount, "user_id='%s'" % user)
-						
-						audit_transaction_event(
-							now(),
-							server_name,
-							transactionNum,
-							command,
-							user,
-							amount
-						)
-			
-						# Set up buy trigger with stock and amount to spend
-						conn.insert_record("Trigger", "type,user_id,stock_id,amount,trigger", "'buy','%s','%s',%d,%d" % (user,stock_id,amount,0))
-				else:
-					response = "Insufficient funds to set trigger."
-					audit_error_event(
-						now(),
-						server_name,
-						transactionNum,
-						command,
-						user,
-						stock_id,
-						None,#filename
-						amount,
-						response)
-					
+            elif command == SET_BUY_AMOUNT:
+            
+                # Check user balance\
+                if conn.select_record("balance", "Users", "user_id='%s'" % user)[0] >= amount:
+                    if conn.select_record("*", "Trigger", "type='buy' AND user_id='%s' AND stock_id='%s'" % (user, stock_id)):
+                        response = "Trigger already set for stock."
+                        audit_error_event(
+                            now(),
+                            server_name,
+                            transactionNum,
+                            command,
+                            user,
+                            stock_id,
+                            None,#filename
+                            amount,
+                            response)
+                    else:
+                        # Update user balance
+                        conn.update_record("Users", "balance=balance-%d" % amount, "user_id='%s'" % user)
+                        
+                        audit_transaction_event(
+                            now(),
+                            server_name,
+                            transactionNum,
+                            command,
+                            user,
+                            amount
+                        )
+            
+                        # Set up buy trigger with stock and amount to spend
+                        conn.insert_record("Trigger", "type,user_id,stock_id,amount,trigger", "'buy','%s','%s',%d,%d" % (user,stock_id,amount,0))
+                else:
+                    response = "Insufficient funds to set trigger."
+                    audit_error_event(
+                        now(),
+                        server_name,
+                        transactionNum,
+                        command,
+                        user,
+                        stock_id,
+                        None,#filename
+                        amount,
+                        response)
+                    
 # -------------------------
 # -- CANCEL SET BUY REQUEST
 # -------------------------
-			elif command == CANCEL_SET_BUY:
-				amount = conn.select_record("amount", "Trigger", "type='buy' AND user_id='%s' AND stock_id='%s'" % (user, stock_id))[0]
-				if not amount:
-					#if there was no trigger
-					response = "No trigger listed for stock."
-					audit_error_event(
-						now(),
-						server_name,
-						transactionNum,
-						command,
-						user,
-						stock_id,
-						None,#filename
-						None,#amount
-						response)
-				else:
-					# put the money back into the user account
-					conn.delete_record("Trigger", "type='buy' AND user_id='%s' AND stock_id='%s'" % (user, stock_id))
-					conn.update_record("Users", "balance=balance+%d" % amount, "user_id='%s'" % user)	
+            elif command == CANCEL_SET_BUY:
+                amount = conn.select_record("amount", "Trigger", "type='buy' AND user_id='%s' AND stock_id='%s'" % (user, stock_id))[0]
+                if not amount:
+                    #if there was no trigger
+                    response = "No trigger listed for stock."
+                    audit_error_event(
+                        now(),
+                        server_name,
+                        transactionNum,
+                        command,
+                        user,
+                        stock_id,
+                        None,#filename
+                        None,#amount
+                        response)
+                else:
+                    # put the money back into the user account
+                    conn.delete_record("Trigger", "type='buy' AND user_id='%s' AND stock_id='%s'" % (user, stock_id))
+                    conn.update_record("Users", "balance=balance+%d" % amount, "user_id='%s'" % user)   
 
-					audit_transaction_event(
-						now(),
-						server_name,
-						transactionNum,
-						command,
-						user,
-						amount
-					)
-					
-					response = "Buy trigger cancelled."
-					#NOTE: trigger remains in cache, but is inactive - with a database the record can be deleted					
+                    audit_transaction_event(
+                        now(),
+                        server_name,
+                        transactionNum,
+                        command,
+                        user,
+                        amount
+                    )
+                    
+                    response = "Buy trigger cancelled."
+                    #NOTE: trigger remains in cache, but is inactive - with a database the record can be deleted                    
 
 # --------------------------
 # -- SET BUY TRIGGER REQUEST
 # --------------------------
-			elif command == SET_BUY_TRIGGER:
-				# Stock should exist in buy trigger list, and have amount set, but no trigger value set
-				buy_trigger = conn.select_record("amount,trigger", "Trigger", "type='buy' AND user_id='%s' AND stock_id='%s'" % (user,stock_id))
-				if buy_trigger:
-					if buy_trigger[0] > 0:
-						if buy_trigger[1] == 0:
-							if amount > 0:
-								conn.update_record("Trigger", "trigger=%d" % amount, "type='buy' AND user_id='%s' AND stock_id='%s'" % (user,stock_id))
-								response = "Buy trigger set."
-							else:
-								response = "Cannot set trigger to buy at 0 or less."
-								audit_error_event(
-									now(),
-									server_name,
-									transactionNum,
-									command,
-									user,
-									stock_id,
-									None,#filename
-									amount,
-									response)
-						else:
-							response = "Buy trigger already enabled for this stock."
-							audit_error_event(
-								now(),
-								server_name,
-								transactionNum,
-								command,
-								user,
-								stock_id,
-								None,#filename
-								amount,
-								response)
-									
-					else:
-						response = "Buy trigger not initialized; Trigger not enabled."
-						audit_error_event(
-							now(),
-							server_name,
-							transactionNum,
-							command,
-							user,
-							stock_id,
-							None,#filename
-							amount,
-							response)
-							
-				else:
-					response = "No trigger set for stock."
-					audit_error_event(
-						now(),
-						server_name,
-						transactionNum,
-						command,
-						user,
-						stock_id,
-						None,#filename
-						amount,
-						response)
-					
+            elif command == SET_BUY_TRIGGER:
+                # Stock should exist in buy trigger list, and have amount set, but no trigger value set
+                buy_trigger = conn.select_record("amount,trigger", "Trigger", "type='buy' AND user_id='%s' AND stock_id='%s'" % (user,stock_id))
+                if buy_trigger:
+                    if buy_trigger[0] > 0:
+                        if buy_trigger[1] == 0:
+                            if amount > 0:
+                                conn.update_record("Trigger", "trigger=%d" % amount, "type='buy' AND user_id='%s' AND stock_id='%s'" % (user,stock_id))
+                                response = "Buy trigger set."
+                            else:
+                                response = "Cannot set trigger to buy at 0 or less."
+                                audit_error_event(
+                                    now(),
+                                    server_name,
+                                    transactionNum,
+                                    command,
+                                    user,
+                                    stock_id,
+                                    None,#filename
+                                    amount,
+                                    response)
+                        else:
+                            response = "Buy trigger already enabled for this stock."
+                            audit_error_event(
+                                now(),
+                                server_name,
+                                transactionNum,
+                                command,
+                                user,
+                                stock_id,
+                                None,#filename
+                                amount,
+                                response)
+                                    
+                    else:
+                        response = "Buy trigger not initialized; Trigger not enabled."
+                        audit_error_event(
+                            now(),
+                            server_name,
+                            transactionNum,
+                            command,
+                            user,
+                            stock_id,
+                            None,#filename
+                            amount,
+                            response)
+                            
+                else:
+                    response = "No trigger set for stock."
+                    audit_error_event(
+                        now(),
+                        server_name,
+                        transactionNum,
+                        command,
+                        user,
+                        stock_id,
+                        None,#filename
+                        amount,
+                        response)
+                    
 # --------------------------
 # -- SET SELL AMOUNT REQUEST
 # --------------------------
-			elif command == SET_SELL_AMOUNT:
-				sell_trigger = conn.select_record("amount,trigger", "Trigger", "type='sell' AND user_id='%s' AND stock_id='%s'" % (user, stock_id))
-				if sell_trigger:
-					if conn.select_record("amount", "Stock", "user_id='%s' AND stock_id='%s'")[0] >= amount:
-						if sell_trigger[1] > 0:
-							response = "Active sell trigger for stock."
-							audit_error_event(
-								now(),
-								server_name,
-								transactionNum,
-								command,
-								user,
-								stock_id,
-								None,#filename
-								amount,
-								response)
-						else:
-							conn.update_record("Stock", "amount=amount-%d" % amount, "stock_id='%s' AND user_id='%s'" % (stock_id,user))
-							
-							conn.update_record("Trigger", "amount=%d,trigger=%d" % (amount,0), "type='sell' AND user_id='%s' AND stock_id='%s'" % (user,stock_id))
-							response = "Sell trigger initialised."
-					else:
-						response = "Insufficient stock to set trigger."
-						audit_error_event(
-							now(),
-							server_name,
-							transactionNum,
-							command,
-							user,
-							stock_id,
-							None,#filename
-							amount,
-							response)
-				else:
-					response = "User does not own this stock."
-					audit_error_event(
-						now(),
-						server_name,
-						transactionNum,
-						command,
-						user,
-						stock_id,
-						None,#filename
-						amount,
-						response)
-				
+            elif command == SET_SELL_AMOUNT:
+                sell_trigger = conn.select_record("amount,trigger", "Trigger", "type='sell' AND user_id='%s' AND stock_id='%s'" % (user, stock_id))
+                if sell_trigger:
+                    if conn.select_record("amount", "Stock", "user_id='%s' AND stock_id='%s'")[0] >= amount:
+                        if sell_trigger[1] > 0:
+                            response = "Active sell trigger for stock."
+                            audit_error_event(
+                                now(),
+                                server_name,
+                                transactionNum,
+                                command,
+                                user,
+                                stock_id,
+                                None,#filename
+                                amount,
+                                response)
+                        else:
+                            conn.update_record("Stock", "amount=amount-%d" % amount, "stock_id='%s' AND user_id='%s'" % (stock_id,user))
+                            
+                            conn.update_record("Trigger", "amount=%d,trigger=%d" % (amount,0), "type='sell' AND user_id='%s' AND stock_id='%s'" % (user,stock_id))
+                            response = "Sell trigger initialised."
+                    else:
+                        response = "Insufficient stock to set trigger."
+                        audit_error_event(
+                            now(),
+                            server_name,
+                            transactionNum,
+                            command,
+                            user,
+                            stock_id,
+                            None,#filename
+                            amount,
+                            response)
+                else:
+                    response = "User does not own this stock."
+                    audit_error_event(
+                        now(),
+                        server_name,
+                        transactionNum,
+                        command,
+                        user,
+                        stock_id,
+                        None,#filename
+                        amount,
+                        response)
+                
 # ---------------------------
 # -- SET SELL TRIGGER REQUEST
 # ---------------------------
-			elif command == SET_SELL_TRIGGER:			
-				sell_trigger = conn.select_record("amount", "Trigger", "user_id='%s' AND stock_id='%s' AND type='sell'" % (user, stock_id))
-				if sell_trigger[0] != None:
-					if sell_trigger[0] > 0:
-						if amount > 0:
-							conn.update_record("Trigger", "amount=%d" % amount, "user_id='%s' AND stock_id='%s' AND type='sell'" % (user,stock_id))
-							cache["users"][user]["sell_trigger"][stock_id]["trigger"] = amount
-							response = "Sell trigger set."
-						else:
-							response = "Sell trigger amount is not a positive value; Trigger not enabled."
-							audit_error_event(
-								now(),
-								server_name,
-								transactionNum,
-								command,
-								user,
-								stock_id,
-								None,#filename
-								amount,
-								response)
-					else:
-						response = "Sell trigger not initialized; Trigger not enabled."
-						audit_error_event(
-							now(),
-							server_name,
-							transactionNum,
-							command,
-							user,
-							stock_id,
-							None,#filename
-							amount,
-							response)
-				else:
-					response = "Sell trigger not initialized; Trigger not enabled.\n"
-					audit_error_event(
-						now(),
-						server_name,
-						transactionNum,
-						command,
-						user,
-						stock_id,
-						None,#filename
-						amount,
-						response)
-		
+            elif command == SET_SELL_TRIGGER:           
+                sell_trigger = conn.select_record("amount", "Trigger", "user_id='%s' AND stock_id='%s' AND type='sell'" % (user, stock_id))
+                if sell_trigger[0] != None:
+                    if sell_trigger[0] > 0:
+                        if amount > 0:
+                            conn.update_record("Trigger", "amount=%d" % amount, "user_id='%s' AND stock_id='%s' AND type='sell'" % (user,stock_id))
+                            cache["users"][user]["sell_trigger"][stock_id]["trigger"] = amount
+                            response = "Sell trigger set."
+                        else:
+                            response = "Sell trigger amount is not a positive value; Trigger not enabled."
+                            audit_error_event(
+                                now(),
+                                server_name,
+                                transactionNum,
+                                command,
+                                user,
+                                stock_id,
+                                None,#filename
+                                amount,
+                                response)
+                    else:
+                        response = "Sell trigger not initialized; Trigger not enabled."
+                        audit_error_event(
+                            now(),
+                            server_name,
+                            transactionNum,
+                            command,
+                            user,
+                            stock_id,
+                            None,#filename
+                            amount,
+                            response)
+                else:
+                    response = "Sell trigger not initialized; Trigger not enabled.\n"
+                    audit_error_event(
+                        now(),
+                        server_name,
+                        transactionNum,
+                        command,
+                        user,
+                        stock_id,
+                        None,#filename
+                        amount,
+                        response)
+        
 # --------------------------
 # -- CANCEL SET SELL REQUEST
 # --------------------------
-			elif command == CANCEL_SET_SELL:
-				sell_trigger = conn.select_record("trigger", "Trigger", "user_id='%s' AND stock_id='%s' AND type='sell'" % (user,stock_id))
-				if sell_trigger[0] != None:
-					if sell_trigger[0] > 0:
-						conn.update_record("Stock", "amount=amount+%d" % amount, "stock_id='%s' AND user_id='%s'" % (stock_id,user))
-						conn.delete_record("Trigger", "type='sell' AND user_id='%s' AND stock_id='%s'" % (user,stock_id))
-						
-						response = "Sell trigger cancelled."
-					else:
-						response = "Sell trigger not active on this stock."
-						audit_error_event(
-							now(),
-							server_name,
-							transactionNum,
-							command,
-							user,
-							stock_id,
-							None,#filename
-							amount,
-							response)
-				else:
-					response = "Sell trigger does not exist for this stock."
-					audit_error_event(
-						now(),
-						server_name,
-						transactionNum,
-						command,
-						user,
-						stock_id,
-						None,#filename
-						amount,
-						response)
+            elif command == CANCEL_SET_SELL:
+                sell_trigger = conn.select_record("trigger", "Trigger", "user_id='%s' AND stock_id='%s' AND type='sell'" % (user,stock_id))
+                if sell_trigger[0] != None:
+                    if sell_trigger[0] > 0:
+                        conn.update_record("Stock", "amount=amount+%d" % amount, "stock_id='%s' AND user_id='%s'" % (stock_id,user))
+                        conn.delete_record("Trigger", "type='sell' AND user_id='%s' AND stock_id='%s'" % (user,stock_id))
+                        
+                        response = "Sell trigger cancelled."
+                    else:
+                        response = "Sell trigger not active on this stock."
+                        audit_error_event(
+                            now(),
+                            server_name,
+                            transactionNum,
+                            command,
+                            user,
+                            stock_id,
+                            None,#filename
+                            amount,
+                            response)
+                else:
+                    response = "Sell trigger does not exist for this stock."
+                    audit_error_event(
+                        now(),
+                        server_name,
+                        transactionNum,
+                        command,
+                        user,
+                        stock_id,
+                        None,#filename
+                        amount,
+                        response)
 
 # --------------------------
 # -- DUMPLOG REQUEST
-# --------------------------		
-			elif command == DUMPLOG:
-					if filename is None:
-						print "No filename for dumplog command. Dump not performed.\n"
-					else:
-						#activate the dump on audit
-						print "Dump engaged. Honest.\n"
+# --------------------------        
+            elif command == DUMPLOG:
+                    if filename is None:
+                        print "No filename for dumplog command. Dump not performed.\n"
+                    else:
+                        #activate the dump on audit
+                        print "Dump engaged. Honest.\n"
 
-			elif command == DISPLAY_SUMMARY:
-				print conn.select_record("*", "Users", "user_id='%s'" % (user))
-		
-			else:
-				print "Invalid command.\n"
+            elif command == DISPLAY_SUMMARY:
+                print conn.select_record("*", "Users", "user_id='%s'" % (user))
+        
+            else:
+                print "Invalid command.\n"
 
-	return response
+    return response
 
 # Request a Quote from the quote server
 # Values returned from function in the order the quote server provides
 #
 # Quote server response format:
-#		price,stock,user,timestamp,cryptokey
+#       price,stock,user,timestamp,cryptokey
 #
 # Note: function returns price in cents
 #returns price of stock, doesnt do any checking.
@@ -984,40 +931,56 @@ def get_quote(data):
     return  response
 
 
+
+
+def transactionWorkerthread(conn, db):
+    #global active_threads
+    while 1:
+        data = conn.recv(1024)
+
+        if (data):
+            response = process_request(data, db)
+            conn.send(response)
+        else:
+            break
+    conn.close()
+    #active_threads -= 1 
+    sys.exit(1)
+
+
+
 def main():
-	# Initialize Database
-	db = Database(
-		host="b133.seng.uvic.ca",
-		port="44429",
-		dbname="transactiondb",
-		dbuser="cusmith",
-		dbpass="",
-		minconn=1,
-		maxconn=1,
-	)
-	db.initialize()
+    # Initialize Database
+    db = Database(
+        host="b133.seng.uvic.ca",
+        port="44429",
+        dbname="transactiondb",
+        dbuser="cusmith",
+        dbpass="",
+        minconn=1,
+        maxconn=100,
+    )
+    db.initialize()
+    #global active_threads
+    
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind((SELF_HOST, SELF_PORT))
+    s.listen(1)
+    global MAX_THREADS
+    while 1:
+        try:
+            threads_free = activeCount() < 10
+            if(threads_free):
+                conn, addr = s.accept()
 
-	# Get a connection to the DB (Need to create threads here)
-	connection = db.get_connection()
+                #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
+                value = start_new_thread(transactionWorkerthread, (conn, db))
+        except:
+            print 'Recieved user interrupt'
+            #sys.exit(0)
+            #break
+    s.close()
 
-	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	s.bind((SELF_HOST, SELF_PORT))
-
-	while 1:
-		print 'Main: waiting\n'
-		s.listen(1)
-		conn, addr = s.accept()
-		print 'Connection from ' + addr[0] + '\n'
-		
-		while 1:
-			data = conn.recv(1024)
-			if (data):
-				print 'Received: ' + data
-				
-				response = process_request(data, connection)
-				conn.send(response)
-			else:
-				break
 
 
 if __name__ == "__main__":
