@@ -994,33 +994,27 @@ def get_quote(data):
 def transactionWorkerthread(conn, db):
     #global active_threads
     print 'Within worker thread'
-    try:
-	db_conn = db.get_connection()
-    except Exception as e:
-	print e
-	return
     while 1:
         try:
-	    data = conn.recv(1024)
-	except Exception as e:
-	    print e
+            data = conn.recv(1024)
+        except Exception as e:
+            print e
             break
         if (data):
             print 'Received: ' + data
             try:
-		print 'Processing request'
-            	response = process_request(data, db_conn)
+                print 'Processing request'
+                response = process_request(data, db)
             except Exception as e:
-            	print e
-            	break
+                print e
+                break
             try:
-            	conn.send(response)
+                conn.send(response)
             except Exception as e:
-            	print e
-            	break
+                print e
+                break
         else:
             break
-    db.close_connection(db_conn)
     conn.close()
     #active_threads -= 1 
     sys.exit(1)
@@ -1048,13 +1042,13 @@ def main():
     while 1:
         try:
             try:
-	        threads_free = activeCount() < 10
-	    except Exception as e:
-	        print e
-	        break
-	    print threads_free
-	    if(threads_free):
-                            #wait to accept a connection - blocking call
+                threads_free = activeCount() < 10
+            except Exception as e:
+                print e
+                break
+            print threads_free
+            if(threads_free):
+                                #wait to accept a connection - blocking call
                 try:
                     conn, addr = s.accept()
                 except Exception as e:
@@ -1064,15 +1058,13 @@ def main():
 
                 #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
                 try:
-		    print 'Starting new thread'
+                    print 'Starting new thread'
                     value = start_new_thread(transactionWorkerthread, (conn, db))
-		    print value
+                    print value
                 except Exception as e:
                     print 'Exception:'
-		    print e
+                    print e
                     break
-                #active_threads +=1
-                print 'Starting thread %d\n' % active_threads
         except:
             print 'Recieved user interrupt'
             #sys.exit(0)
