@@ -9,7 +9,7 @@ from threading import Thread, current_thread
 
 
 #workload generator aims for however many transaction servers are set in the list below, all looking on port 44422 
-tx_server_address = ['b133.seng.uvic.ca', 'b134.seng.uvic.ca', 'b134.seng.uvic.ca','b135.seng.uvic.ca']
+tx_server_address = ['b133.seng.uvic.ca', 'b134.seng.uvic.ca', 'b135.seng.uvic.ca','b136.seng.uvic.ca']
 tx_server_port = 44422
 
 AUDIT_SERVER_ADDRESS = 'b142.seng.uvic.ca'
@@ -390,7 +390,7 @@ def main():
 
 	for item in userList:
 	    q.put(item)
-
+	    
 	q.join() #blocks until everything is done
 	# then send last command
 	sendWorkload("last", 0)

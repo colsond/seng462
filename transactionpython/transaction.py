@@ -941,6 +941,7 @@ def transactionWorkerthread(conn, db):
         if (data):
             response = process_request(data, db)
             conn.send(response)
+
         else:
             break
     conn.close()
@@ -958,7 +959,9 @@ def main():
         dbuser="cusmith",
         dbpass="",
         minconn=1,
+
         maxconn=100,
+
     )
     db.initialize()
     #global active_threads
@@ -975,6 +978,7 @@ def main():
 
                 #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
                 value = start_new_thread(transactionWorkerthread, (conn, db))
+
         except:
             print 'Recieved user interrupt'
             #sys.exit(0)
