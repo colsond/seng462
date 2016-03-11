@@ -748,7 +748,7 @@ def process_request(data, conn):
 					#NOTE: trigger remains in cache, but is inactive - with a database the record can be deleted					
 
 # --------------------------
-# -- SET BUY TRIGGER REQUEST
+# -- SET BUY TRIGGER REQUEST - Maybe add a field to the database "last quote ttl"
 # --------------------------
 			elif command == SET_BUY_TRIGGER:
 				# Stock should exist in buy trigger list, and have amount set, but no trigger value set
@@ -908,7 +908,8 @@ def process_request(data, conn):
 						response)
 		
 # --------------------------
-# -- CANCEL SET SELL REQUEST
+# -- CANCEL SET SELL REQUEST - CHECK LOGIC - you might want to cancel a trigger
+# -- that didn't get set up correctly. 
 # --------------------------
 			elif command == CANCEL_SET_SELL:
 				sell_trigger = conn.select_record("trigger", "Trigger", "user_id='%s' AND stock_id='%s' AND type='sell'" % (user,stock_id))
