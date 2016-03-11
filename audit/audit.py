@@ -263,7 +263,7 @@ def clientthread(conn):
     sys.exit(0) 
 #now keep talking with the client
 f = open('logfile.xml', 'a')
-f.write('<?xml version="1.0"?><log>')
+f.write('<?xml version="1.0"?>\n<log>\n')
 f.close()
 while 1:
     try:
