@@ -1,5 +1,42 @@
 # trigger.py
+##
+# new
+##
+# 
+#cache = {
+#	user : {
+#		transaction_id: 0,
+#		stock_id : 'zyx',
+#		expiration: time,
+#		trigger: 0,
+#		amount: 0,
+#		type: 'BUY'|'SELL'
+#	}
+#}
 #
+# thread to recv incoming triggers filtered by transaction server
+#	get quote
+#	if trigger is already satisfied, apply result
+#	otherwise put in cache with quote expiry
+#
+# thread to grind at cache, looking for expiring quotes
+#	if quote expires, get new one
+#		if trigger satisfied, apply
+#		otherwise update expiry
+#
+#	Command line options
+#	-h			help
+#	-p portnum	set the port number to bind to
+#
+#	Input/Output
+#	Expecting str(dict) with the following keys
+#		stock_id, user, transactionNum, command, trigger, amount
+#	Responds with 
+
+#
+##
+# old
+##
 # Database stores triggers
 # Get list of upcoming quote expirations on triggers
 # get quotes for each one
@@ -23,20 +60,29 @@
 # 		if quote >= trigger, give money, erase trigger
 # 		else update ttl
 
+import ast
+import os
+import socket
+import string
+import sys
 import time
+import threading
+import getopt
 
+HOST = ''
 PORT = 44420
 MIN_PORT = 44420
 MAX_PORT = 44429
 
+
 DB_HOST = "b133.seng.uvic.ca"
 DB_PORT = "44429"
 
-check_time_delta = 5000	# update records older than this many milliseconds
+MAX_THREADS = 10	# always one for the connection handler
 
-quote_connections = 10	# maximum connections to quote_cache server
+QUOTE_REFRESH_TIME = 5000	# update records older than this many milliseconds
 
-db = Database()
+cache_lock = threading.Semaphore(1)
 
 #-----------------------------------------------------------------------------
 # now
@@ -44,56 +90,69 @@ db = Database()
 def now():
 	return int(time.time() * 1000)
 
-def get_upcoming_triggers(connection):
+def cache_update(data):
 
-	target_time = now + check_time_delta
-	#magically request records from db with check time < check_time_delta
+	cache_lock.acquire()
+	cache[data.get(user)] = {
+		'command':data.get('command'),
+		'stock_id':data.get('stock_id'),
+		'transactionNum':data.get('transactionNum'),
+		'trigger':data.get('trigger'),
+		'amount':data.get('amount'),
+		'cacheexpire':quote.get('cacheexpire')
+	}
+	cache_lock.release()
+	
+# 
+def thread_conn_handler(connection):
+	data = connection.recv(1024)
+	data = ast.literal_eval(data)
+		
+	quote = get_quote(data['stock_id'])
+	
+	if data['command'] == 'BUY':
+		if quote['price'] <= data['trigger']:
+			give em the stock
+		else:
+			cache_update(data)
+		connection.send('0')
+	elif data['command'] == 'SELL':
+		if quote['price'] >= data['trigger']:
+			give em the cash
+		else:
+			cache_update(data)
+		connection.send('0')
+	else:
+		connection.send('INVALID COMMAND')
 
-	return #I'm going to assume this returns an array of results
+def init_listen():
 
-def update_triggers(trigger_list):
+	try:
+		incoming_socket.bind((HOST, PORT))
+	except socket.error , msg:
+		print 'Bind failed. Error Code : ' + str(msg[0]) + ' Message ' + msg[1]
+		return 0
+	
+	if __debug__:
+		print 'Socket bind complete'
+		
+	incoming_socket.listen(MAX_INCOMING_CONN_BUFFER)
+	
+	if __debug__:
+		print 'Socket now listening'
+		
+	while 1:
+		conn, addr = incoming_socket.accept()
+		
+		if __debug__:
+			print 'Connection from ' + addr[0] + '\n'
+		
+		while threading.active_count() > MAX_THREADS:
+			pass
+		t = threading.Thread(target=thread_conn_handler, args=(conn,))
+		t.start()
 
-	for a_dict in trigger_list:
-#		stock_id, user, transactionNum, command
-		quote = get_quote({'stock_id':a_dict['stock_id'], 'user':a_dict['user_id'], 'transactionNum':9999, 'command':'QUOTE')
-#		stock_id, user, transactionNum, price, timestamp, key
-		if a_dict['type'] == 'BUY':
-			if quote['price'] <= a_dict['trigger']:
-				#erase the trigger
-				#give that MF hiz stock
-			else:
-				#update the trigger table with the new check_time
-
-		if a_dict['type'] == 'SELL':
-			if quote['price'] >= a_dict['trigger']:
-				#erase the trigger
-				#give that MF hiz monay
-			else:
-				#update the trigger table with the new check_time
-
-return
-
-# feeder
-# conn.insert_record("Trigger", "type,user_id,stock_id,amount,trigger", "'buy','%s','%s',%d,%d" % (user,stock_id,amount,0))
-
-
-def connect_to_db():
-	# Initialize Database
-	global db = Database(
-		host=DB_HOST,
-		port=DB_PORT,
-		dbname="transactiondb",
-		dbuser="cusmith",
-		dbpass="",
-		minconn=1,
-		maxconn=1,
-	)
-	db.initialize()
-
-	# Get a connection to the DB (Need to create threads here)
-	connection = db.get_connection()
-
-return connection
+	return 1
 
 def main(argv):
 	global PORT
@@ -120,6 +179,15 @@ def main(argv):
 			print "Use -p to set port number. Valid range: " + str(MAX_PORT) + " - " + str(MIN_PORT) + "\n"
 			sys.exit(2)
 	print "Setting port [" + str(PORT) + "]\n"
+	
+	while True:
+		for user,trigger in cache.iteritems():
+			if trigger['expiration'] - now() < QUOTE_REFRESH_TIME:
+				quote = get_quote(trigger['stock_id'])
+				check_trigger(cache,quote)
+
+
+	
 
 if __name__ == "__main__":
 	main(sys.argv[1:])

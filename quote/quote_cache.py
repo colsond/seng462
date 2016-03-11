@@ -119,7 +119,8 @@ def get_quote(stock_id, user, transactionNum):
 		"stock_id" : response[1],
 		"user" : response[2],
 		"timestamp" : response[3],
-		"cryptokey" : response[4]
+		"cryptokey" : response[4],
+		"cacheexpire" : now() + QUOTE_LIFE
 	}
 	
 	audit_event("quote",message["timestamp"],transactionNum,None,message["user"],message["stock_id"],message["price"],message["timestamp"],message["cryptokey"],None)
@@ -225,7 +226,8 @@ def scan_cache(stock_id):
 				"stock_id" : stock_id,
 				"user" : cache[stock_id]["user"],
 				"timestamp" : cache[stock_id]["timestamp"],
-				"cryptokey": cache[stock_id]["cryptokey"]
+				"cryptokey": cache[stock_id]["cryptokey"],
+				"cacheexpire" : cache[stock_id]["cacheexpire"]
 			}
 		else:
 			message = {
@@ -249,7 +251,7 @@ def update_cache(quote):
 		"user" : quote["user"],
 		"timestamp" : quote["timestamp"],
 		"cryptokey" : quote["cryptokey"],
-		"cacheexpire" : now() + QUOTE_LIFE
+		"cacheexpire" : quote["cacheexpire"]	#now() + QUOTE_LIFE
 	}
 	
 	cache_lock.release()
@@ -262,7 +264,8 @@ def error_quote():
 		"stock_id" : "Error",
 		"user" : "Error",
 		"timestamp" : 0,
-		"cryptokey" : "Error"
+		"cryptokey" : "Error",
+		"cacheexpire" : 0
 	}
 	
 	return quote
@@ -278,6 +281,11 @@ def thread_conn_handler(conn):
 		quote = get_quote(data.get("stock_id"),data.get("user"),data.get("transactionNum"))
 		update_cache(quote)
 	elif data.get("command") == "QUOTE":
+		quote = scan_cache(data.get("stock_id"))
+		if quote["status"] != "success":
+			quote = get_quote(data.get("stock_id"),data.get("user"),data.get("transactionNum"))
+			update_cache(quote)
+	elif data.get("command") == "TRIGGER":
 		quote = scan_cache(data.get("stock_id"))
 		if quote["status"] != "success":
 			quote = get_quote(data.get("stock_id"),data.get("user"),data.get("transactionNum"))
