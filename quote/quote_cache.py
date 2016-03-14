@@ -19,7 +19,7 @@
 #	Expecting str(dict) with the following keys
 #		stock_id, user, transactionNum, command
 #	Responds with str(dict) with the following keys
-#		stock_id, user, transactionNum, price, timestamp, key
+#		stock_id, user, transactionNum, price, timestamp, cryptokey, cacheexpire
 #
 #	Cache structure
 #	cache = {
@@ -118,6 +118,7 @@ def get_quote(stock_id, user, transactionNum):
 		"price" : response[0],
 		"stock_id" : response[1],
 		"user" : response[2],
+		"transactionNum" : transactionNum,
 		"timestamp" : response[3],
 		"cryptokey" : response[4],
 		"cacheexpire" : now() + QUOTE_LIFE

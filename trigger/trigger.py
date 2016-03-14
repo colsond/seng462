@@ -1,3 +1,6 @@
+#1:22
+#10:15am
+#
 # trigger.py
 ##
 # new
@@ -78,11 +81,25 @@ MAX_PORT = 44429
 DB_HOST = "b133.seng.uvic.ca"
 DB_PORT = "44429"
 
-MAX_THREADS = 10	# always one for the connection handler
+incoming_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+MAX_INCOMING_CONN_BUFFER = 10
+
+MAX_THREADS = 50	# always one for the connection handler
 
 QUOTE_REFRESH_TIME = 5000	# update records older than this many milliseconds
 
-cache_lock = threading.Semaphore(1)
+cache = {}
+
+subcache_lock = threading.Semaphore(1)
+subcache = {}
+subcache_updated = 0		# dirty flag
+
+audit_server_address = 'b142.seng.uvic.ca'
+audit_server_port = 44421
+
+cache_server_address = 'b143.seng.uvic.ca'
+cache_server_port = 44420
 
 #-----------------------------------------------------------------------------
 # now
@@ -90,10 +107,34 @@ cache_lock = threading.Semaphore(1)
 def now():
 	return int(time.time() * 1000)
 
-def cache_update(data):
+# Request a Quote from the quote server
+# Values returned from function in the order the quote server provides
+#	Input/Output
+#	Expecting str(dict) with the following keys
+#		stock_id, user, transactionNum, command
+#	Responds with str(dict) with the following keys
+#		stock_id, user, transactionNum, price, timestamp, cryptokey, cacheexpire
+#
+# Note: function returns price in cents
+#returns price of stock, doesnt do any checking.
+# target_server_address and target_server_port need to be set globally or the function must be modified to receive these values
+def get_quote(data):
+    # Create a TCP/IP socket
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # Connect the socket to the port where the server is listening
+    server_address = (cache_server_address, cache_server_port)
+    
+    sock.connect(server_address)
+    sock.sendall(str(data))
+    response = sock.recv(1024)
+    response = ast.literal_eval(response)
+    sock.close()
+    return  response
+	
+def subcache_update(data):
 
-	cache_lock.acquire()
-	cache[data.get(user)] = {
+	subcache_lock.acquire()
+	subcache[data.get(user)] = {
 		'command':data.get('command'),
 		'stock_id':data.get('stock_id'),
 		'transactionNum':data.get('transactionNum'),
@@ -101,29 +142,23 @@ def cache_update(data):
 		'amount':data.get('amount'),
 		'cacheexpire':quote.get('cacheexpire')
 	}
-	cache_lock.release()
-	
+	subcache_updated += 1
+	subcache_lock.release()
+
+
 # 
 def thread_conn_handler(connection):
 	data = connection.recv(1024)
 	data = ast.literal_eval(data)
-		
-	quote = get_quote(data['stock_id'])
 	
-	if data['command'] == 'BUY':
-		if quote['price'] <= data['trigger']:
-			give em the stock
-		else:
-			cache_update(data)
-		connection.send('0')
-	elif data['command'] == 'SELL':
-		if quote['price'] >= data['trigger']:
-			give em the cash
-		else:
-			cache_update(data)
-		connection.send('0')
+	#process incoming data
+	temp = {data.get('user'):{data.get('stock_id'):{'price':data.get('price'),'trigger':data.get('trigger'),'command':data.get('command')}}}
+	#get a quote from the quote cache and see if the trigger can be cleared, otherwise add to local cache
+	cache_check(temp,data.get('user'),data.get('stock_id'))
+	if temp.get('user',None) is None:
+		pass
 	else:
-		connection.send('INVALID COMMAND')
+		subcache_update(temp)
 
 def init_listen():
 
@@ -149,10 +184,42 @@ def init_listen():
 		
 		while threading.active_count() > MAX_THREADS:
 			pass
-		t = threading.Thread(target=thread_conn_handler, args=(conn,))
-		t.start()
+		t_incoming = threading.Thread(target=thread_conn_handler, args=(conn,))
+		t_incoming.start()
 
-	return 1
+	
+def cache_check(cache, user, stock):#, values):
+	
+	if (cache[user][stock].get('expiration') - now()) < QUOTE_REFRESH_TIME:
+		tx_data = {'stock_id':stock,'user':user,'transactionNum':cache[user][stock]['transactionNum'],'command':'TRIGGER'}
+		quote = get_quote(tx_data)
+		#stock_id, user, transactionNum, price, timestamp, cryptokey, cacheexpire
+		
+		if cache[user][stock].get('command') == 'BUY':
+		
+			if quote.get('price') <= cache[user][stock].get('trigger'):
+				#give the stock
+				del cache[user][stock]
+				cache_updated += 1
+				
+			else:
+				cache[user][stock]['price'] = quote.get('price')
+				cache[user][stock]['cacheexpire'] = quote.get('cacheexpire')
+				
+		elif cache[user][stock].get('command') == 'SELL':
+		
+			if quote.get('price') >= cache[user][stock].get('trigger'):
+				#give the money
+				del cache[user][stock]
+				cache_updated += 1
+				
+			else:
+				cache[user][stock]['price'] = quote.get('price')
+				cache[user][stock]['cacheexpire'] = quote.get('cacheexpire')
+				
+		else:
+			pass
+	return cache_updated
 
 def main(argv):
 	global PORT
@@ -178,15 +245,46 @@ def main(argv):
 		if o == "-h":
 			print "Use -p to set port number. Valid range: " + str(MAX_PORT) + " - " + str(MIN_PORT) + "\n"
 			sys.exit(2)
-	print "Setting port [" + str(PORT) + "]\n"
+	if __debug__:
+		print "Setting port [" + str(PORT) + "]\n"
+	
+	t = threading.Thread(target=init_listen, args=())
+	t.start()
+	
+	cache_updated = 0
 	
 	while True:
-		for user,trigger in cache.iteritems():
-			if trigger['expiration'] - now() < QUOTE_REFRESH_TIME:
-				quote = get_quote(trigger['stock_id'])
-				check_trigger(cache,quote)
+		for user,triggers in cache.iteritems():
+			for stock,values in triggers.iteritems():
+				if subcache_updated > 0:
+					break
+				
+				cache_updated = thread_cache_check(user, stock, values)
+				if cache_updated > 0:
+					break
+				# while threading.active_count() > MAX_THREADS:
+					# pass
+				# t_check = threading.Thread(target=thread_cache_check, args=(user, stock, values,))
+				# t_check.start()
 
-
+			if cache_updated > 0:
+				break
+				
+			if subcache_updated > 0:
+				break
+				
+		# entry removed from cache - restart scan - no action required
+		if cache_updated > 0:
+			cache_updated = 0
+			
+		# new triggers have been received - add to cache
+		if subcache_updated > 0:
+			subcache_lock.acquire()
+			for user,trigger in subcache.iteritems():
+				for stock,values in triggers.iteritems():
+					cache[user][stock] = values
+			subcache={}
+			subcache_lock.release()
 	
 
 if __name__ == "__main__":
