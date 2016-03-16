@@ -1,1 +1,6 @@
+<<<<<<< HEAD
 *DS_store
+=======
+*.pyc
+.DS_store
+>>>>>>> master
