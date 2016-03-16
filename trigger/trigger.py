@@ -77,10 +77,6 @@ PORT = 44420
 MIN_PORT = 44420
 MAX_PORT = 44429
 
-
-DB_HOST = "b133.seng.uvic.ca"
-DB_PORT = "44429"
-
 incoming_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 MAX_INCOMING_CONN_BUFFER = 10
@@ -144,22 +140,44 @@ def subcache_update(data):
 	}
 	subcache_updated += 1
 	subcache_lock.release()
-
-
-# 
+			
+# --------
+# thread_conn_handler(connection)
+#
+#	connection : a accepted connection from init_listen
+#
+# Read data from incoming connection. Exists in a thread.
+# Special incoming command to show cache contents for debugging
+# {command: 'DUMP', stock_id: ANY, user: ANY, transactionNum: ANY}
+#
 def thread_conn_handler(connection):
 	data = connection.recv(1024)
 	data = ast.literal_eval(data)
 	
-	#process incoming data
-	temp = {data.get('user'):{data.get('stock_id'):{'price':data.get('price'),'trigger':data.get('trigger'),'command':data.get('command')}}}
-	#get a quote from the quote cache and see if the trigger can be cleared, otherwise add to local cache
-	cache_check(temp,data.get('user'),data.get('stock_id'))
-	if temp.get('user',None) is None:
-		pass
+	if data.get('command') == 'DUMP':
+		print cache
 	else:
-		subcache_update(temp)
-
+		#process incoming data
+		temp = {data.get('user'):{data.get('stock_id'):{'price':data.get('price'),'trigger':data.get('trigger'),'command':data.get('command')}}}
+		
+		#get a quote from the quote cache and see if the trigger can be cleared
+		cache_check(temp,data.get('user'),data.get('stock_id'))
+		if temp.get('user',None) is None:
+			#trigger already completed
+			pass
+		else:
+			#add trigger to cache
+			subcache_update(temp)
+			
+	connection.close()
+			
+# --------
+# init_listen()
+#
+# Set up socket and process incoming connections
+#	Incoming connection passed to a new thread to accept and process data
+#
+# Future: set up a queue and have a consumer thread to control the number of threads created
 def init_listen():
 
 	try:
