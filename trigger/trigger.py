@@ -277,7 +277,9 @@ def main(argv):
 				if subcache_updated > 0:
 					break
 				
-				cache_updated = thread_cache_check(user, stock, values)
+				if user is not None:
+					cache_updated = thread_cache_check(user, stock, values)
+					
 				if cache_updated > 0:
 					break
 				# while threading.active_count() > MAX_THREADS:

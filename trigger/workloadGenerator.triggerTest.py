@@ -49,7 +49,17 @@ def main():
 				'user' : request[1],
 				'stock_id' : request[2],
 				'transactionNum' : transaction_id,
-				'command' : request_type,
+				'command' : 'BUY',
+				'amount' : 100.00		#arbitrary - would have been set with previous command
+			}
+			make_request(request_d) 
+			
+		elif request_type == 'SET_SELL_TRIGGER':
+			request_d = {
+				'user' : request[1],
+				'stock_id' : request[2],
+				'transactionNum' : transaction_id,
+				'command' : 'SELL',
 				'amount' : 100.00		#arbitrary - would have been set with previous command
 			}
 			make_request(request_d)
