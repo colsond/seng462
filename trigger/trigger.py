@@ -207,36 +207,36 @@ def init_listen():
 
 	
 def cache_check(cache, user, stock):#, values):
-	
-	if (cache[user][stock].get('expiration') - now()) < QUOTE_REFRESH_TIME:
-		tx_data = {'stock_id':stock,'user':user,'transactionNum':cache[user][stock]['transactionNum'],'command':'TRIGGER'}
-		quote = get_quote(tx_data)
-		#stock_id, user, transactionNum, price, timestamp, cryptokey, cacheexpire
-		
-		if cache[user][stock].get('command') == 'BUY':
-		
-			if quote.get('price') <= cache[user][stock].get('trigger'):
-				#give the stock
-				del cache[user][stock]
-				cache_updated += 1
-				
+	if cache[user][stock].get('expiration') is not None:
+		if (cache[user][stock].get('expiration') - now()) < QUOTE_REFRESH_TIME:
+			tx_data = {'stock_id':stock,'user':user,'transactionNum':cache[user][stock]['transactionNum'],'command':'TRIGGER'}
+			quote = get_quote(tx_data)
+			#stock_id, user, transactionNum, price, timestamp, cryptokey, cacheexpire
+			
+			if cache[user][stock].get('command') == 'BUY':
+			
+				if quote.get('price') <= cache[user][stock].get('trigger'):
+					#give the stock
+					del cache[user][stock]
+					cache_updated += 1
+					
+				else:
+					cache[user][stock]['price'] = quote.get('price')
+					cache[user][stock]['cacheexpire'] = quote.get('cacheexpire')
+					
+			elif cache[user][stock].get('command') == 'SELL':
+			
+				if quote.get('price') >= cache[user][stock].get('trigger'):
+					#give the money
+					del cache[user][stock]
+					cache_updated += 1
+					
+				else:
+					cache[user][stock]['price'] = quote.get('price')
+					cache[user][stock]['cacheexpire'] = quote.get('cacheexpire')
+					
 			else:
-				cache[user][stock]['price'] = quote.get('price')
-				cache[user][stock]['cacheexpire'] = quote.get('cacheexpire')
-				
-		elif cache[user][stock].get('command') == 'SELL':
-		
-			if quote.get('price') >= cache[user][stock].get('trigger'):
-				#give the money
-				del cache[user][stock]
-				cache_updated += 1
-				
-			else:
-				cache[user][stock]['price'] = quote.get('price')
-				cache[user][stock]['cacheexpire'] = quote.get('cacheexpire')
-				
-		else:
-			pass
+				pass
 	return cache_updated
 
 def main(argv):
