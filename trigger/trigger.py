@@ -153,6 +153,7 @@ def subcache_update(data):
 # {command: 'DUMP', stock_id: ANY, user: ANY, transactionNum: ANY}
 #
 def thread_conn_handler(connection):
+	global shutdown
 	data = connection.recv(1024)
 	data = ast.literal_eval(data)
 	
@@ -184,7 +185,7 @@ def thread_conn_handler(connection):
 #
 # Future: set up a queue and have a consumer thread to control the number of threads created
 def init_listen():
-
+	global shutdown
 	try:
 		incoming_socket.bind((HOST, PORT))
 	except socket.error , msg:
