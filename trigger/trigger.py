@@ -97,6 +97,8 @@ audit_server_port = 44421
 cache_server_address = 'b143.seng.uvic.ca'
 cache_server_port = 44420
 
+shutdown = 0
+
 #-----------------------------------------------------------------------------
 # now
 # Returns server time in milliseconds
@@ -156,6 +158,9 @@ def thread_conn_handler(connection):
 	
 	if data.get('command') == 'DUMP':
 		print cache
+		print '\n----------------------------------------------------------\n'
+		print	subcache
+		shutdown += 1
 	else:
 		#process incoming data
 		temp = {data.get('user'):{data.get('stock_id'):{'price':data.get('price'),'trigger':data.get('trigger'),'command':data.get('command')}}}
@@ -204,9 +209,13 @@ def init_listen():
 			pass
 		t_incoming = threading.Thread(target=thread_conn_handler, args=(conn,))
 		t_incoming.start()
+		
+		if shutdown > 0:
+			break
 
 	
 def cache_check(cache, user, stock):#, values):
+	cache_updated = 0
 	if cache[user][stock].get('expiration') is not None:
 		if (cache[user][stock].get('expiration') - now()) < QUOTE_REFRESH_TIME:
 			tx_data = {'stock_id':stock,'user':user,'transactionNum':cache[user][stock]['transactionNum'],'command':'TRIGGER'}
@@ -271,40 +280,40 @@ def main(argv):
 	
 	cache_updated = 0
 	
-	while True:
-		for user,triggers in cache.iteritems():
-			for stock,values in triggers.iteritems():
-				if subcache_updated > 0:
-					break
+	# while True:
+		# for user,triggers in cache.iteritems():
+			# for stock,values in triggers.iteritems():
+				# if subcache_updated > 0:
+					# break
 				
-				if user is not None:
-					cache_updated = thread_cache_check(user, stock, values)
+				# if user is not None:
+					# cache_updated = thread_cache_check(user, stock, values)
 					
-				if cache_updated > 0:
-					break
-				# while threading.active_count() > MAX_THREADS:
-					# pass
-				# t_check = threading.Thread(target=thread_cache_check, args=(user, stock, values,))
-				# t_check.start()
+				# if cache_updated > 0:
+					# break
+				# # while threading.active_count() > MAX_THREADS:
+					# # pass
+				# # t_check = threading.Thread(target=thread_cache_check, args=(user, stock, values,))
+				# # t_check.start()
 
-			if cache_updated > 0:
-				break
+			# if cache_updated > 0:
+				# break
 				
-			if subcache_updated > 0:
-				break
+			# if subcache_updated > 0:
+				# break
 				
-		# entry removed from cache - restart scan - no action required
-		if cache_updated > 0:
-			cache_updated = 0
+		# # entry removed from cache - restart scan - no action required
+		# if cache_updated > 0:
+			# cache_updated = 0
 			
-		# new triggers have been received - add to cache
-		if subcache_updated > 0:
-			subcache_lock.acquire()
-			for user,trigger in subcache.iteritems():
-				for stock,values in triggers.iteritems():
-					cache[user][stock] = values
-			subcache={}
-			subcache_lock.release()
+		# # new triggers have been received - add to cache
+		# if subcache_updated > 0:
+			# subcache_lock.acquire()
+			# for user,trigger in subcache.iteritems():
+				# for stock,values in triggers.iteritems():
+					# cache[user][stock] = values
+			# subcache={}
+			# subcache_lock.release()
 	
 
 if __name__ == "__main__":
