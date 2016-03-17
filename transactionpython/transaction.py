@@ -960,9 +960,7 @@ def main():
         dbuser="cusmith",
         dbpass="",
         minconn=1,
-
         maxconn=100,
-
     )
     db.initialize()
     #global active_threads
