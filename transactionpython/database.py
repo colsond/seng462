@@ -83,11 +83,13 @@ class Database:
         connection, cursor = self.get_connection()
 
         try:
-            cursor.execute("""SELECT %s FROM %s WHERE %s""" % (values, table, constraints))
+	    command = """SELECT %s FROM %s WHERE %s""" % (values, table, constraints)
+	    cursor.execute(command)
+	    connection.commit()
         except Exception as e:
             print e
-        result = cursor.fetchall()
 
+        result = cursor.fetchall()
         self.close_connection(connection)
 
         print result
@@ -104,7 +106,9 @@ class Database:
         connection, cursor = self.get_connection()
 
         try:
-            cursor.execute("""INSERT INTO %s (%s) VALUES (%s)""" % (table, columns, values))
+            command = """INSERT INTO %s (%s) VALUES (%s)""" % (table, columns, values)
+	    cursor.execute(command)
+	    connection.commit()
         except Exception as e:
             print e
 
@@ -115,6 +119,7 @@ class Database:
 
         try:
             cursor.execute("""UPDATE %s SET %s WHERE %s""" % (table, values, constraints))
+	    connection.commit()
         except Exception as e:
             print e
 
@@ -125,6 +130,7 @@ class Database:
 
         try:
             cursor.execute("""DELETE FROM %s WHERE %s""" % (table, constraints))
+	    connection.commit()
         except Exception as e:
             print e
 
