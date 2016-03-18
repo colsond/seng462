@@ -49,12 +49,12 @@ class Database:
 
         try:
             self.curs.execute("""CREATE TABLE PendingTrans (
-                                    type text, user_id text, stock_id text, amount bigint, timestamp int)""")
+                                    type text, user_id text, stock_id text, amount bigint, timestamp bigint)""")
         except:
             self.conn.rollback()
             self.curs.execute("""DROP TABLE PendingTrans""")
             self.curs.execute("""CREATE TABLE PendingTrans (
-                                    type text, user_id text, stock_id text, amount bigint, timestamp int)""")
+                                    type text, user_id text, stock_id text, amount bigint, timestamp bigint)""")
         self.conn.commit()
 
         try:
