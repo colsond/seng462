@@ -93,7 +93,7 @@ def audit_user_command_event(
     if funds:
         audit_dict["funds"] = str(int(funds/100)) + '.' + "{:02d}".format(int(funds%100))
     
-    # send_audit_entry(str(audit_dict))
+    send_audit_entry(str(audit_dict))
 
     return
 
