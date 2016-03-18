@@ -132,6 +132,15 @@ def processWorkloadFile(sourceDir, targetDir, workloadFile):
 
 	f.close()
 
+	try:
+		f = open ("userRefList.txt", 'w')
+	except IOError as err:
+		   pass
+	for user in userlist:
+		f.write(user)
+
+	f.close()
+
 	# try to make the target directory; if it errors for a reason other than 
 	# the directory already exists, then raise an exception
 	try:
