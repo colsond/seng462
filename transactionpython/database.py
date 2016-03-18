@@ -31,14 +31,14 @@ class Database:
             self.curs.execute("""CREATE TABLE Users (
                                 user_id text, balance int)""")
         except:
-    	    self.conn.rollback()
-    	    self.curs.execute("""DROP TABLE Users""")
-    	    self.curs.execute("""CREATE TABLE Users (
+            self.conn.rollback()
+            self.curs.execute("""DROP TABLE Users""")
+            self.curs.execute("""CREATE TABLE Users (
                                     user_id text, balance int)""")
         self.conn.commit()
 
-    	try:
-    	    self.curs.execute("""CREATE TABLE Stock (
+        try:
+            self.curs.execute("""CREATE TABLE Stock (
                                     stock_id text, user_id text, amount int)""")
         except:
             self.conn.rollback()
@@ -50,9 +50,7 @@ class Database:
         try:
             self.curs.execute("""CREATE TABLE PendingTrans (
                                     type text, user_id text, stock_id text, amount int, timestamp int)""")
-
-        except Exception as e:
-            print e
+        except:
             self.conn.rollback()
             self.curs.execute("""DROP TABLE PendingTrans""")
             self.curs.execute("""CREATE TABLE PendingTrans (
@@ -69,6 +67,8 @@ class Database:
                                     type text, user_id text, stock_id text, amount integer, trigger integer)""")
         self.conn.commit()
 
+        print "DB Initialized"
+
     # Return a Database Connection from the pool
     def get_connection(self):
         connection = self.pool.getconn()
@@ -83,19 +83,18 @@ class Database:
         connection, cursor = self.get_connection()
 
         try:
-	    command = """SELECT %s FROM %s WHERE %s""" % (values, table, constraints)
-	    cursor.execute(command)
-	    connection.commit()
+            command = """SELECT %s FROM %s WHERE %s""" % (values, table, constraints)
+            cursor.execute(command)
+            connection.commit()
         except Exception as e:
-            print e
+            print 'PG Select error: ' + str(e)
 
         result = cursor.fetchall()
         self.close_connection(connection)
 
-        print result
         # Format to always return a tuple of the single record, with each value.
         if len(result) > 1:
-            print 'more than one value returned!!!?'
+            print 'PG Select returned more than one value.'
             return (None,None)
         elif len(result) == 0:
             return (None,None)
@@ -107,10 +106,10 @@ class Database:
 
         try:
             command = """INSERT INTO %s (%s) VALUES (%s)""" % (table, columns, values)
-	    cursor.execute(command)
-	    connection.commit()
+            cursor.execute(command)
+            connection.commit()
         except Exception as e:
-            print e
+            print 'PG Insert error: ' + str(e)
 
         self.close_connection(connection)
 
@@ -119,9 +118,9 @@ class Database:
 
         try:
             cursor.execute("""UPDATE %s SET %s WHERE %s""" % (table, values, constraints))
-	    connection.commit()
+            connection.commit()
         except Exception as e:
-            print e
+            print 'PG Update error: ' + str(e)
 
         self.close_connection(connection)
 
@@ -130,8 +129,8 @@ class Database:
 
         try:
             cursor.execute("""DELETE FROM %s WHERE %s""" % (table, constraints))
-	    connection.commit()
+            connection.commit()
         except Exception as e:
-            print e
+            print 'PG Delete error: ' + str(e)
 
         self.close_connection(connection)

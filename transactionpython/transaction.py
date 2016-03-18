@@ -380,13 +380,15 @@ def process_request(data, conn):
                     conn.update_record("Users", "balance=balance+%d" % amount, "user_id='%s'" % user)
                     response = "Added."
 
+                    updated_balance = balance + amount
+                    print "TX Updating balance to: " + str(updated_balance)
                     audit_transaction_event(
                         now(),
                         server_name,
                         transactionNum,
                         command,
                         user,
-                        balance + amount
+                        updated_balance
                     )
 
 # ----------------
