@@ -93,7 +93,7 @@ def audit_user_command_event(
     if funds:
         audit_dict["funds"] = str(int(funds/100)) + '.' + "{:02d}".format(int(funds%100))
     
-    send_audit_entry(str(audit_dict))
+    # send_audit_entry(str(audit_dict))
 
     return
 
@@ -141,7 +141,7 @@ def audit_transaction_event(
         "funds" : str(int(funds/100)) + '.' + "{:02d}".format(int(funds%100))
     }
 
-    send_audit_entry(str(audit_dict))
+    # send_audit_entry(str(audit_dict))
 
     return
     
@@ -175,7 +175,7 @@ def audit_system_event(
     if funds:
         audit_dict["funds"] = str(int(funds/100)) + '.' + "{:02d}".format(int(funds%100))
     
-    send_audit_entry(str(audit_dict))
+    # send_audit_entry(str(audit_dict))
 
     return
 
@@ -217,7 +217,7 @@ def audit_error_event(
     if errorMessage:
         audit_dict["errorMessage"] = errorMessage
     
-    send_audit_entry(str(audit_dict))
+    # send_audit_entry(str(audit_dict))
 
     return
 
@@ -260,7 +260,7 @@ def audit_debug(
     if debugMessage:
         audit_dict["debugMessage"] = debugMessage
     
-    send_audit_entry(str(audit_dict))
+    # send_audit_entry(str(audit_dict))
 
     return
 
@@ -380,15 +380,13 @@ def process_request(data, conn):
                     conn.update_record("Users", "balance=balance+%d" % amount, "user_id='%s'" % user)
                     response = "Added."
 
-                    updated_balance = balance + amount
-                    print "TX Updating balance to: " + str(updated_balance)
                     audit_transaction_event(
                         now(),
                         server_name,
                         transactionNum,
                         command,
                         user,
-                        updated_balance
+                        balance + amount
                     )
 
 # ----------------
@@ -904,7 +902,7 @@ def process_request(data, conn):
                         print "Dump engaged. Honest.\n"
 
             elif command == DISPLAY_SUMMARY:
-                print conn.select_record("*", "Users", "user_id='%s'" % (user))
+                print "TX Display Summary: %s" % str(conn.select_record("*", "Users", "user_id='%s'" % (user)))
         
             else:
                 print "Invalid command.\n"
