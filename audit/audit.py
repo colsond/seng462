@@ -249,14 +249,16 @@ def clientthread(conn):
          
         #Receiving from client
     #this is where all the logic for logging will go.
-        data = conn.recv(4096)
+        data = conn.recv(1024)
     #handle request here
         if not data: 
             break
     #this function call handles the data package and returns ok or gives an unknown log error
     	reply = handleEntry(data) 
         conn.sendall(reply)
-     
+        conn.close()
+        sys.exit(0) 
+
     #came out of loop
     print "Ending transmission"
     conn.close()
