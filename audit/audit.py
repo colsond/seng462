@@ -20,7 +20,7 @@ except socket.error , msg:
 print 'Socket bind complete'
  
 #Start listening on socket
-s.listen(10)
+s.listen(200)
 print 'Socket now listening'
 
 ###USER COMMAND TYPE
