@@ -15,13 +15,13 @@ tx_server_port = 44422
 AUDIT_SERVER_ADDRESS = 'b142.seng.uvic.ca'
 AUDIT_SERVER_PORT = 44421
 
-NUM_WORKER_THREADS = 40
+NUM_WORKER_THREADS = 100
 
 web_server_port = 44422
 
 MY_NAME = "Workload"
 
-workload_file = '100User_testWorkLoad.txt'
+workload_file = '45User_testWorkLoad.txt'
 working_dir = './separatedWorkload/'
 
 ADD = "ADD"
@@ -136,7 +136,7 @@ def processWorkloadFile(sourceDir, targetDir, workloadFile):
 		f = open ("userRefList.txt", 'w')
 	except IOError as err:
 		   pass
-	for user in userlist:
+	for user in userList:
 		f.write(user)
 
 	f.close()
