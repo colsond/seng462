@@ -17,7 +17,7 @@ web_server_address = 'b132.seng.uvic.ca' # Workload Generator
 audit_server_address = 'b142.seng.uvic.ca'
 audit_server_port = 44421
 
-cache_server_address = 'b143.seng.uvic.ca'
+cache_server_address = ['b143.seng.uvic.ca', 'b144.seng.uvic.ca', 'b145.seng.uvic.ca']
 cache_server_port = 44420
 
 SELF_HOST = ''
@@ -919,17 +919,51 @@ def process_request(data, conn):
 #returns price of stock, doesnt do any checking.
 # target_server_address and target_server_port need to be set globally or the function must be modified to recieve these values
 def get_quote(data):
-    # Create a TCP/IP socket
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # Connect the socket to the port where the server is listening
-    server_address = (cache_server_address, cache_server_port)
-    
-    sock.connect(server_address)
-    sock.sendall(str(data))
-    response = sock.recv(1024)
-    response = ast.literal_eval(response)
-    sock.close()
-    return  response
+
+    #pull out stock ID to send to a given cache server
+    stock_id = data.get('stock_id')
+
+    #python string compare values a>z>A>Z>1>9>0
+    #stock quotes only seem to be capital letters so we can trisection the alphabet
+    # A-I, J-Q, R-Z
+
+
+    if (stock_id >= "I"):
+        # Create a TCP/IP socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # Connect the socket to the port where the server is listening
+        server_address = (cache_server_address[0], cache_server_port)
+        
+        sock.connect(server_address)
+        sock.sendall(str(data))
+        response = sock.recv(1024)
+        response = ast.literal_eval(response)
+        sock.close()
+        return  response
+    else if (stock_id >= "Q"):
+        # Create a TCP/IP socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # Connect the socket to the port where the server is listening
+        server_address = (cache_server_address[1], cache_server_port)
+        
+        sock.connect(server_address)
+        sock.sendall(str(data))
+        response = sock.recv(1024)
+        response = ast.literal_eval(response)
+        sock.close()
+        return  response
+    else:
+        # Create a TCP/IP socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # Connect the socket to the port where the server is listening
+        server_address = (cache_server_address[2], cache_server_port)
+        
+        sock.connect(server_address)
+        sock.sendall(str(data))
+        response = sock.recv(1024)
+        response = ast.literal_eval(response)
+        sock.close()
+        return  response
 
 
 
