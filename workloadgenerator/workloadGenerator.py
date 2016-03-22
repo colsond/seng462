@@ -9,7 +9,7 @@ from threading import Thread, current_thread
 
 
 #workload generator aims for however many transaction servers are set in the list below, all looking on port 44422 
-tx_server_address = ['b133.seng.uvic.ca', 'b134.seng.uvic.ca', 'b135.seng.uvic.ca','b136.seng.uvic.ca']
+tx_server_address = ['b131.seng.uvic.ca', 'b132.seng.uvic.ca', 'b133.seng.uvic.ca', 'b134.seng.uvic.ca', 'b135.seng.uvic.ca','b136.seng.uvic.ca', 'b137.seng.uvic.ca', 'b138.seng.uvic.ca', 'b139.seng.uvic.ca', 'b140.seng.uvic.ca']
 tx_server_port = 44422
 
 AUDIT_SERVER_ADDRESS = 'b142.seng.uvic.ca'
@@ -129,6 +129,15 @@ def processWorkloadFile(sourceDir, targetDir, workloadFile):
 				fileDict[user] += line
 			else:
 				fileDict[user] = line
+
+	f.close()
+
+	try:
+		f = open ("userRefList.txt", 'w')
+	except IOError as err:
+		   pass
+	for user in userlist:
+		f.write(user)
 
 	f.close()
 

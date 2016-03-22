@@ -171,6 +171,7 @@ def audit_event(
 		errorMessage):
 	
 	if type == "incoming":
+		return
 		message = {
 			"logType": "SystemEventType",
 			"timestamp": timestamp,
@@ -195,6 +196,7 @@ def audit_event(
 		}
 	
 	else: #error message
+		return
 		message = {
 			"logType": "ErrorEventType",
 			"timestamp": timestamp,
