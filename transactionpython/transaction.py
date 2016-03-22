@@ -11,7 +11,7 @@ from threading import Thread, current_thread, activeCount
 from database import Database
 
 server_name = "transaction_server_1"
-sever_id = 1
+server_id = 1
 
 web_server_address = 'b132.seng.uvic.ca' # Workload Generator
 
