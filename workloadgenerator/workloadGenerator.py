@@ -12,7 +12,7 @@ from threading import Thread, current_thread
 tx_server_address = ['b131.seng.uvic.ca', 'b132.seng.uvic.ca', 'b133.seng.uvic.ca', 'b134.seng.uvic.ca', 'b135.seng.uvic.ca','b136.seng.uvic.ca', 'b137.seng.uvic.ca', 'b138.seng.uvic.ca', 'b139.seng.uvic.ca', 'b140.seng.uvic.ca']
 tx_server_port = 44422
 
-AUDIT_SERVER_ADDRESS = 'b142.seng.uvic.ca'
+AUDIT_SERVER_ADDRESS = 'b153.seng.uvic.ca'
 AUDIT_SERVER_PORT = 44421
 
 NUM_WORKER_THREADS = 100
@@ -64,7 +64,7 @@ def make_request(pid, transactionNum, command, user=None, stock_id=None, amount=
 	if filename:
 		data['filename'] = filename
 
-	print str(data)
+	#print str(data)
 		
 	# Create a TCP/IP socket
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -78,9 +78,9 @@ def make_request(pid, transactionNum, command, user=None, stock_id=None, amount=
 			# Send data
 			message = str(data)
 			sock.sendall(message)
-			print >>sys.stderr, 'sent "%s"' % message
+			#print >>sys.stderr, 'sent "%s"' % message
 			response = sock.recv(1024)
-			print >>sys.stderr, 'received "%s"' % response
+			#print >>sys.stderr, 'received "%s"' % response
 			response = ' '
 
 	    # Look for the response

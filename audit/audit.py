@@ -4,6 +4,10 @@ import sys
 import io
 from thread import *
  
+# audit id 0 is the master
+audit_id = 0
+
+
 HOST = ''   # Symbolic name meaning all available interfaces
 PORT = 44421 # Arbitrary non-privileged port
  
@@ -264,9 +268,10 @@ def clientthread(conn):
     conn.close()
     sys.exit(0) 
 #now keep talking with the client
-f = open('logfile.xml', 'a')
-f.write('<?xml version="1.0"?>\n<log>\n')
-f.close()
+if(audit_id==0):
+    f = open('logfile.xml', 'a')
+    f.write('<?xml version="1.0"?>\n<log>\n')
+    f.close()
 while 1:
     try:
 	    #wait to accept a connection - blocking call
@@ -276,9 +281,10 @@ while 1:
 	    #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
 	    start_new_thread(clientthread ,(conn,))
     except:
-	    f = open('logfile.xml', 'a')
-	    f.write("</log>")
-	    f.close()
+        if(audit_id==0):
+    	    f = open('logfile.xml', 'a')
+    	    f.write("</log>")
+    	    f.close()
 	    sys.exit(0) 
 
 s.close()
