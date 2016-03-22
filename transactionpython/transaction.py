@@ -940,7 +940,7 @@ def get_quote(data):
         response = ast.literal_eval(response)
         sock.close()
         return  response
-    else if (stock_id >= "Q"):
+    elif (stock_id >= "Q"):
         # Create a TCP/IP socket
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # Connect the socket to the port where the server is listening
