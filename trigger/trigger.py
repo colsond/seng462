@@ -99,7 +99,7 @@ subcache_updated = 0		# dirty flag
 audit_server_address = 'b142.seng.uvic.ca'
 audit_server_port = 44421
 
-cache_server_address = 'b143.seng.uvic.ca'
+cache_server_address = 'b137.seng.uvic.ca'
 cache_server_port = 44420
 
 shutdown = 0
