@@ -53,7 +53,7 @@ QUOTE_SERVER_HOST = 'quoteserve.seng.uvic.ca'
 QUOTE_SERVER_PORT = 4442
 QUOTE_SERVER_RECV = 100
 
-AUDIT_SERVER_ADDRESS = 'b142.seng.uvic.ca'
+AUDIT_SERVER_ADDRESS = 'b149.seng.uvic.ca'
 AUDIT_SERVER_PORT = 44421
 
 QUOTE_LIFE = 45000	# in seconds
@@ -171,6 +171,7 @@ def audit_event(
 		errorMessage):
 	
 	if type == "incoming":
+		return
 		message = {
 			"logType": "SystemEventType",
 			"timestamp": timestamp,
@@ -195,6 +196,7 @@ def audit_event(
 		}
 	
 	else: #error message
+		return
 		message = {
 			"logType": "ErrorEventType",
 			"timestamp": timestamp,

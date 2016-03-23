@@ -1,2 +1,3 @@
+workloadgenerator/seperatedWorkload/*
 *.pyc
 .DS_store

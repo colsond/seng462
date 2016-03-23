@@ -11,19 +11,20 @@ from threading import Thread, current_thread, activeCount
 from database import Database
 
 server_name = "transaction_server_1"
+server_id = 1
 
 web_server_address = 'b132.seng.uvic.ca' # Workload Generator
 
-audit_server_address = 'b142.seng.uvic.ca'
+audit_server_address = ['b149.seng.uvic.ca', 'b153.seng.uvic.ca']
 audit_server_port = 44421
 
-cache_server_address = 'b143.seng.uvic.ca'
+cache_server_address = ['b143.seng.uvic.ca', 'b144.seng.uvic.ca', 'b145.seng.uvic.ca']
 cache_server_port = 44420
 
 SELF_HOST = ''
 SELF_PORT = 44422
 
-MAX_THREADS = 20
+MAX_THREADS = 10
 
 # Commands
 ADD = "ADD"
@@ -52,7 +53,7 @@ def send_audit_entry(message):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     # Connect the socket to the port where the server is listening
-    server_address = (audit_server_address, audit_server_port)
+    server_address = (audit_server_address[server_id%2], audit_server_port)
     sock.connect(server_address)
 
     try:
@@ -141,7 +142,7 @@ def audit_transaction_event(
         "funds" : str(int(funds/100)) + '.' + "{:02d}".format(int(funds%100))
     }
 
-    send_audit_entry(str(audit_dict))
+    # send_audit_entry(str(audit_dict))
 
     return
     
@@ -175,7 +176,7 @@ def audit_system_event(
     if funds:
         audit_dict["funds"] = str(int(funds/100)) + '.' + "{:02d}".format(int(funds%100))
     
-    send_audit_entry(str(audit_dict))
+    # send_audit_entry(str(audit_dict))
 
     return
 
@@ -217,7 +218,7 @@ def audit_error_event(
     if errorMessage:
         audit_dict["errorMessage"] = errorMessage
     
-    send_audit_entry(str(audit_dict))
+    # send_audit_entry(str(audit_dict))
 
     return
 
@@ -260,7 +261,7 @@ def audit_debug(
     if debugMessage:
         audit_dict["debugMessage"] = debugMessage
     
-    send_audit_entry(str(audit_dict))
+    # send_audit_entry(str(audit_dict))
 
     return
 
@@ -902,7 +903,7 @@ def process_request(data, conn):
                         print "Dump engaged. Honest.\n"
 
             elif command == DISPLAY_SUMMARY:
-                print conn.select_record("*", "Users", "user_id='%s'" % (user))
+                print "TX Display Summary: %s" % str(conn.select_record("*", "Users", "user_id='%s'" % (user)))
         
             else:
                 print "Invalid command.\n"
@@ -919,17 +920,51 @@ def process_request(data, conn):
 #returns price of stock, doesnt do any checking.
 # target_server_address and target_server_port need to be set globally or the function must be modified to recieve these values
 def get_quote(data):
-    # Create a TCP/IP socket
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # Connect the socket to the port where the server is listening
-    server_address = (cache_server_address, cache_server_port)
-    
-    sock.connect(server_address)
-    sock.sendall(str(data))
-    response = sock.recv(1024)
-    response = ast.literal_eval(response)
-    sock.close()
-    return  response
+
+    #pull out stock ID to send to a given cache server
+    stock_id = data.get('stock_id')
+
+    #python string compare values a>z>A>Z>1>9>0
+    #stock quotes only seem to be capital letters so we can trisection the alphabet
+    # A-I, J-Q, R-Z
+
+
+    if (stock_id <= "I"):
+        # Create a TCP/IP socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # Connect the socket to the port where the server is listening
+        server_address = (cache_server_address[0], cache_server_port)
+        
+        sock.connect(server_address)
+        sock.sendall(str(data))
+        response = sock.recv(1024)
+        response = ast.literal_eval(response)
+        sock.close()
+        return  response
+    elif (stock_id <= "Q"):
+        # Create a TCP/IP socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # Connect the socket to the port where the server is listening
+        server_address = (cache_server_address[1], cache_server_port)
+        
+        sock.connect(server_address)
+        sock.sendall(str(data))
+        response = sock.recv(1024)
+        response = ast.literal_eval(response)
+        sock.close()
+        return  response
+    else:
+        # Create a TCP/IP socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # Connect the socket to the port where the server is listening
+        server_address = (cache_server_address[2], cache_server_port)
+        
+        sock.connect(server_address)
+        sock.sendall(str(data))
+        response = sock.recv(1024)
+        response = ast.literal_eval(response)
+        sock.close()
+        return  response
 
 
 
@@ -960,9 +995,7 @@ def main():
         dbuser="cusmith",
         dbpass="",
         minconn=1,
-
         maxconn=100,
-
     )
     db.initialize()
     #global active_threads
