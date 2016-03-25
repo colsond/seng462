@@ -10,11 +10,19 @@ from threading import Thread, current_thread, activeCount
 
 from database import Database
 
-server_name = "transaction_server_1"
+
+if(len(sys.argv)==2):
+    server_id = sys.argv[1]
+
+else:
+   server_id = 0 
+
+server_name = "transaction_server_%" + server_id
+print server_name
 
 web_server_address = 'b132.seng.uvic.ca' # Workload Generator
 
-audit_server_address = 'b142.seng.uvic.ca'
+audit_server_address = ['b149.seng.uvic.ca', 'b153.seng.uvic.ca']
 audit_server_port = 44421
 
 cache_server_address = ['b143.seng.uvic.ca', 'b144.seng.uvic.ca', 'b145.seng.uvic.ca']
@@ -52,7 +60,7 @@ def send_audit_entry(message):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     # Connect the socket to the port where the server is listening
-    server_address = (audit_server_address, audit_server_port)
+    server_address = (audit_server_address[server_id%2], audit_server_port)
     sock.connect(server_address)
 
     try:
@@ -923,31 +931,34 @@ def get_quote(data):
     #pull out stock ID to send to a given cache server
     stock_id = data.get('stock_id')
 
+		output = "{\'stock_id\':'"+data.get('stock_id')+"\'"
+		output += ",\'user\':'"+data.get('user')+"\'}"
+
     #python string compare values a>z>A>Z>1>9>0
     #stock quotes only seem to be capital letters so we can trisection the alphabet
     # A-I, J-Q, R-Z
 
 
-    if (stock_id >= "I"):
+    if (stock_id <= "I"):
         # Create a TCP/IP socket
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # Connect the socket to the port where the server is listening
         server_address = (cache_server_address[0], cache_server_port)
         
         sock.connect(server_address)
-        sock.sendall(str(data))
+        sock.sendall(str(output))
         response = sock.recv(1024)
         response = ast.literal_eval(response)
         sock.close()
         return  response
-    else if (stock_id >= "Q"):
+    elif (stock_id <= "Q"):
         # Create a TCP/IP socket
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # Connect the socket to the port where the server is listening
         server_address = (cache_server_address[1], cache_server_port)
         
         sock.connect(server_address)
-        sock.sendall(str(data))
+        sock.sendall(str(output))
         response = sock.recv(1024)
         response = ast.literal_eval(response)
         sock.close()
@@ -959,7 +970,7 @@ def get_quote(data):
         server_address = (cache_server_address[2], cache_server_port)
         
         sock.connect(server_address)
-        sock.sendall(str(data))
+        sock.sendall(str(output))
         response = sock.recv(1024)
         response = ast.literal_eval(response)
         sock.close()

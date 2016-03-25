@@ -1,0 +1,32 @@
+import subprocess
+import threading
+
+d = {}
+t = []
+
+def hit_it(i):
+	arggs = "ssh -q b" + str(i) + " uptime"
+	try:
+		output = subprocess.check_output(arggs,shell=True)
+	except:
+		print "b" + str(i) + " failed"
+	else:
+		output = output.split('load average: ')
+		d["b"+str(i)]=str(output[1])
+		print "b" + str(i) + " "  + str(output[1])
+
+
+for i in range(130,150):
+	tid  = threading.Thread(target=hit_it, args=(i,))
+	tid.start()
+	t.append(tid)
+i = 153
+tid = threading.Thread(target=hit_it, args=(i,))
+tid.start()
+t.append(tid)
+
+for i in t:
+	i.join()
+
+for key in sorted(d.keys()):
+	print str(key) + " " + str(d[key]) + "\n"
