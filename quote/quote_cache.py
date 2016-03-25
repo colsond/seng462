@@ -96,7 +96,7 @@ def init_listen():
 	return 1
 
 def get_quote(stock_id, user, transactionNum):
-
+	print "IN GET QUOTE\n"
 	outgoing_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 	outgoing_socket.connect((QUOTE_SERVER_HOST, QUOTE_SERVER_PORT))
@@ -169,6 +169,7 @@ def audit_event(
 		quoteServerTime,
 		cryptokey,
 		errorMessage):
+	print "AUDITING EVENT"
 	
 	if type == "incoming":
 		return
@@ -213,12 +214,14 @@ def audit_event(
 		pass
 	t = threading.Thread(target=send_audit, args=(message,))
 	t.start()
-	send_audit(str(message))
+	#the above thread now does this
+	#send_audit(str(message))
 	
 	return
 	
 def scan_cache(stock_id):
 
+	print "aquiring lock"
 	cache_lock.acquire()
 	
 	if stock_id in cache:
@@ -232,15 +235,17 @@ def scan_cache(stock_id):
 				"cryptokey": cache[stock_id]["cryptokey"],
 				"cacheexpire" : cache[stock_id]["cacheexpire"]
 			}
+			print "cache hit"
 		else:
 			message = {
 				"status" : "expired"
 			}
 	else:
+		print "cache miss"
 		message = {
 			"status" : "unknown"
 		}
-
+	print "releasing lock"
 	cache_lock.release()
 	
 	return message
@@ -279,9 +284,11 @@ def thread_conn_handler(conn):
 	
 	#	from outside: stock_id, user, transactionNum, command
 	audit_event ("incoming", now(), data.get('transactionNum',0), data.get('command',"missing command"), data.get('user','No User'), data.get('stock_id',"---"), None, None, None, None)	
-	
+
+	print "In connection handler, about to scan cache"
 	if data.get("command") == "BUY" or data.get("command") == "SELL":
 		quote = scan_cache(data.get("stock_id"))
+		print "cache scanned, getting quote or sending response"
 		if quote["status"] != "success":
 			quote = get_quote(data.get("stock_id"),data.get("user"),data.get("transactionNum"))
 			update_cache(quote)
