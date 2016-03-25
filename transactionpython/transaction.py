@@ -22,7 +22,7 @@ print server_name
 
 web_server_address = 'b132.seng.uvic.ca' # Workload Generator
 
-audit_server_address = ['b149.seng.uvic.ca', 'b153.seng.uvic.ca']
+audit_server_address = 'b149.seng.uvic.ca'
 audit_server_port = 44421
 
 cache_server_address = ['b143.seng.uvic.ca', 'b144.seng.uvic.ca', 'b145.seng.uvic.ca']
@@ -60,7 +60,7 @@ def send_audit_entry(message):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     # Connect the socket to the port where the server is listening
-    server_address = (audit_server_address[server_id%2], audit_server_port)
+    server_address = (audit_server_address, audit_server_port)
     sock.connect(server_address)
 
     try:
