@@ -96,7 +96,7 @@ def init_listen():
 	return 1
 
 def get_quote(stock_id, user, transactionNum):
-
+	print "IN GET QUOTE\n"
 	outgoing_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 	outgoing_socket.connect((QUOTE_SERVER_HOST, QUOTE_SERVER_PORT))
@@ -283,9 +283,10 @@ def thread_conn_handler(conn):
 	
 	#	from outside: stock_id, user, transactionNum, command
 	audit_event ("incoming", now(), data.get('transactionNum',0), data.get('command',"missing command"), data.get('user','No User'), data.get('stock_id',"---"), None, None, None, None)	
-	
+	print "In connection handler, about to scan cache"
 	if data.get("command") == "BUY" or data.get("command") == "SELL":
 		quote = scan_cache(data.get("stock_id"))
+		   print "cache scanned, getting quote or sending response"
 		if quote["status"] != "success":
 			quote = get_quote(data.get("stock_id"),data.get("user"),data.get("transactionNum"))
 			update_cache(quote)
