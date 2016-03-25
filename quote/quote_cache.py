@@ -221,6 +221,7 @@ def audit_event(
 	
 def scan_cache(stock_id):
 
+	print "aquiring lock"
 	cache_lock.acquire()
 	
 	if stock_id in cache:
@@ -244,7 +245,7 @@ def scan_cache(stock_id):
 		message = {
 			"status" : "unknown"
 		}
-
+	print "releasing lock"
 	cache_lock.release()
 	
 	return message
