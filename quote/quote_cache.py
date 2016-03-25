@@ -213,7 +213,8 @@ def audit_event(
 		pass
 	t = threading.Thread(target=send_audit, args=(message,))
 	t.start()
-	send_audit(str(message))
+	#the above thread now does this
+	#send_audit(str(message))
 	
 	return
 	
