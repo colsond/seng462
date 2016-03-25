@@ -2,24 +2,33 @@ import ast
 import socket
 import sys
 import io
+import time
+import threading
 from thread import *
  
 
 if(len(sys.argv)==2):
     audit_id = sys.argv[1]
-
 else:
    # audit id 0 is the master
    audit_id = 0 
 
-HOST = ''   # Symbolic name meaning all available interfaces
-PORT = 44421 # Arbitrary non-privileged port
 
-logfile = "logfile_" + auditid + ".xml"
- 
+# Symbolic name meaning all available interfaces
+HOST = ''
+# Arbitrary non-privileged port
+PORT = 44421 
+#logfile name
+logfile = "logfile_" + audit_id + ".xml"
+#string to hold staging logs
+staging_logs = ""
+#lock for appending logs
+audit_lock = threading.Semaphore(1)
+
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+
 print 'Socket created'
- 
 #Bind socket to local host and port
 try:
     s.bind((HOST, PORT))
@@ -32,6 +41,9 @@ print 'Socket bind complete'
 #Start listening on socket
 s.listen(200)
 print 'Socket now listening'
+
+
+
 
 ###USER COMMAND TYPE
 def parseUserCommand(entryDict):
@@ -213,6 +225,7 @@ def parseDebug(entryDict):
     return DebugType
 # This function handles the data package recieved thru the socket and dumps it into the audit log
 def handleEntry(strdict):
+    global staging_logs
     xmlPacket = ''
     #print strdict
     #unpack string into dictionary
@@ -238,17 +251,30 @@ def handleEntry(strdict):
         print "unknown log type"
         return "UNKNOWN_LOG_TYPE"
     #unknown log type ?throw an error?
+    
+    #aquire audit lock and append the string
+    audit_lock.acquire()
+    staging_logs = staging_logs + xmlPacket
+    audit_lock.release()
 
-    #open log file to append to, may need to put this in a try block
-    f = open(logfile, 'a')     
-    
-    #for debugging
-    #print xmlPacket
-    
-    f.write(xmlPacket)
-    f.close() 
+
     return "OK"
 
+def writerthread():
+    global staging_logs
+    while True:
+        #get the lock and copy the staging logs
+        audit_lock.acquire()
+        to_be_logged = staging_logs
+        staging_logs = ""
+        audit_lock.release()
+
+        #write all staging audits to the logfile then sleep for a second
+        if(staging_logs):
+            f = open(logfile, 'a')
+            f.write(to_be_logged)
+            f.close()
+        time.sleep(1)
 
 
 #Function for handling connections. This will be used to create threads
@@ -278,6 +304,7 @@ if(audit_id==0):
     f = open(logfile, 'a')
     f.write('<?xml version="1.0"?>\n<log>\n')
     f.close()
+start_new_thread(writerthread,())
 while 1:
     try:
 	    #wait to accept a connection - blocking call
