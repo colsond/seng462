@@ -12,8 +12,6 @@ else:
    # audit id 0 is the master
    audit_id = 0 
 
-
-print(audit_id)
 HOST = ''   # Symbolic name meaning all available interfaces
 PORT = 44421 # Arbitrary non-privileged port
  
