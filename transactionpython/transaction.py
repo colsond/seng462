@@ -946,7 +946,7 @@ def get_quote(data):
         server_address = (cache_server_address[0], cache_server_port)
         
         sock.connect(server_address)
-        sock.sendall(str(output))
+        sock.sendall(str(data))
         response = sock.recv(1024)
         response = ast.literal_eval(response)
         sock.close()
@@ -958,7 +958,7 @@ def get_quote(data):
         server_address = (cache_server_address[1], cache_server_port)
         
         sock.connect(server_address)
-        sock.sendall(str(output))
+        sock.sendall(str(data))
         response = sock.recv(1024)
         response = ast.literal_eval(response)
         sock.close()
@@ -970,7 +970,7 @@ def get_quote(data):
         server_address = (cache_server_address[2], cache_server_port)
         
         sock.connect(server_address)
-        sock.sendall(str(output))
+        sock.sendall(str(data))
         response = sock.recv(1024)
         response = ast.literal_eval(response)
         sock.close()
