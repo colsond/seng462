@@ -4,6 +4,7 @@ import sys
 import string
 import Queue
 import os
+import requests
 
 from threading import Thread, current_thread
 
@@ -18,6 +19,7 @@ AUDIT_SERVER_PORT = 44421
 NUM_WORKER_THREADS = 100
 
 web_server_port = 44422
+web_server_authenticate = 'http://127.0.0.1:5000/authenticate'
 
 MY_NAME = "Workload"
 
@@ -285,6 +287,12 @@ def sendWorkload(user, pid):
 			# INVALID REQUEST
 			print "invalid request: " + request[0]
 
+#-----------------------------------------------------------------------------
+#
+def get_transaction_server(user):
+	response = requests.post(url=web_server_authenticate, json={"username":user}).json()
+
+	return response["tx_server"]
 
 
 #-----------------------------------------------------------------------------
@@ -292,8 +300,9 @@ def sendWorkload(user, pid):
 def worker(id):
 	while True:
 	    user = q.get()
-	    process = id
-	    sendWorkload(user, process)
+	    process = get_transaction_server(user)
+	    print process
+	    # sendWorkload(user, process)
 	    q.task_done()
 
 #-----------------------------------------------------------------------------
