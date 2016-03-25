@@ -270,7 +270,7 @@ def writerthread():
         audit_lock.release()
 
         #write all staging audits to the logfile then sleep for a second
-        if(staging_logs):
+        if(to_be_logged):
             f = open(logfile, 'a')
             f.write(to_be_logged)
             f.close()
