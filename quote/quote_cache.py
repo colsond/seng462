@@ -169,6 +169,7 @@ def audit_event(
 		quoteServerTime,
 		cryptokey,
 		errorMessage):
+	print "AUDITING EVENT"
 	
 	if type == "incoming":
 		return
