@@ -19,7 +19,7 @@ HOST = ''
 # Arbitrary non-privileged port
 PORT = 44421 
 #logfile name
-logfile = "logfile_" + audit_id + ".xml"
+logfile = "logfile_" + str(audit_id) + ".xml"
 #string to hold staging logs
 staging_logs = ""
 #lock for appending logs
