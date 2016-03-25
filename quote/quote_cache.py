@@ -234,11 +234,13 @@ def scan_cache(stock_id):
 				"cryptokey": cache[stock_id]["cryptokey"],
 				"cacheexpire" : cache[stock_id]["cacheexpire"]
 			}
+			print "cache hit"
 		else:
 			message = {
 				"status" : "expired"
 			}
 	else:
+		print "cache miss"
 		message = {
 			"status" : "unknown"
 		}
