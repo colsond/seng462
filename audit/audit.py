@@ -14,6 +14,8 @@ else:
 
 HOST = ''   # Symbolic name meaning all available interfaces
 PORT = 44421 # Arbitrary non-privileged port
+
+logfile = "logfile_" + auditid + ".xml"
  
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 print 'Socket created'
@@ -238,7 +240,7 @@ def handleEntry(strdict):
     #unknown log type ?throw an error?
 
     #open log file to append to, may need to put this in a try block
-    f = open('logfile.xml', 'a')     
+    f = open(logfile, 'a')     
     
     #for debugging
     #print xmlPacket
@@ -273,7 +275,7 @@ def clientthread(conn):
     sys.exit(0) 
 #now keep talking with the client
 if(audit_id==0):
-    f = open('logfile.xml', 'a')
+    f = open(logfile, 'a')
     f.write('<?xml version="1.0"?>\n<log>\n')
     f.close()
 while 1:
@@ -286,7 +288,7 @@ while 1:
 	    start_new_thread(clientthread ,(conn,))
     except:
         if(audit_id==0):
-    	    f = open('logfile.xml', 'a')
+    	    f = open(logfile, 'a')
     	    f.write("</log>")
     	    f.close()
 	    sys.exit(0) 
