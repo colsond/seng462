@@ -10,8 +10,15 @@ from threading import Thread, current_thread, activeCount
 
 from database import Database
 
-server_name = "transaction_server_1"
-server_id = 1
+
+if(len(sys.argv)==2):
+    server_id = sys.argv[1]
+
+else:
+   server_id = 0 
+
+server_name = "transaction_server_%" + server_id
+print server_name
 
 web_server_address = 'b132.seng.uvic.ca' # Workload Generator
 
