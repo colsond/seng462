@@ -931,6 +931,9 @@ def get_quote(data):
     #pull out stock ID to send to a given cache server
     stock_id = data.get('stock_id')
 
+		output = "{\'stock_id\':'"+data.get('stock_id')+"\'"
+		output += ",\'user\':'"+data.get('user')+"\'}"
+
     #python string compare values a>z>A>Z>1>9>0
     #stock quotes only seem to be capital letters so we can trisection the alphabet
     # A-I, J-Q, R-Z
@@ -943,7 +946,7 @@ def get_quote(data):
         server_address = (cache_server_address[0], cache_server_port)
         
         sock.connect(server_address)
-        sock.sendall(str(data))
+        sock.sendall(str(output))
         response = sock.recv(1024)
         response = ast.literal_eval(response)
         sock.close()
@@ -955,7 +958,7 @@ def get_quote(data):
         server_address = (cache_server_address[1], cache_server_port)
         
         sock.connect(server_address)
-        sock.sendall(str(data))
+        sock.sendall(str(output))
         response = sock.recv(1024)
         response = ast.literal_eval(response)
         sock.close()
@@ -967,7 +970,7 @@ def get_quote(data):
         server_address = (cache_server_address[2], cache_server_port)
         
         sock.connect(server_address)
-        sock.sendall(str(data))
+        sock.sendall(str(output))
         response = sock.recv(1024)
         response = ast.literal_eval(response)
         sock.close()
