@@ -5,12 +5,14 @@ app = Flask(__name__)
 @app.route('/')
 @app.route('/index')
 def index():
-    return render_template('index.html')
+    #return render_template('index.html')
+    return 'whats up'
 
 @app.route('/trader')
 def trader():
     print 'trader times?!'
-    return render_template('trader.html')
+    #return render_template('trader.html')
+    return 'trader?'
 
 @app.route('/authenticate', methods=['POST'])
 def authenticate():
@@ -34,4 +36,4 @@ def authenticate():
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port='44442')
+    app.run()
