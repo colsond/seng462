@@ -1,9 +1,5 @@
-def application(environ, start_response):
-    status = '200 OK'  
-    output = 'Hello World!'
+import sys
 
-    response_headers = [('Content-type', 'text/plain'),
-                    ('Content-Length', str(len(output)))]
-    start_response(status, response_headers)
+sys.path.append('/seng/seng462/group2/seng462/webserver')
 
-    return [output]
+from flaskserver import app as application
