@@ -931,8 +931,8 @@ def get_quote(data):
     #pull out stock ID to send to a given cache server
     stock_id = data.get('stock_id')
 
-		output = "{\'stock_id\':'"+data.get('stock_id')+"\'"
-		output += ",\'user\':'"+data.get('user')+"\'}"
+    output = "{\'stock_id\':'"+data.get('stock_id')+"\'"
+    output += ",\'user\':'"+data.get('user')+"\'}"
 
     #python string compare values a>z>A>Z>1>9>0
     #stock quotes only seem to be capital letters so we can trisection the alphabet
@@ -1025,8 +1025,8 @@ def main():
 
         except:
             print 'Recieved user interrupt'
-            #sys.exit(0)
-            #break
+            sys.exit(0)
+            break
     s.close()
 
 
