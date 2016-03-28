@@ -19,7 +19,7 @@ HOST = ''
 # Arbitrary non-privileged port
 PORT = 44421 
 #logfile name
-logfile = "logfile_" + audit_id + ".xml"
+logfile = "logfile_" + str(audit_id) + ".xml"
 #string to hold staging logs
 staging_logs = ""
 #lock for appending logs
@@ -270,7 +270,7 @@ def writerthread():
         audit_lock.release()
 
         #write all staging audits to the logfile then sleep for a second
-        if(staging_logs):
+        if(to_be_logged):
             f = open(logfile, 'a')
             f.write(to_be_logged)
             f.close()

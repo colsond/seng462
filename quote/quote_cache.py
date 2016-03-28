@@ -96,7 +96,6 @@ def init_listen():
 	return 1
 
 def get_quote(stock_id, user, transactionNum):
-
 	outgoing_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 	outgoing_socket.connect((QUOTE_SERVER_HOST, QUOTE_SERVER_PORT))
@@ -213,6 +212,7 @@ def audit_event(
 		pass
 	t = threading.Thread(target=send_audit, args=(message,))
 	t.start()
+	#the above thread now does this
 	#send_audit(str(message))
 	
 	return
@@ -240,7 +240,6 @@ def scan_cache(stock_id):
 		message = {
 			"status" : "unknown"
 		}
-
 	cache_lock.release()
 	
 	return message
@@ -279,7 +278,7 @@ def thread_conn_handler(conn):
 	
 	#	from outside: stock_id, user, transactionNum, command
 	audit_event ("incoming", now(), data.get('transactionNum',0), data.get('command',"missing command"), data.get('user','No User'), data.get('stock_id',"---"), None, None, None, None)	
-	
+
 	if data.get("command") == "BUY" or data.get("command") == "SELL":
 		quote = scan_cache(data.get("stock_id"))
 		if quote["status"] != "success":
