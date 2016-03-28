@@ -31,7 +31,7 @@ cache_server_port = 44420
 SELF_HOST = ''
 SELF_PORT = 44422
 
-MAX_THREADS = 10
+MAX_THREADS = 20
 
 # Commands
 ADD = "ADD"
