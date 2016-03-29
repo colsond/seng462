@@ -74,7 +74,7 @@ import getopt
 import Queue
 
 HOST = ''
-PORT = 44420
+PORT = 44421
 MIN_PORT = 44420
 MAX_PORT = 44429
 
@@ -84,8 +84,8 @@ incoming_socket.settimeout(1)
 MAX_INCOMING_CONN_BUFFER = 10
 
 NUM_LISTENER_THREADS = 10
+NUM_CHECKER_THREADS = 5
 
-MAX_THREADS = 50	# always one for the connection handler
 
 QUOTE_REFRESH_TIME = 5000	# update records older than this many milliseconds
 
@@ -99,12 +99,17 @@ subcache_updated = 0		# dirty flag
 audit_server_address = 'b142.seng.uvic.ca'
 audit_server_port = 44421
 
-cache_server_address = 'b137.seng.uvic.ca'
+cache_server_addressA = 'b133.seng.uvic.ca'
+cache_server_addressB = 'b134.seng.uvic.ca'
+cache_server_addressC = 'b135.seng.uvic.ca'
 cache_server_port = 44420
 
 shutdown = 0
 
-q = Queue.Queue()
+incoming_queue = Queue.Queue()
+trigger_queue = Queue.Queue()
+
+incoming = []
 
 #-----------------------------------------------------------------------------
 # now
@@ -125,18 +130,46 @@ def now():
 # target_server_address and target_server_port need to be set globally or the function must be modified to receive these values
 def get_quote(data):
 
-	# Create a TCP/IP socket
-	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	# Connect the socket to the port where the server is listening
-	server_address = (cache_server_address, cache_server_port)
+	if data.get('user').upper() <= 'I':
+		server_address = (cache_server_addressA, cache_server_port)
+	elif data.get('user').upper() <= 'R':
+		server_address = (cache_server_addressB, cache_server_port)
+	else:
+		server_address = (cache_server_addressC, cache_server_port)
 
-	sock.connect(server_address)
-	sock.sendall(str(data))
-	response = sock.recv(1024)
+	while True:
+		try:
+			quote_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		except:
+			time.sleep(0.5)
+			continue
+
+		try:
+			quote_socket.connect(server_address)
+		except:
+			time.sleep(0.5)
+			continue
+
+		try:
+			quote_socket.send(str(data))
+		except:
+			quote_socket.shutdown(2)
+			quote_socket.close()
+			continue
+		
+		try:
+			response = quote_socket.recv(1024)
+		except:
+			quote_socket.shutdown(2)
+			quote_socket.close()
+			continue
+		else:
+			break
+
+	quote_socket.shutdown(2)
+	quote_socket.close()
+
 	response = ast.literal_eval(response)
-	#print '--Quote server fuel:\n' + str(data)
-	#print '--Quote server reply:\n' + str(response)
-	sock.close()
 
 	return response
 	
@@ -164,14 +197,14 @@ def subcache_update(data):
 # Special incoming command to show cache contents for debugging
 # {command: 'DUMP', stock_id: ANY, user: ANY, transactionNum: ANY}
 #
-def thread_conn_handler():
+def thread_conn_handler(tid):
 	global shutdown
 	global cache
 	global subcache
 
 	while True:
 		#If the shutdown has been signalled, make sure the queue is empty before exiting
-		if q.empty():
+		if incoming_queue.empty():
 
 			if shutdown > 0:
 				break
@@ -180,37 +213,36 @@ def thread_conn_handler():
 
 		else:
 
-			connection = q.get()
+			connection = incoming_queue.get()
 			data = connection.recv(1024)
 			data = ast.literal_eval(data)
 
 			if __debug__:
-				f = open('handle-' + str(data.get('transactionNum','no_transactionNum')),'a')
+				f = open('handle-' + str(data.get('command','check_quote_NC')) + '-' + str(data.get('transactionNum','check_quote_NT')),'a')
 				f.write('Received from incoming connection from ' + str(connection.getpeername()) + '\n')
 				f.write(str(data) + '\n')
 				f.close()
 
 			connection.close()
 
-			if data.get('command') == 'DUMP':
+			if data.get('command') == 'DUMPLOG':
 
 				shutdown += 1
-				q.task_done()
+				incoming_queue.task_done()
 
 				if __debug__:
-					print '\n----------------------------' + str(shutdown) + '------------------------------\n'
-					print '\n----------------------------' + str(shutdown) + '------------------------------\n'
+					print '\n------------------------- Shutdown (' + str(shutdown) + ') -----------------------------\n'
 
 				break
 
 			else:
 				#process incoming data
-				temp = {data.get('user','Error'):{data.get('stock_id'):{'cacheexpire':0,'amount':data.get('amount'),'trigger':data.get('trigger'),'transactionNum':data.get('transactionNum'),'command':data.get('command')}}}
-				subcache_update(temp)
-
+				temp = {data.get('user','Error'):{data.get('stock_id'):{'cacheexpire':123,'amount':data.get('amount'),'trigger':data.get('trigger'),'transactionNum':data.get('transactionNum'),'command':data.get('command')}}}
+				
 				#get a quote from the quote cache and see if the trigger can be cleared
-				cache_check(subcache,data.get('user'),data.get('stock_id'))
-				q.task_done()
+				check_quote(temp,data.get('user'),data.get('stock_id'))
+				subcache_update(temp)
+				incoming_queue.task_done()
 
 #end thread_conn_handler
 
@@ -230,6 +262,7 @@ def init_listen():
 
 	except socket.error , msg:
 		print 'Bind failed. Error Code : ' + str(msg[0]) + ' Message ' + msg[1]
+		shutdown += 1
 		return 0
 	
 	if __debug__:
@@ -242,14 +275,14 @@ def init_listen():
 
 	#Create consumer threads
 	for i in range(NUM_LISTENER_THREADS):
-		t = threading.Thread(target=thread_conn_handler, args=())
+		t = threading.Thread(target=thread_conn_handler, args=(i,))
 		t.daemon = True
 		t.start()
 	
 	# Put incoming requests on a queue to be consumed
 	while True:
 
-		# flag set in the consumer threads when a 'DUMP' command is received
+		# flag set in the consumer threads when a 'DUMPLOG' command is received
 		if shutdown > 0:
 
 			break
@@ -265,129 +298,208 @@ def init_listen():
 					#print 'Connection from ' + addr[0] + ' - shutdown = ' + str(shutdown) + '\n'
 					pass
 
-				q.put(conn)
+				incoming_queue.put(conn)
 
 	if __debug__:
-		print 'Waiting for queue to empty\n'
+		print 'Waiting for incoming queue to empty\n'
 
-	q.join()
+	incoming_queue.join()
+
+	if __debug__:
+		print 'Closing socket\n'
 
 	incoming_socket.close()
 #end init_listen
 	
-def cache_check(cache, user, stock):#, values):
-	global cache_updated
+def check_quote(cache_ref, user, stock):#, values):
+	global shutdown
 
-	if __debug__:
-		print cache #### PROBLEM HERE
-		f = open('handle-' + str(cache[user][stock].get('command')) + '-' + str(cache[user][stock].get('transactionNum','bad_cache_check')),'a')
-		f.write('Function cache_check input:\n')
-		f.write('User [' + str(user) + ']\n')
-		f.write('Stock [' + str(stock) + ']\n')
-		f.write('Cache [' + str(cache) + ']\n\n')
-
-	if cache[user][stock].get('cacheexpire') is not None:
-
-		if __debug__:
-			f.write('Checking if transaction ' + str(cache[user][stock].get('transactionNum')) + ' needs to be refreshed\n')
-			f.write('Using the following values\n')
-			f.write(str(cache[user][stock].get('cacheexpire')) + ' - ' + str(now()) + ' = ' + str(cache[user][stock].get('cacheexpire') - now()) + ' < ' + str(QUOTE_REFRESH_TIME) + '\n\n')
-
-		if (cache[user][stock].get('cacheexpire') - now()) < QUOTE_REFRESH_TIME:
-
-			#assemble the quote request
-			tx_data = {'stock_id':stock,'user':user,'transactionNum':cache[user][stock]['transactionNum'],'command':'TRIGGER'}
-
-			if __debug__:
-				f.write('Refresh required. Getting new quote for transaction ' + str(cache[user][stock].get('transactionNum')) + ' using:\n')
-				f.write(str(tx_data) + '\n\n')
-
-			#send quote request
-			quote = get_quote(tx_data)
-			#returns: stock_id, user, transactionNum, price, timestamp, cryptokey, cacheexpire
-			
-			#BUY trigger
-			if cache[user][stock].get('command') == 'BUY':
-
+	if any(cache_ref):
+		if user in cache_ref:
+			if stock in cache_ref[user]:
 				if __debug__:
-					f.write('Buy quote value (' + str(quote.get('price')) + '), Trigger buy at (' + str(cache[user][stock].get('trigger')) + ')\n')			
-
-				if quote.get('price') <= cache[user][stock].get('trigger'):
-
-					if __debug__:
-						f.write('Buy trigger activated on transaction ' + str(cache[user][stock].get('transactionNum')) + '\n\n')
-
-					#give the stock
-					del cache[user][stock]
-					if any(cache[user]):
-						if __debug__:
-							f.write('User has remaining stock triggers - leaving user in cache\n')
-					else:
-						if __debug__:
-							f.write('User has no remaining stock triggers - removing user from cache\n')
-						del cache[user]
-					
-				else:
-
-					if __debug__:
-						f.write('Buy trigger not activated on transaction ' + str(cache[user][stock].get('transactionNum')) + '\n')
-						f.write('Expiration updated\n')
-						f.write('New expiration: ' + str(quote.get('cacheexpire')) + '\n\n')
-
-					cache[user][stock]['cacheexpire'] = quote.get('cacheexpire')
-			
-			#SELL trigger
-			elif cache[user][stock].get('command') == 'SELL':
-
-				if __debug__:
-					f.write('Sell quote value (' + str(quote.get('price')) + '), Trigger price (' + str(cache[user][stock].get('trigger')) + ')\n')
-			
-				if quote.get('price') >= cache[user][stock].get('trigger'):
-
-					if __debug__:
-						f.write('Sell trigger activated on transaction ' + str(cache[user][stock].get('transactionNum')) + '\n\n')
-
-					#give the money
-
-					if __debug__:
-						f.write('Removing stock trigger from user\n')
-
-					del cache[user][stock]
-
-					if any(cache[user]):
-						if __debug__:
-							f.write('User has remaining stock triggers - leaving user in cache\n')
-					else:
-						if __debug__:
-							f.write('User has no remaining stock triggers - removing user from cache\n')
-						del cache[user]
-					
-				else:
-
-					if __debug__:
-						f.write('Trigger not activated on transaction ' + str(cache[user][stock].get('transactionNum')) + '\n')
-						f.write('Expiration updated\n')
-						f.write('New expiration: ' + str(quote.get('cacheexpire')) + '\n\n')
-
-					cache[user][stock]['cacheexpire'] = quote.get('cacheexpire')
-					
-			else:
-				if __debug__:
-					f.write('Not a BUY or SELL trigger\n')
+					try:
+						f = open('handle-' + str(cache_ref[user][stock].get('command','check_quote_NC')) + '-' + str(cache_ref[user][stock].get('transactionNum','check_quote_NT')),'a')
+					except:
+						f = open('handle-Error','a')
+						f.write(cache_ref)
+					f.write('Function check_quote input:\n')
 					f.write('User [' + str(user) + ']\n')
 					f.write('Stock [' + str(stock) + ']\n')
-					f.write('Cache [' + str(cache) + ']\n\n')
+					f.write('Cache [' + str(cache_ref) + ']\n\n')
+
+				if cache_ref[user][stock].get('cacheexpire') is not None:
+
+					if __debug__:
+						f.write('Checking if transaction ' + str(cache_ref[user][stock].get('transactionNum')) + ' needs to be refreshed\n')
+						f.write('Using the following values\n')
+						f.write(str(cache_ref[user][stock].get('cacheexpire')) + ' - ' + str(now()) + ' = ' + str(cache_ref[user][stock].get('cacheexpire') - now()) + ' < ' + str(QUOTE_REFRESH_TIME) + '\n\n')
+
+					if (cache_ref[user][stock].get('cacheexpire') - now()) < QUOTE_REFRESH_TIME:
+
+						#assemble the quote request
+						tx_data = {'stock_id':stock,'user':user,'transactionNum':cache_ref[user][stock]['transactionNum'],'command':'TRIGGER'}
+
+						if __debug__:
+							f.write('Refresh required. Getting new quote for transaction ' + str(cache_ref[user][stock].get('transactionNum')) + ' using:\n')
+							f.write(str(tx_data) + '\n\n')
+
+						#send quote request
+						quote = get_quote(tx_data)
+						#returns: stock_id, user, transactionNum, price, timestamp, cryptokey, cacheexpire
+
+						#BUY trigger
+						try:
+							if cache_ref[user][stock].get('command') == 'BUY':
+
+								if __debug__:
+									f.write('Buy quote value (' + str(quote.get('price')) + '), Trigger buy at (' + str(cache_ref[user][stock].get('trigger')) + ')\n')
+								try:
+									if float(quote.get('price')) <= float(cache_ref[user][stock].get('trigger')):
+
+										if __debug__:
+											f.write('Buy trigger activated on transaction ' + str(cache_ref[user][stock].get('transactionNum')) + '\n\n')
+
+#										print "Yay! Stock!"
+										#give the stock
+										del cache_ref[user][stock]
+										if any(cache_ref[user]):
+											if __debug__:
+												f.write('User has remaining stock triggers - leaving user in cache\n')
+										else:
+											if __debug__:
+												f.write('User has no remaining stock triggers - removing user from cache\n')
+											del cache_ref[user]
+					
+									else:
+
+										if __debug__:
+											f.write('Buy trigger not activated on transaction ' + str(cache_ref[user][stock].get('transactionNum')) + '\n')
+											f.write('Expiration updated\n')
+											f.write('New expiration: ' + str(quote.get('cacheexpire')) + '\n\n')
+
+										cache_ref[user][stock]['cacheexpire'] = quote.get('cacheexpire')
+								#end try
+								except:
+									print '-------------------------------------------------------------------'
+									print "ERROR"
+									print '-------------------------------------------------------------------'
+									print quote
+									print '-------------------------------------------------------------------'
+									print cache_ref
+									print '-------------------------------------------------------------------'
+									shutdown += 1
+						
+			
+							#SELL trigger
+							elif cache_ref[user][stock].get('command') == 'SELL':
+
+								if __debug__:
+									f.write('Sell quote value (' + str(quote.get('price')) + '), Trigger price (' + str(cache_ref[user][stock].get('trigger')) + ')\n')
+			
+								if float(quote.get('price')) >= float(cache_ref[user][stock].get('trigger')):
+
+									if __debug__:
+										f.write('Sell trigger activated on transaction ' + str(cache_ref[user][stock].get('transactionNum')) + '\n\n')
+
+									#give the money
+#									print "Yay! Money!"
+
+									if __debug__:
+										f.write('Removing stock trigger from user\n')
+
+									del cache_ref[user][stock]
+
+									if any(cache_ref[user]):
+										if __debug__:
+											f.write('User has remaining stock triggers - leaving user in cache\n')
+									else:
+										if __debug__:
+											f.write('User has no remaining stock triggers - removing user from cache\n')
+										del cache_ref[user]
+					
+								else:
+
+									if __debug__:
+										f.write('Trigger not activated on transaction ' + str(cache_ref[user][stock].get('transactionNum')) + '\n')
+										f.write('Expiration updated\n')
+										f.write('New expiration: ' + str(quote.get('cacheexpire')) + '\n\n')
+
+									cache_ref[user][stock]['cacheexpire'] = quote.get('cacheexpire')
+					
+							else:
+								if __debug__:
+									f.write('Not a BUY or SELL trigger\n')
+									f.write('User [' + str(user) + ']\n')
+									f.write('Stock [' + str(stock) + ']\n')
+									f.write('Cache [' + str(cache_ref) + ']\n\n')
+								pass
+						except:
+							if user in cache_ref:
+								print "check_quote failed: " + str(user) + ' ' + str(stock) + '\n' + str(cache_ref[user])
+							else:
+								print "check_quote failed: " + str(user) + ' ' + str(stock) + '\n' + 'user not in cache_ref'
+
+				if __debug__:
+					f.write('Function check_quote output:\n')
+					f.write('User [' + str(user) + ']\n')
+					f.write('Stock [' + str(stock) + ']\n')
+					f.write('Cache [' + str(cache_ref) + ']\n\n')
+					f.close
+			else:
+				if __debug__:
+					print 'Stock (' + str(stock) + ') not found for user (' + str(user) + ')'
+		else:
+			if __debug__:
+				print 'User (' + str(user) + ') not found'
+	else:
+		if __debug__:
+			print 'No items in referenced cache: (' + str(cache_ref) + ')'
+#end check_quote
+
+def check_triggers():
+	#Create consumer threads
+	for i in range(NUM_CHECKER_THREADS):
+		t = threading.Thread(target=thread_check_cached_triggers, args=())
+		t.daemon = True
+		t.start()
+
+	while True:
+		if shutdown > 0:
+			break
+		else:
+			if trigger_queue.empty():
+				for user,trigger in cache.items():
+					for stock,values in trigger.items():
+						trigger_queue.put((user,stock))
+			else:
 				pass
+		if __debug__:
+			print 'Waiting for trigger queue to empty'
 
-	if __debug__:
-		f.write('Function cache_check output:\n')
-		f.write('User [' + str(user) + ']\n')
-		f.write('Stock [' + str(stock) + ']\n')
-		f.write('Cache [' + str(cache) + ']\n\n')
-
-	f.close
-#end cache_check
-
+def thread_check_cached_triggers():
+	while True:
+		if shutdown > 0:
+			break
+		else:
+			if trigger_queue.empty():
+				pass
+			else:
+				user,stock = trigger_queue.get()
+				if user in cache:
+					if stock in cache[user]:
+#				print cache[user][stock]
+						check_quote(cache,user,stock)
+#				if user in cache:
+#					if stock in cache[user]:
+#						print cache[user][stock]
+#					else:
+#						print str(user) + ' still here but stock deleted'
+#				else:
+#					print str(user) + ' deleted'
+				trigger_queue.task_done()
+	
+#user : { stock : { price, trigger, etc}}
 
 def main(argv):
 	global PORT
@@ -428,8 +540,12 @@ def main(argv):
 	
 	# Set up incoming socket, create consumer threads for incoming connections,
 	# queue up incoming data for consumers
-	t = threading.Thread(target=init_listen, args=())
-	t.start()
+	t_list = threading.Thread(target=init_listen, args=())
+	t_list.start()
+
+	t_trig = threading.Thread(target=check_triggers, args=())
+	t_trig.daemon = True
+	t_trig.start()
 	
 	while True:
 		subcache_lock.acquire()
@@ -446,19 +562,24 @@ def main(argv):
 				print 'subcache emptied? ' + str(subcache)
 
 		subcache_lock.release()
+
 		if shutdown > 0:
 			break
 
-	t.join()
+		time.sleep(1)
+	# end while
+
+
+	t_list.join()
 	cache_updated = 0
 
-	if __debug__:
-		print '\n---------------\n'
-		print 'cache contents:\n'
-		print str(cache)
-		print '\n---------------\n'
-		print 'subcache contents:\n'
-		print str(subcache)	
+	#if __debug__:
+	print '\n---------------\n'
+	print 'cache contents:\n'
+	print str(cache)
+	print '\n---------------\n'
+	print 'subcache contents:\n'
+	print str(subcache)	
 
 if __name__ == "__main__":
 	main(sys.argv[1:])
