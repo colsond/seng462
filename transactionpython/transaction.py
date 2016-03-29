@@ -5,6 +5,7 @@ import socket
 import string
 import sys
 import time
+import yappi
 from thread import *
 from threading import Thread, current_thread, activeCount
 
@@ -31,7 +32,7 @@ cache_server_port = 44420
 SELF_HOST = ''
 SELF_PORT = 44422
 
-MAX_THREADS = 20
+MAX_THREADS = 10
 
 # Commands
 ADD = "ADD"
@@ -1005,7 +1006,7 @@ def main():
         dbuser="cusmith",
         dbpass="",
         minconn=1,
-        maxconn=100,
+        maxconn=10,
     )
     db.initialize()
     #global active_threads
@@ -1013,6 +1014,7 @@ def main():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind((SELF_HOST, SELF_PORT))
     s.listen(1)
+    yappi.start()
     global MAX_THREADS
     while 1:
         try:
@@ -1025,7 +1027,9 @@ def main():
 
         except:
             print 'Recieved user interrupt'
-            sys.exit(0)
+            yappi.get_func_stats().print_all()
+	    yappi.get_thread_stats().print_all()
+	    sys.exit(0)
             break
     s.close()
 

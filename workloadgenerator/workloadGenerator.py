@@ -4,6 +4,7 @@ import sys
 import string
 import Queue
 import os
+import yappi
 
 from threading import Thread, current_thread
 
@@ -393,7 +394,7 @@ def audit_event(
 
 def main():
 	userList = processWorkloadFile('/',working_dir, workload_file)
-
+	yappi.start()
 	for i in range(NUM_WORKER_THREADS):
 		t = Thread(target=worker, args=(i,))
 		t.daemon = True
@@ -401,15 +402,17 @@ def main():
 
 	i=0
 	for item in userList:
-		if workload_id =0 && i<50:
+		if workload_id == 0 and i<50:
 	        q.put(item)
-	    elif workload_id = 1 && i>=50:
+	    elif workload_id == 1 and i>=50:
 	    	q.put(item)
 	    i++
 	    
 	q.join() #blocks until everything is done
 	# then send last command
 	sendWorkload("last", 0)
+	yappi.get_func_stats().print_all()
+	yappi.get_thread_stats().print_all()
 
 if __name__ == "__main__":
     main()

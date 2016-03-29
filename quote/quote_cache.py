@@ -39,6 +39,7 @@ import sys
 import time
 import threading
 import getopt
+import yappi
 
 HOST = ''
 PORT = 44420
@@ -304,6 +305,7 @@ def thread_conn_handler(conn):
 def main(argv):
 	global PORT
 	
+	yappi.start()
 	try:
 		cmdline_options, args = getopt.getopt(argv,'hp:')
 	
@@ -329,6 +331,7 @@ def main(argv):
 	
 	if init_listen():
 		while 1:
+		    try:
 			conn, addr = incoming_socket.accept()
 			
 			if __debug__:
@@ -338,7 +341,10 @@ def main(argv):
 				pass
 			t = threading.Thread(target=thread_conn_handler, args=(conn,))
 			t.start()
-			
+		    except:
+			yappi.get_func_stats().print_all()
+		        yappi.get_thread_stats().print_all()
+		        break
 
 if __name__ == "__main__":
 	main(sys.argv[1:])

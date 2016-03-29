@@ -4,6 +4,7 @@ import sys
 import io
 import time
 import threading
+import yappi
 from thread import *
  
 
@@ -304,6 +305,7 @@ if(audit_id==0):
     f = open(logfile, 'a')
     f.write('<?xml version="1.0"?>\n<log>\n')
     f.close()
+yappi.start()
 start_new_thread(writerthread,())
 while 1:
     try:
@@ -318,6 +320,8 @@ while 1:
     	    f = open(logfile, 'a')
     	    f.write("</log>")
     	    f.close()
+	    yappi.get_func_stats().print_all()
+	    yappi.get_thread_stats().print_all()
 	    sys.exit(0) 
 
 s.close()
