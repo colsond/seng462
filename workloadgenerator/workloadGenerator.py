@@ -9,7 +9,7 @@ import yappi
 from threading import Thread, current_thread
 
 #this id is for running multiple generators, currently we only support 2
-workload_id = 0
+workload_id = 1
 
 #workload generator aims for however many transaction servers are set in the list below, all looking on port 44422 
 tx_server_address = ['b131.seng.uvic.ca', 'b132.seng.uvic.ca', 'b133.seng.uvic.ca', 'b134.seng.uvic.ca', 'b135.seng.uvic.ca','b136.seng.uvic.ca', 'b137.seng.uvic.ca', 'b138.seng.uvic.ca', 'b139.seng.uvic.ca', 'b140.seng.uvic.ca']
@@ -402,12 +402,12 @@ def main():
 
 	i=0
 	for item in userList:
-		if workload_id == 0 and i<50:
-	        q.put(item)
-	    elif workload_id == 1 and i>=50:
-	    	q.put(item)
-	    i++
-	    
+		if workload_id == 0 and i<500:
+			q.put(item)
+		elif workload_id == 1 and i>=500:
+			q.put(item)
+		i = i + 1
+
 	q.join() #blocks until everything is done
 	# then send last command
 	sendWorkload("last", 0)

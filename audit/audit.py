@@ -299,7 +299,9 @@ def clientthread(conn):
     #came out of loop
     print "Ending transmission"
     conn.close()
-    sys.exit(0) 
+    #yappi.get_func_stats().print_all()
+    #yappi.get_thread_stats().print_all()
+    #sys.exit(0) 
 #now keep talking with the client
 if(audit_id==0):
     f = open(logfile, 'a')

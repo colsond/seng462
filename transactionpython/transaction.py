@@ -990,10 +990,12 @@ def transactionWorkerthread(conn, db):
             conn.send(response)
 
         else:
+	    #yappi.get_func_stats().print_all()
+            #yappi.get_thread_stats().print_all()
             break
     conn.close()
     #active_threads -= 1 
-    sys.exit(1)
+    #sys.exit(1)
 
 
 
@@ -1006,7 +1008,7 @@ def main():
         dbuser="cusmith",
         dbpass="",
         minconn=1,
-        maxconn=10,
+        maxconn=100,
     )
     db.initialize()
     #global active_threads
@@ -1014,7 +1016,7 @@ def main():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind((SELF_HOST, SELF_PORT))
     s.listen(1)
-    yappi.start()
+    yappi.start()    
     global MAX_THREADS
     while 1:
         try:
@@ -1031,6 +1033,8 @@ def main():
 	    yappi.get_thread_stats().print_all()
 	    sys.exit(0)
             break
+    yappi.get_func_stats().print_all()
+    yappi.get_thread_stats().print_all()
     s.close()
 
 
