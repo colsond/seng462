@@ -104,6 +104,8 @@ cache_server_addressB = 'b134.seng.uvic.ca'
 cache_server_addressC = 'b135.seng.uvic.ca'
 cache_server_port = 44420
 
+cache_refresh_start = 0
+
 shutdown = 0
 
 incoming_queue = Queue.Queue()
@@ -130,9 +132,9 @@ def now():
 # target_server_address and target_server_port need to be set globally or the function must be modified to receive these values
 def get_quote(data):
 
-	if data.get('user').upper() <= 'I':
+	if data.get('stock_id').upper() <= 'I':
 		server_address = (cache_server_addressA, cache_server_port)
-	elif data.get('user').upper() <= 'R':
+	elif data.get('stock_id').upper() <= 'R':
 		server_address = (cache_server_addressB, cache_server_port)
 	else:
 		server_address = (cache_server_addressC, cache_server_port)
@@ -458,6 +460,7 @@ def check_quote(cache_ref, user, stock):#, values):
 #end check_quote
 
 def check_triggers():
+	global cache_refresh_start
 	#Create consumer threads
 	for i in range(NUM_CHECKER_THREADS):
 		t = threading.Thread(target=thread_check_cached_triggers, args=())
@@ -469,9 +472,13 @@ def check_triggers():
 			break
 		else:
 			if trigger_queue.empty():
-				for user,trigger in cache.items():
-					for stock,values in trigger.items():
-						trigger_queue.put((user,stock))
+				if cache_refresh_start < (now() - 60000):
+					cache_refresh_start = now()
+					for user,trigger in cache.items():
+						for stock,values in trigger.items():
+							trigger_queue.put((user,stock))
+				else:
+					pass
 			else:
 				pass
 		if __debug__:
@@ -543,9 +550,9 @@ def main(argv):
 	t_list = threading.Thread(target=init_listen, args=())
 	t_list.start()
 
-	t_trig = threading.Thread(target=check_triggers, args=())
-	t_trig.daemon = True
-	t_trig.start()
+	#t_trig = threading.Thread(target=check_triggers, args=())
+	#t_trig.daemon = True
+	#t_trig.start()
 	
 	while True:
 		subcache_lock.acquire()
