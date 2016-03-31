@@ -39,6 +39,7 @@ import sys
 import time
 import threading
 import getopt
+import Queue
 
 HOST = ''
 PORT = 44420
@@ -52,13 +53,17 @@ MY_NAME = 'Cache1'
 QUOTE_SERVER_HOST = 'quoteserve.seng.uvic.ca'
 QUOTE_SERVER_PORT = 4442
 QUOTE_SERVER_RECV = 100
+QUOTE_TIMEOUT = 0.500	#seconds (float)
 
 AUDIT_SERVER_ADDRESS = 'b149.seng.uvic.ca'
 AUDIT_SERVER_PORT = 44421
 
 QUOTE_LIFE = 45000	# in seconds
 
-MAX_THREADS = 100
+MAX_AUDIT_THREADS = 10
+AUDIT_THROTTLE_TIME = 0.0		# Time to sleep() after sending each audit message
+
+MAX_LISTENERS = 200
 
 incoming_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -73,6 +78,9 @@ cache = {
 		'cacheexpire': 0
 	}
 }
+
+incoming_queue = Queue.Queue()
+audit_queue = Queue.Queue()
 
 def now():
 	return int(time.time() * 1000)
@@ -97,14 +105,23 @@ def init_listen():
 
 def get_quote(stock_id, user, transactionNum):
 
-	outgoing_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	while True:
 
-	outgoing_socket.connect((QUOTE_SERVER_HOST, QUOTE_SERVER_PORT))
-	request = stock_id + "," + user + "\r"
-	outgoing_socket.send(request)
+		outgoing_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		outgoing_socket.settimeout(QUOTE_TIMEOUT)
 
-	response = outgoing_socket.recv(QUOTE_SERVER_RECV)
-	outgoing_socket.close()
+		outgoing_socket.connect((QUOTE_SERVER_HOST, QUOTE_SERVER_PORT))
+		request = stock_id + "," + user + "\r"
+		outgoing_socket.send(request)
+
+		try:
+			response = outgoing_socket.recv(QUOTE_SERVER_RECV)
+		except socket.timeout:
+			outgoing_socket.close()
+		else:
+			outgoing_socket.close()
+			break
+		
 	
 	if __debug__:
 		print response
@@ -131,32 +148,43 @@ def get_quote(stock_id, user, transactionNum):
 
 	return message
 
-def send_audit(message):
+def thread_send_audit():
 
-	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#	while True:
+#		message = audit_queue.get()
+#		audit_queue.task_done()
 
-	# Connect the socket to the port where the server is listening
-	server_address = (AUDIT_SERVER_ADDRESS, AUDIT_SERVER_PORT)
+
+#def null():
+
+	while True:
+		message = audit_queue.get()
+
+		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+		# Connect the socket to the port where the server is listening
+		server_address = (AUDIT_SERVER_ADDRESS, AUDIT_SERVER_PORT)
 	
-	if __debug__:
-		print 'connecting to ' + AUDIT_SERVER_ADDRESS + ' port ' + str(AUDIT_SERVER_PORT) + '\n'
-		
-	sock.connect(server_address)
-
-	try:
-		sock.sendall(str(message))
-		response = sock.recv(1024)
-		
 		if __debug__:
-			print >>sys.stderr, 'sent "%s"\n' % message
-			print >>sys.stderr, 'received "%s"\n' % response
+			print 'connecting to ' + AUDIT_SERVER_ADDRESS + ' port ' + str(AUDIT_SERVER_PORT) + '\n'
+		
+		sock.connect(server_address)
 
-	finally:
-		if __debug__:
-			print >>sys.stderr, 'closing socket'
-		sock.close()
+		try:
+			sock.sendall(str(message))
+			response = sock.recv(1024)
+		
+			if __debug__:
+				print >>sys.stderr, 'sent "%s"\n' % message
+				print >>sys.stderr, 'received "%s"\n' % response
 
-	return
+		finally:
+			if __debug__:
+				print >>sys.stderr, 'closing socket'
+			sock.close()
+
+		time.sleep(AUDIT_THROTTLE_TIME)
+
 	
 def audit_event(
 		type,
@@ -209,13 +237,10 @@ def audit_event(
 			"errorMessage" : errorMessage
 		}
 	
-	while threading.active_count() > MAX_THREADS:
-		pass
-	t = threading.Thread(target=send_audit, args=(message,))
-	t.start()
-	#send_audit(str(message))
+	audit_queue.put(message)
 	
 	return
+
 	
 def scan_cache(stock_id):
 
@@ -273,34 +298,42 @@ def error_quote():
 	
 	return quote
 
-def thread_conn_handler(conn):
-	data = conn.recv(1024)
-	data = ast.literal_eval(data)
+
+def thread_conn_handler():
+	while True:
+		conn = incoming_queue.get()
+		data = conn.recv(1024)
+		data = ast.literal_eval(data)
 	
-	#	from outside: stock_id, user, transactionNum, command
-	audit_event ("incoming", now(), data.get('transactionNum',0), data.get('command',"missing command"), data.get('user','No User'), data.get('stock_id',"---"), None, None, None, None)	
+		#	from outside: stock_id, user, transactionNum, command
+		audit_event ("incoming", now(), data.get('transactionNum',0), data.get('command',"missing command"), data.get('user','No User'), data.get('stock_id',"---"), None, None, None, None)	
 	
-	if data.get("command") == "BUY" or data.get("command") == "SELL":
-		quote = scan_cache(data.get("stock_id"))
-		if quote["status"] != "success":
-			quote = get_quote(data.get("stock_id"),data.get("user"),data.get("transactionNum"))
-			update_cache(quote)
-	elif data.get("command") == "QUOTE":
-		quote = scan_cache(data.get("stock_id"))
-		if quote["status"] != "success":
-			quote = get_quote(data.get("stock_id"),data.get("user"),data.get("transactionNum"))
-			update_cache(quote)
-	elif data.get("command") == "TRIGGER":
-		quote = scan_cache(data.get("stock_id"))
-		if quote["status"] != "success":
-			quote = get_quote(data.get("stock_id"),data.get("user"),data.get("transactionNum"))
-			update_cache(quote)
-	else:
-		quote = error_quote()
+		if data.get("command") == "BUY" or data.get("command") == "SELL":
+			quote = scan_cache(data.get("stock_id"))
+			if quote["status"] != "success":
+				quote = get_quote(data.get("stock_id"),data.get("user"),data.get("transactionNum"))
+				update_cache(quote)
+		elif data.get("command") == "QUOTE":
+			quote = scan_cache(data.get("stock_id"))
+			if quote["status"] != "success":
+				quote = get_quote(data.get("stock_id"),data.get("user"),data.get("transactionNum"))
+				update_cache(quote)
+		elif data.get("command") == "TRIGGER":
+			quote = scan_cache(data.get("stock_id"))
+			if quote["status"] != "success":
+				quote = get_quote(data.get("stock_id"),data.get("user"),data.get("transactionNum"))
+				update_cache(quote)
+		else:
+			quote = error_quote()
 		
-	conn.send(str(quote))
-	conn.close()
-	return
+		conn.send(str(quote))
+		conn.close()
+		incoming_queue.task_done()
+
+		print incoming_queue.qsize()
+
+#end thread_conn_handler
+
 
 def main(argv):
 	global PORT
@@ -327,18 +360,25 @@ def main(argv):
 			print "Use -p to set port number. Valid range: " + str(MAX_PORT) + " - " + str(MIN_PORT) + "\n"
 			sys.exit(2)
 	print "Setting port [" + str(PORT) + "]\n"
-	
+
+	for i in range (1, MAX_LISTENERS):
+		t_id = threading.Thread(target=thread_conn_handler, args=())
+		t_id.daemon = True
+		t_id.start()
+
+	for i in range(1, MAX_AUDIT_THREADS):
+		t_id = threading.Thread(target=thread_send_audit, args=())
+		t_id.daemon = True
+		t_id.start()
+
 	if init_listen():
 		while 1:
 			conn, addr = incoming_socket.accept()
 			
 			if __debug__:
 				print 'Connection from ' + addr[0] + '\n'
-			
-			while threading.active_count() > MAX_THREADS:
-				pass
-			t = threading.Thread(target=thread_conn_handler, args=(conn,))
-			t.start()
+
+			incoming_queue.put(conn)
 			
 
 if __name__ == "__main__":
