@@ -145,7 +145,7 @@ def get_quote(stock_id, user, transactionNum):
 
 	return message
 
-def thread_send_audit(message):
+def thread_send_audit():
 
 	while True:
 		message = audit_queue.get()
@@ -285,7 +285,7 @@ def error_quote():
 	return quote
 
 
-def thread_conn_handler(conn):
+def thread_conn_handler():
 	
 	while True:
 		conn = incoming_queue.get()
