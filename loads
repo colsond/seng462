@@ -13,7 +13,7 @@ def hit_it(i):
 	else:
 		output = output.split('load average: ')
 		d["b"+str(i)]=str(output[1])
-		print "b" + str(i) + " "  + str(output[1])
+#		print "b" + str(i) + " "  + str(output[1])
 
 
 for i in range(130,150):
