@@ -69,6 +69,9 @@ cache_lock = threading.Semaphore(1)
 
 AUDIT_THROTTLE_TIME = 0
 
+incoming_queue = Queue.Queue()
+audit_queue = Queue.Queue()
+
 cache = {
 	"ABC" : {
 		'quote': 0,
