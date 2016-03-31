@@ -32,7 +32,7 @@ cache_server_port = 44420
 SELF_HOST = ''
 SELF_PORT = 44422
 
-MAX_THREADS = 10
+MAX_THREADS = 20
 
 # Commands
 ADD = "ADD"
@@ -1029,12 +1029,8 @@ def main():
 
         except:
             print 'Recieved user interrupt'
-            yappi.get_func_stats().print_all()
-	    yappi.get_thread_stats().print_all()
-	    sys.exit(0)
+            sys.exit(0)
             break
-    yappi.get_func_stats().print_all()
-    yappi.get_thread_stats().print_all()
     s.close()
 
 
