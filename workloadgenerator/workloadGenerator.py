@@ -6,6 +6,7 @@ import Queue
 import os
 import yappi
 
+from random import randint
 from threading import Thread, current_thread
 
 #this id is for running multiple generators, currently we only support 2
@@ -14,9 +15,7 @@ if(len(sys.argv)==2):
 else:
     workload_id = 0
 
-workloadport = 44444
 workloadadress = 'b130.seng.uvic.ca'
-src_address = (workloadadress, workloadport)
 
 #workload generator aims for however many transaction servers are set in the list below, all looking on port 44422 
 tx_server_address = ['b131.seng.uvic.ca', 'b132.seng.uvic.ca', 'b133.seng.uvic.ca', 'b134.seng.uvic.ca', 'b135.seng.uvic.ca','b136.seng.uvic.ca', 'b137.seng.uvic.ca', 'b138.seng.uvic.ca', 'b139.seng.uvic.ca', 'b140.seng.uvic.ca']
@@ -79,7 +78,10 @@ def make_request(pid, transactionNum, command, user=None, stock_id=None, amount=
 		
 	# Create a TCP/IP socket
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	#bind to source address so it doesnt use random ports
+	#bind to source address so it doesnt use other groups ports
+
+	workloadport = randint(44500,65500)
+	src_address = (workloadadress, workloadport)
 	sock.bind(src_address)
 
 	# Connect the socket to the port where the server is listening
