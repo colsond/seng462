@@ -6,7 +6,6 @@ import Queue
 import os
 import yappi
 
-from random import randint
 from threading import Thread, current_thread
 
 #this id is for running multiple generators, currently we only support 2
@@ -80,7 +79,7 @@ def make_request(pid, transactionNum, command, user=None, stock_id=None, amount=
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	#bind to source address so it doesnt use other groups ports
 
-	workloadport = randint(44500,65500)
+	workloadport = 44500 + pid
 	src_address = (workloadadress, workloadport)
 	sock.bind(src_address)
 
