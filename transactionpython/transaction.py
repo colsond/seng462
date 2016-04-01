@@ -18,7 +18,7 @@ if(len(sys.argv)==2):
 else:
    server_id = 0 
 
-server_name = "transaction_server_%" + server_id
+server_name = "transaction_server_%d" % server_id
 print server_name
 
 web_server_address = 'b132.seng.uvic.ca' # Workload Generator

@@ -49,6 +49,56 @@ p.nav {
 }
 
 </style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('#request_options').on('change', function() {
+  	$("#amount").hide();
+	$("#stockSymbol").hide();
+	$("#filename").hide();
+
+    if ( this.value == 'add') {
+	    $("#amount").show();
+	}
+	else if ( this.value == 'quote') {
+		$("#stockSymbol").show();
+	}
+	else if ( this.value == 'buy') {
+		$("#amount").show();
+		$("#stockSymbol").show();
+	}
+	else if ( this.value == 'sell') {
+		$("#amount").show();
+		$("#stockSymbol").show();
+	}
+	else if ( this.value == 'set_buy_amount') {
+		$("#amount").show();
+		$("#stockSymbol").show();
+	}
+	else if ( this.value == 'cancel_set_buy') {
+		$("#stockSymbol").show();
+	}
+	else if ( this.value == 'set_buy_trigger') {
+		$("#amount").show();
+		$("#stockSymbol").show();
+	}
+	else if ( this.value == 'set_sell_amount') {
+		$("#amount").show();
+		$("#stockSymbol").show();
+	}
+	else if ( this.value == 'set_sell_trigger') {
+		$("#amount").show();
+		$("#stockSymbol").show();
+	}
+	else if ( this.value == 'cancel_set_sell') {
+		$("#stockSymbol").show();
+	}
+	else if ( this.value == 'dumplog') {
+		$("#filename").show();
+	}
+  }).trigger('change');
+});
+</script>
 </head>
 	<body>
 		<table class="nav">
@@ -68,5 +118,51 @@ p.nav {
 				</td>
 			</tr>
 		</table>
+
+		<div id="container" width="400" align="center">
+			<form action="{{ url_for('index') }}" method=post>
+				<div id="requestType">
+				    Request Type:
+				    <select id="request_options">
+				    	<option value="" disabled="disabled" selected="selected">Select Request</option>
+					    <option value="add">Add</option>
+					    <option value="quote">Quote</option>
+					    <option value="buy">Buy</option>
+					    <option value="commit_buy">Commit Buy</option>
+					    <option value="cancel_buy">Cancel Buy</option>
+					    <option value="sell">Sell</option>
+					    <option value="commit_sell">Commit Sell</option>
+					    <option value="cancel_sell">Cancel Sell</option>
+					    <option value="set_buy_amount">Set Buy Amount</option>
+					    <option value="cancel_set_buy">Cancel Set Buy</option>
+					    <option value="set_buy_trigger">Set Buy Trigger</option>
+					    <option value="set_sell_amount">Set Sell Amount</option>
+					    <option value="set_sell_trigger">Set Sell Trigger</option>
+					    <option value="cancel_set_sell">Cancel Set Sell</option>
+					    <option value="dumplog">Dumplog</option>
+					    <option value="diplay_summary">Display Summary</option>
+					</select>
+					<br><br>
+				</div>
+				<div id="username">
+				    Username: 
+				    <input type="text" name="username" value="Mickey"><br><br>
+			    </div>
+			    <div id="amount" style="display:none">
+			    	Amount: 
+			    	<input type="text" name="username" value="0"><br><br>
+			    </div>
+			    <div id="stockSymbol" style="display:none">
+			    	Stock Symbol: 
+			    	<input type="text" name="stock_symbol"><br><br>
+			    </div>
+			    <div id="filename" style="display:none">
+			    	Filename: 
+			    	<input type="text" name="filename"><br><br>
+			    </div>
+			    <input type="submit" value="Submit">
+			</form>
+		</div>
+
 	</body>
 </html>
