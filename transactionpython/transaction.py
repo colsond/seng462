@@ -5,6 +5,7 @@ import socket
 import string
 import sys
 import time
+import yappi
 from thread import *
 from threading import Thread, current_thread, activeCount
 
@@ -931,8 +932,8 @@ def get_quote(data):
     #pull out stock ID to send to a given cache server
     stock_id = data.get('stock_id')
 
-		output = "{\'stock_id\':'"+data.get('stock_id')+"\'"
-		output += ",\'user\':'"+data.get('user')+"\'}"
+    output = "{\'stock_id\':'"+data.get('stock_id')+"\'"
+    output += ",\'user\':'"+data.get('user')+"\'}"
 
     #python string compare values a>z>A>Z>1>9>0
     #stock quotes only seem to be capital letters so we can trisection the alphabet
@@ -989,10 +990,12 @@ def transactionWorkerthread(conn, db):
             conn.send(response)
 
         else:
+	    #yappi.get_func_stats().print_all()
+            #yappi.get_thread_stats().print_all()
             break
     conn.close()
     #active_threads -= 1 
-    sys.exit(1)
+    #sys.exit(1)
 
 
 
@@ -1013,6 +1016,7 @@ def main():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind((SELF_HOST, SELF_PORT))
     s.listen(1)
+    yappi.start()    
     global MAX_THREADS
     while 1:
         try:
@@ -1025,8 +1029,8 @@ def main():
 
         except:
             print 'Recieved user interrupt'
-            #sys.exit(0)
-            #break
+            sys.exit(0)
+            break
     s.close()
 
 
