@@ -47,6 +47,8 @@ print 'Socket now listening'
 
 
 ###USER COMMAND TYPE
+
+@yappi.profile()
 def parseUserCommand(entryDict):
 #inputs
     timeStamp = entryDict['timestamp']
@@ -79,6 +81,8 @@ def parseUserCommand(entryDict):
 
 
 ##QUOTE SERVER TYPE
+
+@yappi.profile()
 def pareseQuoteServer(entryDict):
 #inputs
     timeStamp = entryDict['timestamp']
@@ -107,6 +111,8 @@ def pareseQuoteServer(entryDict):
 
 
 ##Account Transaction Type
+
+@yappi.profile()
 def parseAccountTransaction(entryDict):
 #inputs
     timeStamp = entryDict['timestamp']
@@ -129,6 +135,8 @@ def parseAccountTransaction(entryDict):
     return accountTransactionType
 
 ##System Event Type
+
+@yappi.profile()
 def parseSystemEvent(entryDict):
 #inputs
     timeStamp = entryDict['timestamp']
@@ -160,6 +168,8 @@ def parseSystemEvent(entryDict):
 
 
 ##Error Event Type
+
+@yappi.profile()
 def parseErrorEvent(entryDict):
     #inputs
     timeStamp = entryDict['timestamp']
@@ -193,6 +203,8 @@ def parseErrorEvent(entryDict):
     return errorEventType
 
 ##Debug Type
+
+@yappi.profile()
 def parseDebug(entryDict):
     #inputs
     timeStamp = entryDict['timestamp']
@@ -225,6 +237,8 @@ def parseDebug(entryDict):
     
     return DebugType
 # This function handles the data package recieved thru the socket and dumps it into the audit log
+
+@yappi.profile()
 def handleEntry(strdict):
     global staging_logs
     xmlPacket = ''
@@ -261,6 +275,7 @@ def handleEntry(strdict):
 
     return "OK"
 
+@yappi.profile()
 def writerthread():
     global staging_logs
     while True:
@@ -279,6 +294,8 @@ def writerthread():
 
 
 #Function for handling connections. This will be used to create threads
+
+@yappi.profile()
 def clientthread(conn):
     #Sending message to connected client
     #infinite loop so that function do not terminate and thread do not end.

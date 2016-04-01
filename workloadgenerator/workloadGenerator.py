@@ -57,6 +57,7 @@ q = Queue.Queue()
 
 #-----------------------------------------------------------------------------
 #
+@yappi.profile()
 def make_request(pid, transactionNum, command, user=None, stock_id=None, amount=None, filename=None):
 	data = {
 		'transactionNum': transactionNum,
@@ -113,6 +114,7 @@ def make_request(pid, transactionNum, command, user=None, stock_id=None, amount=
 
 #-----------------------------------------------------------------------------
 #
+@yappi.profile()
 def processWorkloadFile(sourceDir, targetDir, workloadFile):
 	global user_count
 	fileDict = {}
@@ -187,6 +189,7 @@ def processWorkloadFile(sourceDir, targetDir, workloadFile):
 
 #-----------------------------------------------------------------------------
 #
+@yappi.profile()
 def sendWorkload(user, pid):
 	bad_chars = '[]'
 
@@ -304,6 +307,7 @@ def sendWorkload(user, pid):
 
 #-----------------------------------------------------------------------------
 #
+@yappi.profile()
 def worker(id):
 	while True:
 	    user = q.get()
@@ -314,6 +318,7 @@ def worker(id):
 #-----------------------------------------------------------------------------
 # send_audit
 # Send formatted message to the audit server
+@yappi.profile()
 def send_audit(message):
 
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -344,6 +349,7 @@ def send_audit(message):
 #-----------------------------------------------------------------------------
 # audit_event
 # Format message to send to the audit server
+@yappi.profile()
 def audit_event(
 		type,
 		timestamp,
@@ -402,7 +408,6 @@ def audit_event(
 	#send_audit(str(message))
 	
 	return
-
 
 def main():
 	userList = processWorkloadFile('/',working_dir, workload_file)

@@ -83,9 +83,13 @@ cache = {
 	}
 }
 
+
+@yappi.profile()
 def now():
 	return int(time.time() * 1000)
 
+
+@yappi.profile()
 def init_listen():
 
 	try:
@@ -104,6 +108,7 @@ def init_listen():
 
 	return 1
 
+@yappi.profile()
 def get_quote(stock_id, user, transactionNum):
 
 	while True:
@@ -149,6 +154,7 @@ def get_quote(stock_id, user, transactionNum):
 
 	return message
 
+@yappi.profile()
 def thread_send_audit():
 
 	while True:
@@ -178,6 +184,7 @@ def thread_send_audit():
 
 		time.sleep(AUDIT_THROTTLE_TIME)
 	
+@yappi.profile()
 def audit_event(
 		type,
 		timestamp,
@@ -232,7 +239,8 @@ def audit_event(
 	audit_queue.put(message)
 	
 	return
-	
+
+@yappi.profile()	
 def scan_cache(stock_id):
 
 	cache_lock.acquire()
@@ -260,6 +268,7 @@ def scan_cache(stock_id):
 	
 	return message
 
+@yappi.profile()
 def update_cache(quote):
 
 	cache_lock.acquire()
@@ -276,6 +285,7 @@ def update_cache(quote):
 	
 	return
 
+@yappi.profile()
 def error_quote():	
 	quote = {
 		"price" : 0,
@@ -289,6 +299,7 @@ def error_quote():
 	return quote
 
 
+@yappi.profile()
 def thread_conn_handler():
 	
 	while True:

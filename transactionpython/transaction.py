@@ -56,6 +56,7 @@ DISPLAY_SUMMARY = "DISPLAY_SUMMARY"
 def now():
     return int(time.time() * 1000)
 
+@yappi.profile()
 def send_audit_entry(message):
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -73,6 +74,7 @@ def send_audit_entry(message):
 
     return
 
+@yappi.profile()
 def audit_user_command_event(
         timestamp, 
         server, 
@@ -106,6 +108,7 @@ def audit_user_command_event(
 
     return
 
+@yappi.profile()
 def audit_quote_server_event(
         timestamp,
         server,
@@ -132,6 +135,7 @@ def audit_quote_server_event(
 
     return
 
+@yappi.profile()
 def audit_transaction_event(
         timestamp,
         server,
@@ -153,7 +157,8 @@ def audit_transaction_event(
     # send_audit_entry(str(audit_dict))
 
     return
-    
+  
+@yappi.profile()  
 def audit_system_event(
         timestamp,
         server,
@@ -188,6 +193,7 @@ def audit_system_event(
 
     return
 
+@yappi.profile()
 def audit_error_event(
         timestamp,
         server,
@@ -230,6 +236,7 @@ def audit_error_event(
 
     return
 
+@yappi.profile()
 def audit_debug(
         timestamp,
         server,
@@ -273,6 +280,7 @@ def audit_debug(
 
     return
 
+@yappi.profile()
 def process_request(data, conn):
     # Convert Data to Dict
     data_dict = ast.literal_eval(data)
@@ -927,6 +935,7 @@ def process_request(data, conn):
 # Note: function returns price in cents
 #returns price of stock, doesnt do any checking.
 # target_server_address and target_server_port need to be set globally or the function must be modified to recieve these values
+@yappi.profile()
 def get_quote(data):
 
     #pull out stock ID to send to a given cache server
@@ -977,9 +986,7 @@ def get_quote(data):
         sock.close()
         return  response
 
-
-
-
+@yappi.profile()
 def transactionWorkerthread(conn, db):
     #global active_threads
     while 1:
