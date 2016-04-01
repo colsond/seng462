@@ -9,7 +9,10 @@ import yappi
 from threading import Thread, current_thread
 
 #this id is for running multiple generators, currently we only support 2
-workload_id = 1
+if(len(sys.argv)==2):
+    workload_id = int(sys.argv[1])
+else:
+    workload_id = 0
 
 #workload generator aims for however many transaction servers are set in the list below, all looking on port 44422 
 tx_server_address = ['b131.seng.uvic.ca', 'b132.seng.uvic.ca', 'b133.seng.uvic.ca', 'b134.seng.uvic.ca', 'b135.seng.uvic.ca','b136.seng.uvic.ca', 'b137.seng.uvic.ca', 'b138.seng.uvic.ca', 'b139.seng.uvic.ca', 'b140.seng.uvic.ca']
@@ -26,6 +29,7 @@ MY_NAME = "Workload"
 
 workload_file = '1000User_testWorkLoad.txt'
 working_dir = './separatedWorkload/'
+user_count = 0
 
 ADD = "ADD"
 QUOTE = "QUOTE"
@@ -104,6 +108,7 @@ def make_request(pid, transactionNum, command, user=None, stock_id=None, amount=
 #-----------------------------------------------------------------------------
 #
 def processWorkloadFile(sourceDir, targetDir, workloadFile):
+	global user_count
 	fileDict = {}
 	userList = []
 
@@ -128,6 +133,7 @@ def processWorkloadFile(sourceDir, targetDir, workloadFile):
 		else:
 			if user not in userList: 
 				userList.append(user)
+				user_count = user_count + 1
 			if user in fileDict:
 				fileDict[user] += line
 			else:
@@ -402,15 +408,17 @@ def main():
 
 	i=0
 	for item in userList:
-		if workload_id == 0 and i<500:
+		if workload_id == 0 and i<int(user_count/2):
 			q.put(item)
-		elif workload_id == 1 and i>=500:
+		elif workload_id == 1 and i>=int(user_count/2):
 			q.put(item)
 		i = i + 1
 
 	q.join() #blocks until everything is done
 	# then send last command
-	sendWorkload("last", 0)
+	if workload_id == 0:
+	    sendWorkload("last", 0)
+
 	yappi.get_func_stats().print_all()
 	yappi.get_thread_stats().print_all()
 
