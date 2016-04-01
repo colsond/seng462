@@ -28,6 +28,19 @@ audit_lock = threading.Semaphore(1)
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+########## THIS STUFF IS INTRODUCED FOR KEEPING THE STUFF IN MEMORY ###########
+''' ONLY HERE FOR DICT FORMATTING
+    audit_dict = {
+        "user": "xmlchunk",
+
+    }
+
+    audit_dict[user] += xmlpacket
+'''
+audit_dict = { 'system': ''}
+
+###############################################################################
+
 
 print 'Socket created'
 #Bind socket to local host and port
@@ -232,6 +245,12 @@ def handleEntry(strdict):
     #unpack string into dictionary
     entryDict = ast.literal_eval(strdict)
     
+    '''
+    detect if its a user dumplog then call fetchUserLog
+        return fetchUserLog()
+    '''
+
+
     #based on source parse the dict into an xml string and add it to the log
     logType = entryDict['logType']
    
@@ -254,12 +273,28 @@ def handleEntry(strdict):
     #unknown log type ?throw an error?
     
     #aquire audit lock and append the string
+
+    '''ORIGINAL CODE
     audit_lock.acquire()
     staging_logs = staging_logs + xmlPacket
     audit_lock.release()
+    '''
+    if 'username' in entryDict:
+        if entryDict['username'] in audit_dict:
+            audit_dict[entryDict['username']] += xmlPacket
+        else:
+            audit_dict[entryDict['username']] = xmlPacket
 
+    else:
+        audit_dict['system'] += xmlPacket
 
     return "OK"
+
+def fetchUserLog(username):
+    if username in audit_dict:
+        return audit_dict[username]
+    else:
+        return "No existing logs for that user"
 
 def writerthread():
     global staging_logs
@@ -291,7 +326,7 @@ def clientthread(conn):
         if not data: 
             break
     #this function call handles the data package and returns ok or gives an unknown log error
-    	reply = handleEntry(data) 
+        reply = handleEntry(data) 
         conn.sendall(reply)
         conn.close()
         sys.exit(0) 
@@ -302,28 +337,43 @@ def clientthread(conn):
     #yappi.get_func_stats().print_all()
     #yappi.get_thread_stats().print_all()
     #sys.exit(0) 
+
+
+def dumpLog():
+    f = open(logfile, 'a')
+    f.write('<?xml version="1.0"?>\n<log>\n')
+    for entry in audit_dict
+        f.write(audit_dict[entry])
+
+    f.write("</log>")
+
 #now keep talking with the client
+'''
 if(audit_id==0):
     f = open(logfile, 'a')
     f.write('<?xml version="1.0"?>\n<log>\n')
     f.close()
+'''
 yappi.start()
-start_new_thread(writerthread,())
+#start_new_thread(writerthread,())
 while 1:
     try:
-	    #wait to accept a connection - blocking call
-	    conn, addr = s.accept()
-	    print 'Connected with ' + addr[0] + ':' + str(addr[1])
-	     
-	    #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
-	    start_new_thread(clientthread ,(conn,))
+        #wait to accept a connection - blocking call
+        conn, addr = s.accept()
+        print 'Connected with ' + addr[0] + ':' + str(addr[1])
+         
+        #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
+        start_new_thread(clientthread ,(conn,))
     except:
         if(audit_id==0):
-    	    f = open(logfile, 'a')
-    	    f.write("</log>")
-    	    f.close()
-	    yappi.get_func_stats().print_all()
-	    yappi.get_thread_stats().print_all()
-	    sys.exit(0) 
+            '''
+            f = open(logfile, 'a')
+            f.write("</log>")
+            f.close()
+            '''
+            dumpLog()
+        yappi.get_func_stats().print_all()
+        yappi.get_thread_stats().print_all()
+        sys.exit(0) 
 
 s.close()
