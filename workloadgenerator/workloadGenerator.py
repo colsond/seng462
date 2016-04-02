@@ -188,7 +188,6 @@ def processWorkloadFile(sourceDir, targetDir, workloadFile):
 
 
 #-----------------------------------------------------------------------------
-#
 @yappi.profile()
 def sendWorkload(user, pid):
 	bad_chars = '[]'

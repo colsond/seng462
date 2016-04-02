@@ -986,7 +986,6 @@ def get_quote(data):
         sock.close()
         return  response
 
-@yappi.profile()
 def transactionWorkerthread(conn, db):
     #global active_threads
     while 1:

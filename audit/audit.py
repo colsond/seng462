@@ -275,7 +275,6 @@ def handleEntry(strdict):
 
     return "OK"
 
-@yappi.profile()
 def writerthread():
     global staging_logs
     while True:
