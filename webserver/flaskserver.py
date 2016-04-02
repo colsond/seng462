@@ -28,7 +28,7 @@ def make_request(transactionNum, command, user=None, stock_id=None, amount=None,
     server_address = ('b133.seng.uvic.ca', 44422)
 
     sock.connect(server_address)
-
+    print data
     try:
         # Send data
         message = str(data)
