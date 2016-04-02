@@ -1,7 +1,7 @@
 import psycopg2
 from psycopg2.pool import ThreadedConnectionPool
 from aggregate import aggregate
-
+import yappi
 class Database:
 
     def __init__(self, host, port, dbname, dbuser, dbpass, minconn=1, maxconn=1):
