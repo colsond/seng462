@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request, jsonify
-import random
 import socket
 app = Flask(__name__)
 
@@ -28,7 +27,6 @@ def make_request(transactionNum, command, user=None, stock_id=None, amount=None,
     server_address = ('b133.seng.uvic.ca', 44422)
 
     sock.connect(server_address)
-    print data
     try:
         # Send data
         message = str(data)
@@ -37,7 +35,6 @@ def make_request(transactionNum, command, user=None, stock_id=None, amount=None,
         print response
 
     finally:
-        print >>sys.stderr, 'closing socket'
         sock.close()
 
     return response
@@ -47,8 +44,7 @@ def index():
     if request.method == 'GET':
         return render_template('index.html')
     elif request.method == 'POST':
-        print request.form
-        response = make_request(
+        response_message = make_request(
             transactionNum=0, 
             command=request.form.get('request_type', None), 
             user=request.form.get('username', None),
@@ -56,8 +52,7 @@ def index():
             amount=request.form.get('amount', None), 
             filename=request.form.get('filename', None)
         )
-        # send request directly to transaction server if authenticated?
-        return render_template('index.html')
+        return render_template('index.html', response_message=response_message)
 
 if __name__ == "__main__":
     app.run()

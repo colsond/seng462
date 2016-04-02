@@ -57,43 +57,43 @@ $(document).ready(function() {
 	$("#stockSymbol").hide();
 	$("#filename").hide();
 
-    if ( this.value == 'add') {
+    if ( this.value == 'ADD') {
 	    $("#amount").show();
 	}
-	else if ( this.value == 'quote') {
+	else if ( this.value == 'QUOTE') {
 		$("#stockSymbol").show();
 	}
-	else if ( this.value == 'buy') {
+	else if ( this.value == 'BUY') {
 		$("#amount").show();
 		$("#stockSymbol").show();
 	}
-	else if ( this.value == 'sell') {
+	else if ( this.value == 'SELL') {
 		$("#amount").show();
 		$("#stockSymbol").show();
 	}
-	else if ( this.value == 'set_buy_amount') {
+	else if ( this.value == 'SET_BUY_AMOUNT') {
 		$("#amount").show();
 		$("#stockSymbol").show();
 	}
-	else if ( this.value == 'cancel_set_buy') {
+	else if ( this.value == 'CANCEL_SET_BUY') {
 		$("#stockSymbol").show();
 	}
-	else if ( this.value == 'set_buy_trigger') {
+	else if ( this.value == 'SET_BUY_TRIGGER') {
 		$("#amount").show();
 		$("#stockSymbol").show();
 	}
-	else if ( this.value == 'set_sell_amount') {
+	else if ( this.value == 'SET_SELL_AMOUNT') {
 		$("#amount").show();
 		$("#stockSymbol").show();
 	}
-	else if ( this.value == 'set_sell_trigger') {
+	else if ( this.value == 'SET_SELL_TRIGGER') {
 		$("#amount").show();
 		$("#stockSymbol").show();
 	}
-	else if ( this.value == 'cancel_set_sell') {
+	else if ( this.value == 'CANCEL_SET_SELL') {
 		$("#stockSymbol").show();
 	}
-	else if ( this.value == 'dumplog') {
+	else if ( this.value == 'DUMPLOG') {
 		$("#filename").show();
 	}
   }).trigger('change');
@@ -118,29 +118,33 @@ $(document).ready(function() {
 				</td>
 			</tr>
 		</table>
-
+		<div width="400" align="center">
+		    {% if response_message %}
+			<br><br>System Response: {{ response_message }}<br><br>
+		    {% endif %}
+		</div>
 		<div id="container" width="400" align="center">
 			<form action="{{ url_for('index') }}" method=post>
 				<div id="requestType">
 				    Request Type:
-				    <select id="request_type">
+				    <select name="request_type" id="request_type">
 				    	<option value="" disabled="disabled" selected="selected">Select Request</option>
-					    <option value="add">Add</option>
-					    <option value="quote">Quote</option>
-					    <option value="buy">Buy</option>
-					    <option value="commit_buy">Commit Buy</option>
-					    <option value="cancel_buy">Cancel Buy</option>
-					    <option value="sell">Sell</option>
-					    <option value="commit_sell">Commit Sell</option>
-					    <option value="cancel_sell">Cancel Sell</option>
-					    <option value="set_buy_amount">Set Buy Amount</option>
-					    <option value="cancel_set_buy">Cancel Set Buy</option>
-					    <option value="set_buy_trigger">Set Buy Trigger</option>
-					    <option value="set_sell_amount">Set Sell Amount</option>
-					    <option value="set_sell_trigger">Set Sell Trigger</option>
-					    <option value="cancel_set_sell">Cancel Set Sell</option>
-					    <option value="dumplog">Dumplog</option>
-					    <option value="diplay_summary">Display Summary</option>
+					    <option value="ADD">Add</option>
+					    <option value="QUOTE">Quote</option>
+					    <option value="BUY">Buy</option>
+					    <option value="COMMIT_BUY">Commit Buy</option>
+					    <option value="CANCEL_BUY">Cancel Buy</option>
+					    <option value="SELL">Sell</option>
+					    <option value="COMMIT_SELL">Commit Sell</option>
+					    <option value="CANCEL_SELL">Cancel Sell</option>
+					    <option value="SET_BUY_AMOUNT">Set Buy Amount</option>
+					    <option value="CANCEL_SET_BUY">Cancel Set Buy</option>
+					    <option value="SET_BUY_TRIGGER">Set Buy Trigger</option>
+					    <option value="SET_SELL_AMOUNT">Set Sell Amount</option>
+					    <option value="SET_SELL_TRIGGER">Set Sell Trigger</option>
+					    <option value="CANCEL_SET_SELL">Cancel Set Sell</option>
+					    <option value="DUMPLOG">Dumplog</option>
+					    <option value="DISPLAY_SUMMARY">Display Summary</option>
 					</select>
 					<br><br>
 				</div>
@@ -150,7 +154,7 @@ $(document).ready(function() {
 			    </div>
 			    <div id="amount" style="display:none">
 			    	Amount: 
-			    	<input type="text" name="username" value="0"><br><br>
+			    	<input type="text" name="amount" value="0"><br><br>
 			    </div>
 			    <div id="stockSymbol" style="display:none">
 			    	Stock Symbol: 
