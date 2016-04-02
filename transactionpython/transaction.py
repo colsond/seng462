@@ -10,6 +10,7 @@ from thread import *
 from threading import Thread, current_thread, activeCount
 
 from database import Database
+from ..profiling.aggregate import aggregate
 
 
 if(len(sys.argv)==2):
@@ -56,7 +57,7 @@ DISPLAY_SUMMARY = "DISPLAY_SUMMARY"
 def now():
     return int(time.time() * 1000)
 
-@yappi.profile()
+@yappi.profile(return_callback=aggregate)
 def send_audit_entry(message):
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -74,7 +75,7 @@ def send_audit_entry(message):
 
     return
 
-@yappi.profile()
+@yappi.profile(return_callback=aggregate)
 def audit_user_command_event(
         timestamp, 
         server, 
@@ -108,7 +109,7 @@ def audit_user_command_event(
 
     return
 
-@yappi.profile()
+@yappi.profile(return_callback=aggregate)
 def audit_quote_server_event(
         timestamp,
         server,
@@ -135,7 +136,7 @@ def audit_quote_server_event(
 
     return
 
-@yappi.profile()
+@yappi.profile(return_callback=aggregate)
 def audit_transaction_event(
         timestamp,
         server,
@@ -158,7 +159,7 @@ def audit_transaction_event(
 
     return
   
-@yappi.profile()  
+@yappi.profile(return_callback=aggregate)  
 def audit_system_event(
         timestamp,
         server,
@@ -193,7 +194,7 @@ def audit_system_event(
 
     return
 
-@yappi.profile()
+@yappi.profile(return_callback=aggregate)
 def audit_error_event(
         timestamp,
         server,
@@ -236,7 +237,7 @@ def audit_error_event(
 
     return
 
-@yappi.profile()
+@yappi.profile(return_callback=aggregate)
 def audit_debug(
         timestamp,
         server,
@@ -280,7 +281,7 @@ def audit_debug(
 
     return
 
-@yappi.profile()
+@yappi.profile(return_callback=aggregate)
 def process_request(data, conn):
     # Convert Data to Dict
     data_dict = ast.literal_eval(data)
@@ -935,7 +936,7 @@ def process_request(data, conn):
 # Note: function returns price in cents
 #returns price of stock, doesnt do any checking.
 # target_server_address and target_server_port need to be set globally or the function must be modified to recieve these values
-@yappi.profile()
+@yappi.profile(return_callback=aggregate)
 def get_quote(data):
 
     #pull out stock ID to send to a given cache server
@@ -988,7 +989,7 @@ def get_quote(data):
 
 def transactionWorkerthread(conn, db):
     #global active_threads
-    yappi.start()
+
     while 1:
         data = conn.recv(1024)
 
@@ -997,8 +998,6 @@ def transactionWorkerthread(conn, db):
             conn.send(response)
 
         else:
-	        yappi.get_func_stats().print_all()
-            yappi.get_thread_stats().print_all()
             break
     conn.close()
     #active_threads -= 1 
@@ -1023,6 +1022,7 @@ def main():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind((SELF_HOST, SELF_PORT))
     s.listen(1)
+    yappi.start()
     global MAX_THREADS
     while 1:
         try:

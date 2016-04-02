@@ -41,6 +41,7 @@ import threading
 import getopt
 import yappi
 import Queue
+from ..profiling.aggregate import aggregate
 
 HOST = ''
 PORT = 44420
@@ -84,12 +85,12 @@ cache = {
 }
 
 
-@yappi.profile()
+@yappi.profile(return_callback=aggregate)
 def now():
 	return int(time.time() * 1000)
 
 
-@yappi.profile()
+@yappi.profile(return_callback=aggregate)
 def init_listen():
 
 	try:
@@ -108,7 +109,7 @@ def init_listen():
 
 	return 1
 
-@yappi.profile()
+@yappi.profile(return_callback=aggregate)
 def get_quote(stock_id, user, transactionNum):
 
 	while True:
@@ -154,7 +155,7 @@ def get_quote(stock_id, user, transactionNum):
 
 	return message
 
-@yappi.profile()
+@yappi.profile(return_callback=aggregate)
 def thread_send_audit():
 
 	while True:
@@ -184,7 +185,7 @@ def thread_send_audit():
 
 		time.sleep(AUDIT_THROTTLE_TIME)
 	
-@yappi.profile()
+@yappi.profile(return_callback=aggregate)
 def audit_event(
 		type,
 		timestamp,
@@ -240,7 +241,7 @@ def audit_event(
 	
 	return
 
-@yappi.profile()	
+@yappi.profile(return_callback=aggregate)	
 def scan_cache(stock_id):
 
 	cache_lock.acquire()
@@ -268,7 +269,7 @@ def scan_cache(stock_id):
 	
 	return message
 
-@yappi.profile()
+@yappi.profile(return_callback=aggregate)
 def update_cache(quote):
 
 	cache_lock.acquire()
@@ -285,7 +286,7 @@ def update_cache(quote):
 	
 	return
 
-@yappi.profile()
+@yappi.profile(return_callback=aggregate)
 def error_quote():	
 	quote = {
 		"price" : 0,
@@ -299,7 +300,7 @@ def error_quote():
 	return quote
 
 
-@yappi.profile()
+@yappi.profile(return_callback=aggregate)
 def thread_conn_handler():
 	
 	while True:

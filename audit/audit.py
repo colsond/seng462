@@ -6,6 +6,7 @@ import time
 import threading
 import yappi
 from thread import *
+from ..profiling.aggregate import aggregate
  
 
 if(len(sys.argv)==2):
@@ -48,7 +49,7 @@ print 'Socket now listening'
 
 ###USER COMMAND TYPE
 
-@yappi.profile()
+@yappi.profile(return_callback=aggregate)
 def parseUserCommand(entryDict):
 #inputs
     timeStamp = entryDict['timestamp']
@@ -82,7 +83,7 @@ def parseUserCommand(entryDict):
 
 ##QUOTE SERVER TYPE
 
-@yappi.profile()
+@yappi.profile(return_callback=aggregate)
 def pareseQuoteServer(entryDict):
 #inputs
     timeStamp = entryDict['timestamp']
@@ -112,7 +113,7 @@ def pareseQuoteServer(entryDict):
 
 ##Account Transaction Type
 
-@yappi.profile()
+@yappi.profile(return_callback=aggregate)
 def parseAccountTransaction(entryDict):
 #inputs
     timeStamp = entryDict['timestamp']
@@ -136,7 +137,7 @@ def parseAccountTransaction(entryDict):
 
 ##System Event Type
 
-@yappi.profile()
+@yappi.profile(return_callback=aggregate)
 def parseSystemEvent(entryDict):
 #inputs
     timeStamp = entryDict['timestamp']
@@ -169,7 +170,7 @@ def parseSystemEvent(entryDict):
 
 ##Error Event Type
 
-@yappi.profile()
+@yappi.profile(return_callback=aggregate)
 def parseErrorEvent(entryDict):
     #inputs
     timeStamp = entryDict['timestamp']
@@ -204,7 +205,7 @@ def parseErrorEvent(entryDict):
 
 ##Debug Type
 
-@yappi.profile()
+@yappi.profile(return_callback=aggregate)
 def parseDebug(entryDict):
     #inputs
     timeStamp = entryDict['timestamp']
@@ -238,7 +239,7 @@ def parseDebug(entryDict):
     return DebugType
 # This function handles the data package recieved thru the socket and dumps it into the audit log
 
-@yappi.profile()
+@yappi.profile(return_callback=aggregate)
 def handleEntry(strdict):
     global staging_logs
     xmlPacket = ''
@@ -294,7 +295,7 @@ def writerthread():
 
 #Function for handling connections. This will be used to create threads
 
-@yappi.profile()
+@yappi.profile(return_callback=aggregate)
 def clientthread(conn):
     #Sending message to connected client
     #infinite loop so that function do not terminate and thread do not end.

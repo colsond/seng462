@@ -5,6 +5,7 @@ import string
 import Queue
 import os
 import yappi
+from ..profiling.aggregate import aggregate
 
 from threading import Thread, current_thread
 
@@ -55,7 +56,7 @@ q = Queue.Queue()
 
 #-----------------------------------------------------------------------------
 #
-@yappi.profile()
+@yappi.profile(return_callback=aggregate)
 def make_request(pid, transactionNum, command, user=None, stock_id=None, amount=None, filename=None):
 	data = {
 		'transactionNum': transactionNum,
@@ -124,7 +125,7 @@ def make_request(pid, transactionNum, command, user=None, stock_id=None, amount=
 
 #-----------------------------------------------------------------------------
 #
-@yappi.profile()
+@yappi.profile(return_callback=aggregate)
 def processWorkloadFile(sourceDir, targetDir, workloadFile):
 	global user_count
 	fileDict = {}
@@ -198,7 +199,7 @@ def processWorkloadFile(sourceDir, targetDir, workloadFile):
 
 
 #-----------------------------------------------------------------------------
-@yappi.profile()
+@yappi.profile(return_callback=aggregate)
 def sendWorkload(user, pid):
 	bad_chars = '[]'
 
@@ -316,7 +317,7 @@ def sendWorkload(user, pid):
 
 #-----------------------------------------------------------------------------
 #
-@yappi.profile()
+@yappi.profile(return_callback=aggregate)
 def worker(id):
 	while True:
 	    user = q.get()
@@ -327,7 +328,7 @@ def worker(id):
 #-----------------------------------------------------------------------------
 # send_audit
 # Send formatted message to the audit server
-@yappi.profile()
+@yappi.profile(return_callback=aggregate)
 def send_audit(message):
 
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -358,7 +359,7 @@ def send_audit(message):
 #-----------------------------------------------------------------------------
 # audit_event
 # Format message to send to the audit server
-@yappi.profile()
+@yappi.profile(return_callback=aggregate)
 def audit_event(
 		type,
 		timestamp,
