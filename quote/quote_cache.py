@@ -39,7 +39,6 @@ import sys
 import time
 import threading
 import getopt
-import yappi
 import Queue
 
 HOST = ''
@@ -325,7 +324,7 @@ def thread_conn_handler():
 def main(argv):
 	global PORT
 	global MY_NAME	
-	yappi.start()
+
 	try:
 		cmdline_options, args = getopt.getopt(argv,'hp:n:')
 	

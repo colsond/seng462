@@ -5,7 +5,6 @@ import socket
 import string
 import sys
 import time
-import yappi
 from thread import *
 from threading import Thread, current_thread, activeCount
 
@@ -990,8 +989,6 @@ def transactionWorkerthread(conn, db):
             conn.send(response)
 
         else:
-	    #yappi.get_func_stats().print_all()
-            #yappi.get_thread_stats().print_all()
             break
     conn.close()
     #active_threads -= 1 
@@ -1015,8 +1012,7 @@ def main():
     
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind((SELF_HOST, SELF_PORT))
-    s.listen(1)
-    yappi.start()    
+    s.listen(1)  
     global MAX_THREADS
     while 1:
         try:
