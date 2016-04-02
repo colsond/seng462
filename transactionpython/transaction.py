@@ -988,6 +988,7 @@ def get_quote(data):
 
 def transactionWorkerthread(conn, db):
     #global active_threads
+    yappi.start()
     while 1:
         data = conn.recv(1024)
 
@@ -996,8 +997,8 @@ def transactionWorkerthread(conn, db):
             conn.send(response)
 
         else:
-	    #yappi.get_func_stats().print_all()
-            #yappi.get_thread_stats().print_all()
+	        yappi.get_func_stats().print_all()
+            yappi.get_thread_stats().print_all()
             break
     conn.close()
     #active_threads -= 1 
@@ -1022,7 +1023,6 @@ def main():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind((SELF_HOST, SELF_PORT))
     s.listen(1)
-    yappi.start()    
     global MAX_THREADS
     while 1:
         try:
