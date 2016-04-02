@@ -14,9 +14,7 @@ if(len(sys.argv)==2):
 else:
     workload_id = 0
 
-workloadport = 44444
 workloadadress = 'b130.seng.uvic.ca'
-src_address = (workloadadress, workloadport)
 
 #workload generator aims for however many transaction servers are set in the list below, all looking on port 44422 
 tx_server_address = ['b131.seng.uvic.ca', 'b132.seng.uvic.ca', 'b133.seng.uvic.ca', 'b134.seng.uvic.ca', 'b135.seng.uvic.ca','b136.seng.uvic.ca', 'b137.seng.uvic.ca', 'b138.seng.uvic.ca', 'b139.seng.uvic.ca', 'b140.seng.uvic.ca']
@@ -80,13 +78,25 @@ def make_request(pid, transactionNum, command, user=None, stock_id=None, amount=
 		
 	# Create a TCP/IP socket
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	#bind to source address so it doesnt use random ports
-	sock.bind(src_address)
+	#bind to source address so it doesnt use other groups ports
+
+
+	#need to add in some logic here that makes sure it actually connects to a port.
+	#i think put the code in a try and if the port is in use just revert to default behaviour,
+	#this should at least reduce the amount we collide with other peoples ports
+
+	workloadport = 44500 + pid
+	src_address = (workloadadress, workloadport)
+	try:
+	    sock.bind(src_address)
+	except:
+		print "port %d in use, reverting to default behaviour", workloadport
 
 	# Connect the socket to the port where the server is listening
 	server_address = (tx_server_address[pid%len(tx_server_address)], tx_server_port)
 	print >>sys.stderr, 'connecting to %s port %s' % server_address
 	sock.connect(server_address)
+
 
 	try:
 			# Send data
