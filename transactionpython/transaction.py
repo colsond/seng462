@@ -10,7 +10,7 @@ from thread import *
 from threading import Thread, current_thread, activeCount
 
 from database import Database
-from ..profiling.aggregate import aggregate
+from aggregate import aggregate
 
 
 if(len(sys.argv)==2):
