@@ -56,6 +56,9 @@ $(document).ready(function() {
   	$("#amount").hide();
 	$("#stockSymbol").hide();
 	$("#filename").hide();
+	$("#amount").val("");
+	$("#stockSymbol").val("");
+	$("#filename").vale("");
 
     if ( this.value == 'ADD') {
 	    $("#amount").show();
@@ -150,11 +153,11 @@ $(document).ready(function() {
 				</div>
 				<div id="username">
 				    Username: 
-				    <input type="text" name="username" value="Mickey"><br><br>
+				    <input type="text" name="username" value=""><br><br>
 			    </div>
 			    <div id="amount" style="display:none">
 			    	Amount: 
-			    	<input type="text" name="amount" value="0"><br><br>
+			    	<input type="text" name="amount" value=""><br><br>
 			    </div>
 			    <div id="stockSymbol" style="display:none">
 			    	Stock Symbol: 

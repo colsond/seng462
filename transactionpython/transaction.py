@@ -911,8 +911,8 @@ def process_request(data, conn):
                         print "Dump engaged. Honest.\n"
 
             elif command == DISPLAY_SUMMARY:
-                print "TX Display Summary: %s" % str(conn.select_record("*", "Users", "user_id='%s'" % (user)))
-        
+                response = "User Balance: %s" % str(conn.select_record("balance", "Users", "user_id='%s'" % (user))[0])
+                
             else:
                 print "Invalid command.\n"
 
