@@ -1,6 +1,6 @@
 import psycopg2
 from psycopg2.pool import ThreadedConnectionPool
-
+from aggregate import aggregate
 
 class Database:
 
@@ -70,15 +70,18 @@ class Database:
         print "DB Initialized"
 
     # Return a Database Connection from the pool
+    @yappi.profile(return_callback=aggregate)
     def get_connection(self):
         connection = self.pool.getconn()
         cursor = connection.cursor()
         return connection, cursor
 
+    @yappi.profile(return_callback=aggregate)
     def close_connection(self, connection):
         self.pool.putconn(connection)
 
         # call like: select_record("Users", "id,balance", "id='jim' AND balance=200")
+    @yappi.profile(return_callback=aggregate)
     def select_record(self, values, table, constraints):
         connection, cursor = self.get_connection()
 
@@ -94,13 +97,14 @@ class Database:
 
         # Format to always return a tuple of the single record, with each value.
         if len(result) > 1:
-            print 'PG Select returned more than one value.'
+            print 'PG Select returned more than one value: %s' % result
             return (None,None)
         elif len(result) == 0:
             return (None,None)
         else:
             return result[0]
 
+    @yappi.profile(return_callback=aggregate)
     def insert_record(self, table, columns, values):
         connection, cursor = self.get_connection()
 
@@ -113,6 +117,7 @@ class Database:
 
         self.close_connection(connection)
 
+    @yappi.profile(return_callback=aggregate)
     def update_record(self, table, values, constraints):
         connection, cursor = self.get_connection()
 
@@ -125,6 +130,7 @@ class Database:
 
         self.close_connection(connection)
 
+    @yappi.profile(return_callback=aggregate)
     def delete_record(self, table, constraints):
         connection, cursor = self.get_connection()
 

@@ -1022,7 +1022,6 @@ def main():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind((SELF_HOST, SELF_PORT))
     s.listen(1)
-    yappi.start()
     global MAX_THREADS
     while 1:
         try:
