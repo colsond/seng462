@@ -27,7 +27,6 @@ AUDIT_SERVER_PORT = 44421
 NUM_WORKER_THREADS = 100
 
 web_server_port = 44422
-web_server_authenticate = 'http://127.0.0.1:5000/authenticate'
 
 MY_NAME = "Workload"
 
