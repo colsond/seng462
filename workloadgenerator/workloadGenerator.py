@@ -300,22 +300,14 @@ def sendWorkload(user, pid):
 			# INVALID REQUEST
 			print "invalid request: " + request[0]
 
-#-----------------------------------------------------------------------------
-#
-def get_transaction_server(user):
-	response = requests.post(url=web_server_authenticate, json={"username":user}).json()
-
-	return response["tx_server"]
-
 
 #-----------------------------------------------------------------------------
 #
 def worker(id):
 	while True:
 	    user = q.get()
-	    process = get_transaction_server(user)
-	    print process
-	    # sendWorkload(user, process)
+	    process = id
+	    sendWorkload(user, process)
 	    q.task_done()
 
 #-----------------------------------------------------------------------------
