@@ -289,23 +289,18 @@ def process_request(data, conn):
     amount = data_dict.get('amount')
 
     if valid_input(command):
-        print command
         return "Invalid request type."
 
     if valid_input(user):
-        print user
         return "Invalid username."
 
     if valid_input(stock_id):
-        print stock_id
         return "Invalid stock_id."
 
     if valid_input(filename):
-        print filename
         return "Invalid filename."  
 
     if valid_input(amount):
-        print amount
         return "Invalid amount."
 
 

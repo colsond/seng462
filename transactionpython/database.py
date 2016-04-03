@@ -87,7 +87,7 @@ class Database:
             cursor.execute(command)
             connection.commit()
         except Exception as e:
-            print 'PG Select error: ' + str(e)
+            print 'PG Select error - ' + str(e)
 
         result = cursor.fetchall()
         self.close_connection(connection)
@@ -109,7 +109,7 @@ class Database:
             cursor.execute(command)
             connection.commit()
         except Exception as e:
-            print 'PG Select error: ' + str(e)
+            print 'PG Select error - ' + str(e)
 
         result = cursor.fetchall()
         self.close_connection(connection)
@@ -125,7 +125,7 @@ class Database:
             cursor.execute(command)
             connection.commit()
         except Exception as e:
-            print 'PG Insert error: ' + str(e)
+            print 'PG Insert error - ' + str(e)
 
         self.close_connection(connection)
 
@@ -137,7 +137,7 @@ class Database:
             cursor.execute(command)
             connection.commit()
         except Exception as e:
-            print 'PG Update error: %s \n table=%s values=%s constraints=%s command=%s' % (str(e), table, values, constraints, command)
+            print 'PG Update error %s \n table=%s values=%s constraints=%s command=%s' % (str(e), table, values, constraints, command)
 
         self.close_connection(connection)
 
@@ -149,6 +149,6 @@ class Database:
             cursor.execute(command)
             connection.commit()
         except Exception as e:
-            print 'PG Delete error: ' + str(e)
+            print 'PG Delete error - ' + str(e)
 
         self.close_connection(connection)
