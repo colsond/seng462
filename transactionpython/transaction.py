@@ -430,7 +430,10 @@ def process_request(data, conn):
                     timestamp = int(current_quote["timestamp"])
             
                     # Set pending buy to new values (should overwrite existing entry)
-                    conn.update_record("PendingTrans", "stock_id='%s',amount=%d,timestamp=%d" % (stock_id, amount, timestamp), "user_id='%s'" % user)
+                    if conn.select_record("*", "PendingTrans", "type='buy' AND user_id='%s'" % user)[0]:
+                        conn.update_record("PendingTrans", "stock_id='%s',amount=%d,timestamp=%d" % (stock_id, amount, timestamp), "user_id='%s'" % user)
+                    else:
+                        conn.insert_record("PendingTrans", "type,user_id,stock_id,amount,timestamp", "%s,%s,%s,%d,%d" % ('buy',user,stock_id,amount,timestamp))
                     
                     response = str(stock_id) + ":" + str(price)
 
