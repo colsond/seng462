@@ -917,19 +917,23 @@ def process_request(data, conn):
                 stocks = conn.filter_records("stock_id,amount", "Stock", "user_id='%s'" % (user))
                 pending_transactions = conn.filter_records("type,stock_id,amount,timestamp", "PendingTrans", "user_id='%s'" % (user))
                 triggers = conn.filter_records("type,stock_id,amount,trigger", "Trigger", "user_id='%s'" % (user))
-                response = "Display Summary\n Current Balance: %d" % user_balance
+                response = "Display Summary <br> Current Balance: %d <br>" % user_balance
 
                 if stocks:
                     for stock in stocks:
-                        response = response + "Stock[%s]: $%d \n" % (stock[0], stock[1])
+                        amount = str(int(stock[1]/100)) + '.' + "{:02d}".format(int(stock[1]%100))
+                        response = response + "Stock[%s]: $%d <br>" % (stock[0], amount)
 
                 if pending_transactions:
                     for transaction in pending_transactions:
-                        response = response + "Pending %s, Stock[%s]: $%d  Expires %d \n" % (transaction[0],transaction[1],transaction[2],transaction[3])
+                        amount = str(int(stock[2]/100)) + '.' + "{:02d}".format(int(stock[2]%100))
+                        response = response + "Pending %s, Stock[%s]: $%d  Expires %d <br>" % (transaction[0],transaction[1],amount,transaction[3])
 
                 if triggers:
                     for trigger in triggers:
-                        response = response + "Trigger %s, Stock[%s]: $%d Trigger Value $%d \n" % (trigger[0],trigger[1],trigger[2],trigger[3])
+                        amount = str(int(trigger[2]/100)) + '.' + "{:02d}".format(int(trigger[2]%100))
+                        trigger_value = str(int(trigger[3]/100)) + '.' + "{:02d}".format(int(trigger[3]%100))
+                        response = response + "Trigger %s, Stock[%s]: $%d Trigger Value $%d <br>" % (trigger[0],trigger[1],amount,trigger_value)
 
                 
             else:
