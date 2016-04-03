@@ -910,7 +910,24 @@ def process_request(data, conn):
                         print "Dump engaged. Honest.\n"
 
             elif command == DISPLAY_SUMMARY:
-                response = "User Balance: %s" % str(conn.select_record("balance", "Users", "user_id='%s'" % (user))[0])
+                user_balance = conn.select_record("balance", "Users", "user_id='%s'" % (user))[0]
+                stocks = conn.filter_records("stock_id,amount", "Stock", "user_id='%s'" % (user))
+                pending_transactions = conn.filter_records("type,stock_id,amount,timestamp", "PendingTrans", "user_id='%s'" % (user))
+                triggers = conn.filter_records("type,stock_id,amount,trigger", "Trigger", "user_id='%s'" % (user))
+                response = "Display Summary\n Current Balance: %d" % user_balance
+
+                if stocks:
+                    for stock in stocks:
+                        response.append("Stock[%s]: $%d \n" % (stock[0], stock[1]))
+
+                if pending_transactions:
+                    for transaction in pending_transactions:
+                        response.append("Pending %s, Stock[%s]: $%d  Expires %d \n" % (transaction[0],transaction[1],transaction[2],transaction[3]))
+
+                if triggers:
+                    for trigger in triggers:
+                        response.append("Trigger %s, Stock[%s]: $%d Trigger Value $%d \n" % (trigger[0],trigger[1],trigger[2],trigger[3]))
+
                 
             else:
                 print "Invalid command.\n"

@@ -101,6 +101,22 @@ class Database:
         else:
             return result[0]
 
+    def filter_records(self, values, table, constraints):
+        connection, cursor = self.get_connection()
+
+        try:
+            command = """SELECT %s FROM %s WHERE %s""" % (values, table, constraints)
+            cursor.execute(command)
+            connection.commit()
+        except Exception as e:
+            print 'PG Select error: ' + str(e)
+
+        result = cursor.fetchall()
+        self.close_connection(connection)
+
+        # Return array of tuples
+        return result
+
     def insert_record(self, table, columns, values):
         connection, cursor = self.get_connection()
 
