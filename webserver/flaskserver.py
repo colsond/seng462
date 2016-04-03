@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 import socket
-app = Flask(__name__)
+application = Flask(__name__)
 
 def make_request(transactionNum, command, user=None, stock_id=None, amount=None, filename=None):
     data = {
@@ -39,7 +39,7 @@ def make_request(transactionNum, command, user=None, stock_id=None, amount=None,
 
     return response
 
-@app.route('/',  methods=['GET','POST'])
+@application.route('/',  methods=['GET','POST'])
 def index():
     if request.method == 'GET':
         return render_template('index.html')
@@ -55,4 +55,4 @@ def index():
         return render_template('index.html', response_message=response_message)
 
 if __name__ == "__main__":
-    app.run()
+    application.run()
