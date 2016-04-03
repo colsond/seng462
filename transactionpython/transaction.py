@@ -273,7 +273,7 @@ def audit_debug(
 
     return
 
-def valid_input(strg, search=re.compile(r'[^a-z0-9._]').search):
+def invalid_input(strg, search=re.compile(r'[^a-z0-9._]').search):
     return not bool(search(strg))
 
 def process_request(data, conn):
@@ -288,23 +288,23 @@ def process_request(data, conn):
     filename = data_dict.get('filename')
     amount = data_dict.get('amount')
 
-    if not valid_input(command):
+    if valid_input(command):
         print command
         return "Invalid request type."
 
-    if not valid_input(user):
+    if valid_input(user):
         print user
         return "Invalid username."
 
-    if not valid_input(stock_id):
+    if valid_input(stock_id):
         print stock_id
         return "Invalid stock_id."
 
-    if not valid_input(filename):
+    if valid_input(filename):
         print filename
         return "Invalid filename."  
 
-    if not valid_input(amount):
+    if valid_input(amount):
         print amount
         return "Invalid amount."
 
