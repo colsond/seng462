@@ -310,7 +310,6 @@ def sendWorkload(user, pid):
 			print "invalid request: " + request[0]
 
 
-
 #-----------------------------------------------------------------------------
 #
 def worker(id):

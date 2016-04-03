@@ -17,7 +17,7 @@ if(len(sys.argv)==2):
 else:
    server_id = 0 
 
-server_name = "transaction_server_%" + server_id
+server_name = "transaction_server_%d" % server_id
 print server_name
 
 web_server_address = 'b132.seng.uvic.ca' # Workload Generator
@@ -910,8 +910,8 @@ def process_request(data, conn):
                         print "Dump engaged. Honest.\n"
 
             elif command == DISPLAY_SUMMARY:
-                print "TX Display Summary: %s" % str(conn.select_record("*", "Users", "user_id='%s'" % (user)))
-        
+                response = "User Balance: %s" % str(conn.select_record("balance", "Users", "user_id='%s'" % (user))[0])
+                
             else:
                 print "Invalid command.\n"
 
