@@ -921,15 +921,15 @@ def process_request(data, conn):
 
                 if stocks:
                     for stock in stocks:
-                        response.append("Stock[%s]: $%d \n" % (stock[0], stock[1]))
+                        response + "Stock[%s]: $%d \n" % (stock[0], stock[1])
 
                 if pending_transactions:
                     for transaction in pending_transactions:
-                        response.append("Pending %s, Stock[%s]: $%d  Expires %d \n" % (transaction[0],transaction[1],transaction[2],transaction[3]))
+                        response + "Pending %s, Stock[%s]: $%d  Expires %d \n" % (transaction[0],transaction[1],transaction[2],transaction[3])
 
                 if triggers:
                     for trigger in triggers:
-                        response.append("Trigger %s, Stock[%s]: $%d Trigger Value $%d \n" % (trigger[0],trigger[1],trigger[2],trigger[3]))
+                        response + "Trigger %s, Stock[%s]: $%d Trigger Value $%d \n" % (trigger[0],trigger[1],trigger[2],trigger[3])
 
                 
             else:
