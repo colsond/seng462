@@ -1,4 +1,5 @@
 import psycopg2
+import time
 from psycopg2.pool import ThreadedConnectionPool
 
 
@@ -69,6 +70,9 @@ class Database:
 
         print "DB Initialized"
 
+    def now():
+        return int(time.time() * 1000)
+
     # Return a Database Connection from the pool
     def get_connection(self):
         connection = self.pool.getconn()
@@ -80,6 +84,7 @@ class Database:
 
         # call like: select_record("Users", "id,balance", "id='jim' AND balance=200")
     def select_record(self, values, table, constraints):
+        start_time = now()
         connection, cursor = self.get_connection()
 
         try:
@@ -93,6 +98,7 @@ class Database:
         self.close_connection(connection)
 
         # Format to always return a tuple of the single record, with each value.
+        print "SELECT:%d" % (now()-start_time)
         if len(result) > 1:
             print 'PG Select returned more than one value.'
             return (None,None)
@@ -102,6 +108,7 @@ class Database:
             return result[0]
 
     def filter_records(self, values, table, constraints):
+        start_time = now()
         connection, cursor = self.get_connection()
 
         try:
@@ -114,10 +121,13 @@ class Database:
         result = cursor.fetchall()
         self.close_connection(connection)
 
+        print "FILTER:%d" % (now()-start_time)
+
         # Return array of tuples
         return result
 
     def insert_record(self, table, columns, values):
+        start_time = now()
         connection, cursor = self.get_connection()
 
         try:
@@ -128,8 +138,10 @@ class Database:
             print 'PG Insert error - ' + str(e)
 
         self.close_connection(connection)
+        print "INSERT:%d" % (now()-start_time)
 
     def update_record(self, table, values, constraints):
+        start_time = now()
         connection, cursor = self.get_connection()
 
         try:
@@ -140,8 +152,10 @@ class Database:
             print 'PG Update error %s \n table=%s values=%s constraints=%s command=%s' % (str(e), table, values, constraints, command)
 
         self.close_connection(connection)
+        print "UPDATE:%d" % (now()-start_time)
 
     def delete_record(self, table, constraints):
+        start_time = now()
         connection, cursor = self.get_connection()
 
         try:
@@ -152,3 +166,4 @@ class Database:
             print 'PG Delete error - ' + str(e)
 
         self.close_connection(connection)
+        print "DELETE:%d" % (now()-start_time)

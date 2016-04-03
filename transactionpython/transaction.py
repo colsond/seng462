@@ -277,6 +277,7 @@ def valid_input(strg, search=re.compile(r'[^a-zA-Z0-9._]').search):
     return not bool(search(strg))
 
 def process_request(data, conn):
+    start_time = now()
     # Convert Data to Dict
     data_dict = ast.literal_eval(data)
 
@@ -961,7 +962,7 @@ def process_request(data, conn):
                 
             else:
                 print "Invalid command.\n"
-
+    print "%s:%d" % (command, now()-start_time)
     return response
 
 # Request a Quote from the quote server
