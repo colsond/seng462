@@ -273,7 +273,7 @@ def audit_debug(
 
     return
 
-def invalid_input(strg, search=re.compile(r'[^a-z0-9._]').search):
+def valid_input(strg, search=re.compile(r'[^a-zA-Z0-9._]').search):
     return not bool(search(strg))
 
 def process_request(data, conn):
@@ -288,23 +288,23 @@ def process_request(data, conn):
     filename = data_dict.get('filename')
     amount = data_dict.get('amount')
 
-    if valid_input(command):
+    if command and not valid_input(command):
         print command
         return "Invalid request type."
 
-    if valid_input(user):
+    if user and not valid_input(user):
         print user
         return "Invalid username."
 
-    if valid_input(stock_id):
+    if stock_id and not valid_input(stock_id):
         print stock_id
         return "Invalid stock_id."
 
-    if valid_input(filename):
+    if filename and not valid_input(filename):
         print filename
         return "Invalid filename."  
 
-    if valid_input(amount):
+    if amount and not valid_input(amount):
         print amount
         return "Invalid amount."
 
@@ -944,7 +944,7 @@ def process_request(data, conn):
                 pending_transactions = conn.filter_records("type,stock_id,amount,timestamp", "PendingTrans", "user_id='%s'" % (user))
                 triggers = conn.filter_records("type,stock_id,amount,trigger", "Trigger", "user_id='%s'" % (user))
                 user_balance = str(int(user_balance/100)) + '.' + "{:02d}".format(int(user_balance%100))
-                response = "Display Summary <br> Current Balance: %d <br>" % user_balance
+                response = "Display Summary for %s <br> Current Balance: %s <br>" % (user, user_balance)
 
                 if stocks:
                     for stock in stocks:
