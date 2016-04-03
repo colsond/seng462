@@ -386,7 +386,7 @@ def process_request(data, conn):
                     )
                 else:
                     conn.update_record("Users", "balance=balance+%d" % amount, "user_id='%s'" % user)
-                    response = "Added."
+                    response = "Added %d to %s's account." % (amount, user)
 
                     audit_transaction_event(
                         now(),
@@ -433,7 +433,7 @@ def process_request(data, conn):
                     if conn.select_record("*", "PendingTrans", "type='buy' AND user_id='%s'" % user)[0]:
                         conn.update_record("PendingTrans", "stock_id='%s',amount=%d,timestamp=%d" % (stock_id, amount, timestamp), "user_id='%s'" % user)
                     else:
-                        conn.insert_record("PendingTrans", "type,user_id,stock_id,amount,timestamp", "%s,%s,%s,%d,%d" % ('buy',user,stock_id,amount,timestamp))
+                        conn.insert_record("PendingTrans", "type,user_id,stock_id,amount,timestamp", "'%s','%s','%s',%d,%d" % ('buy',user,stock_id,amount,timestamp))
                     
                     response = str(stock_id) + ":" + str(price)
 
@@ -459,7 +459,7 @@ def process_request(data, conn):
                         if stock[0] != None:
                             conn.update_record("Stock", "amount=amount+%d" % amount, "stock_id='%s' AND user_id='%s'" % (stock_id, user))
                         else:
-                            conn.insert_record("Stock", "stock_id,user_id,amount", "%s,%s,%d" % (stock_id, user, amount))
+                            conn.insert_record("Stock", "stock_id,user_id,amount", "'%s','%s',%d" % (stock_id, user, amount))
                             
                         audit_transaction_event(
                             now(),
