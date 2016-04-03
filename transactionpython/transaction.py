@@ -573,7 +573,7 @@ def process_request(data, conn):
                         stock_id = pending_sell[2]
 
                         # Update user stock value
-                        conn.update_record("Stock", "amount=amount-%d" % amount, "stock_id='%s' AND user_id='%s'" % (stock_id, user_id))
+                        conn.update_record("Stock", "amount=amount-%d" % amount, "stock_id='%s' AND user_id='%s'" % (stock_id, user))
                 
                         # Update user balance
                         conn.update_record("Users", "balance=balance+%d" % amount, "user_id='%s'" % user)
