@@ -5,6 +5,7 @@ import socket
 import string
 import sys
 import time
+import re
 from thread import *
 from threading import Thread, current_thread, activeCount
 
@@ -272,6 +273,9 @@ def audit_debug(
 
     return
 
+def valid_input(strg, search=re.compile(r'[^a-z0-9._]').search):
+    return not bool(search(strg))
+
 def process_request(data, conn):
     # Convert Data to Dict
     data_dict = ast.literal_eval(data)
@@ -283,6 +287,27 @@ def process_request(data, conn):
     stock_id = data_dict.get('stock_id')
     filename = data_dict.get('filename')
     amount = data_dict.get('amount')
+
+    if not valid_input(command):
+        response="Invalid request type."
+        return
+
+    if not valid_input(user):
+        response="Invalid username."
+        return
+
+    if not valid_input(stock_id):
+        response="Invalid stock_id."
+        return
+
+    if not valid_input(filename):
+        response="Invalid filename."  
+        return  
+
+    if not valid_input(amount):
+        response="Invalid amount."
+        return
+
     if amount:
         amount = int(float(amount) * 100)
 
@@ -917,23 +942,24 @@ def process_request(data, conn):
                 stocks = conn.filter_records("stock_id,amount", "Stock", "user_id='%s'" % (user))
                 pending_transactions = conn.filter_records("type,stock_id,amount,timestamp", "PendingTrans", "user_id='%s'" % (user))
                 triggers = conn.filter_records("type,stock_id,amount,trigger", "Trigger", "user_id='%s'" % (user))
+                user_balance = str(int(user_balance/100)) + '.' + "{:02d}".format(int(user_balance%100))
                 response = "Display Summary <br> Current Balance: %d <br>" % user_balance
 
                 if stocks:
                     for stock in stocks:
                         amount = str(int(stock[1]/100)) + '.' + "{:02d}".format(int(stock[1]%100))
-                        response = response + "Stock[%s]: $%d <br>" % (stock[0], amount)
+                        response = response + "Stock[%s]: $%s <br>" % (stock[0], amount)
 
                 if pending_transactions:
                     for transaction in pending_transactions:
                         amount = str(int(stock[2]/100)) + '.' + "{:02d}".format(int(stock[2]%100))
-                        response = response + "Pending %s, Stock[%s]: $%d  Expires %d <br>" % (transaction[0],transaction[1],amount,transaction[3])
+                        response = response + "Pending %s, Stock[%s]: $%s  Expires %s <br>" % (transaction[0],transaction[1],amount,transaction[3])
 
                 if triggers:
                     for trigger in triggers:
                         amount = str(int(trigger[2]/100)) + '.' + "{:02d}".format(int(trigger[2]%100))
                         trigger_value = str(int(trigger[3]/100)) + '.' + "{:02d}".format(int(trigger[3]%100))
-                        response = response + "Trigger %s, Stock[%s]: $%d Trigger Value $%d <br>" % (trigger[0],trigger[1],amount,trigger_value)
+                        response = response + "Trigger %s, Stock[%s]: $%s Trigger Value $%s <br>" % (trigger[0],trigger[1],amount,trigger_value)
 
                 
             else:
