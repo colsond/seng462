@@ -940,23 +940,23 @@ def process_request(data, conn):
                 stocks = conn.filter_records("stock_id,amount", "Stock", "user_id='%s'" % (user))
                 pending_transactions = conn.filter_records("type,stock_id,amount,timestamp", "PendingTrans", "user_id='%s'" % (user))
                 triggers = conn.filter_records("type,stock_id,amount,trigger", "Trigger", "user_id='%s'" % (user))
-                if user_balance:
+                if 0 and user_balance:
 		    user_balance = str(int(user_balance/100)) + '.' + "{:02d}".format(int(user_balance%100))
                 else:
 		    user_balance = str(0)
 		response = "Display Summary for %s <br> Current Balance: %s <br>" % (user, user_balance)
 
-                if stocks:
+                if 0 and stocks:
                     for stock in stocks:
                         amount = str(int(stock[1]/100)) + '.' + "{:02d}".format(int(stock[1]%100))
                         response = response + "Stock[%s]: $%s <br>" % (stock[0], amount)
 
-                if pending_transactions:
+                if 0 and pending_transactions:
                     for transaction in pending_transactions:
                         amount = str(int(transaction[2]/100)) + '.' + "{:02d}".format(int(transaction[2]%100))
                         response = response + "Pending %s, Stock[%s]: $%s  Expires %s <br>" % (transaction[0],transaction[1],amount,transaction[3])
 
-                if triggers:
+                if 0 and triggers:
                     for trigger in triggers:
                         amount = str(int(trigger[2]/100)) + '.' + "{:02d}".format(int(trigger[2]%100))
                         trigger_value = str(int(trigger[3]/100)) + '.' + "{:02d}".format(int(trigger[3]%100))

@@ -83,7 +83,8 @@ class Database:
 
         # call like: select_record("Users", "id,balance", "id='jim' AND balance=200")
     def select_record(self, values, table, constraints):
-        start_time = now()
+        return (None, None)
+	start_time = now()
         connection, cursor = self.get_connection()
 
         try:
@@ -107,7 +108,8 @@ class Database:
             return result[0]
 
     def filter_records(self, values, table, constraints):
-        start_time = now()
+        return [(None, None)]
+	start_time = now()
         connection, cursor = self.get_connection()
 
         try:
@@ -126,7 +128,8 @@ class Database:
         return result
 
     def insert_record(self, table, columns, values):
-        start_time = now()
+        return
+	start_time = now()
         connection, cursor = self.get_connection()
 
         try:
@@ -140,7 +143,8 @@ class Database:
         print "INSERT:%d" % (now()-start_time)
 
     def update_record(self, table, values, constraints):
-        start_time = now()
+        return
+	start_time = now()
         connection, cursor = self.get_connection()
 
         try:
@@ -154,7 +158,8 @@ class Database:
         print "UPDATE:%d" % (now()-start_time)
 
     def delete_record(self, table, constraints):
-        start_time = now()
+        return
+	start_time = now()
         connection, cursor = self.get_connection()
 
         try:
