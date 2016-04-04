@@ -342,7 +342,7 @@ def clientthread(conn):
 def dumpLog():
     f = open(logfile, 'a')
     f.write('<?xml version="1.0"?>\n<log>\n')
-    for entry in audit_dict
+    for entry in audit_dict:
         f.write(audit_dict[entry])
 
     f.write("</log>")
