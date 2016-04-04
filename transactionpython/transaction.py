@@ -32,7 +32,7 @@ cache_server_port = 44420
 SELF_HOST = ''
 SELF_PORT = 44422
 
-MAX_THREADS = 20
+MAX_THREADS = 10
 
 # Commands
 ADD = "ADD"
@@ -940,8 +940,11 @@ def process_request(data, conn):
                 stocks = conn.filter_records("stock_id,amount", "Stock", "user_id='%s'" % (user))
                 pending_transactions = conn.filter_records("type,stock_id,amount,timestamp", "PendingTrans", "user_id='%s'" % (user))
                 triggers = conn.filter_records("type,stock_id,amount,trigger", "Trigger", "user_id='%s'" % (user))
-                user_balance = str(int(user_balance/100)) + '.' + "{:02d}".format(int(user_balance%100))
-                response = "Display Summary for %s <br> Current Balance: %s <br>" % (user, user_balance)
+                if user_balance:
+		    user_balance = str(int(user_balance/100)) + '.' + "{:02d}".format(int(user_balance%100))
+                else:
+		    user_balance = str(0)
+		response = "Display Summary for %s <br> Current Balance: %s <br>" % (user, user_balance)
 
                 if stocks:
                     for stock in stocks:

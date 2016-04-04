@@ -2,6 +2,8 @@ import psycopg2
 import time
 from psycopg2.pool import ThreadedConnectionPool
 
+def now():
+    return int(time.time() * 1000)
 
 class Database:
 
@@ -69,9 +71,6 @@ class Database:
         self.conn.commit()
 
         print "DB Initialized"
-
-    def now():
-        return int(time.time() * 1000)
 
     # Return a Database Connection from the pool
     def get_connection(self):
