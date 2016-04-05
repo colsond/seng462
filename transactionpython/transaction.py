@@ -820,7 +820,7 @@ def process_request(data, conn):
             elif command == SET_SELL_AMOUNT:
                 if conn.select_record("amount", "Stock", "user_id='%s' AND stock_id='%s'" % (user, stock_id))[0] >= amount:
                     sell_trigger = conn.select_record("amount,trigger", "Trigger", "type='sell' AND user_id='%s' AND stock_id='%s'" % (user, stock_id))
-                    if sell_trigger:
+                    if sell_trigger[0] != None:
                         if sell_trigger[1] > 0:
                             response = "Active sell trigger for stock already exists."
                             audit_error_event(
@@ -849,7 +849,7 @@ def process_request(data, conn):
                             amount
                         )
                         conn.insert_record("Trigger", "type,user_id,stock_id,amount,trigger", "'sell','%s','%s',%d,%d" % (user,stock_id,amount,0))
-                        response = "Sell trigger initilaised.g"
+                        response = "Sell trigger initilaised."
                 else:
                     response = "Insufficient stock to set trigger."
                     audit_error_event(
