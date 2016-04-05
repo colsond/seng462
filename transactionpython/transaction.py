@@ -472,13 +472,14 @@ def process_request(data, conn):
                     current_quote = get_quote(data_dict)
 
                     price = current_quote["price"]
+                    buy_amount = int(amount / price) * price
                     timestamp = int(current_quote["timestamp"])
             
                     # Set pending buy to new values (should overwrite existing entry)
                     if conn.select_record("*", "PendingTrans", "type='buy' AND user_id='%s'" % user)[0]:
-                        conn.update_record("PendingTrans", "stock_id='%s',amount=%d,timestamp=%d" % (stock_id, amount, timestamp), "user_id='%s'" % user)
+                        conn.update_record("PendingTrans", "stock_id='%s',amount=%d,timestamp=%d" % (stock_id, buy_amount, timestamp), "user_id='%s'" % user)
                     else:
-                        conn.insert_record("PendingTrans", "type,user_id,stock_id,amount,timestamp", "'%s','%s','%s',%d,%d" % ('buy',user,stock_id,amount,timestamp))
+                        conn.insert_record("PendingTrans", "type,user_id,stock_id,amount,timestamp", "'%s','%s','%s',%d,%d" % ('buy',user,stock_id,buy_amount,timestamp))
                     
                     response = "Buy request for " + str(stock_id) + ":" + str(price)
 
@@ -574,12 +575,13 @@ def process_request(data, conn):
 
                         current_quote = get_quote(data_dict)
                         price = current_quote["price"]
+                        sell_amount = int(amount / price) * price
                         timestamp = int(current_quote["timestamp"])
                         
                         if conn.select_record("amount", "PendingTrans", "type='sell' AND user_id='%s'" % user)[0]:
-                            conn.update_record("PendingTrans", "stock_id,amount,timestamp", "'%s',%d,'%s'" % (stock_id, amount, timestamp), "user_id='%s' AND type='sell'" % user)
+                            conn.update_record("PendingTrans", "stock_id,amount,timestamp", "'%s',%d,'%s'" % (stock_id, sell_amount, timestamp), "user_id='%s' AND type='sell'" % user)
                         else:
-                            conn.insert_record("PendingTrans", "type,user_id,stock_id,amount,timestamp", "'sell','%s','%s',%d,'%s'" % (user,stock_id,amount,timestamp))
+                            conn.insert_record("PendingTrans", "type,user_id,stock_id,amount,timestamp", "'sell','%s','%s',%d,'%s'" % (user,stock_id,sell_amount,timestamp))
                         response = "Sell requested for stock " + str(stock_id) + ":" + str(price)
 
                     else:
