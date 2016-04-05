@@ -702,6 +702,7 @@ def process_request(data, conn):
             
                         # Set up buy trigger with stock and amount to spend
                         conn.insert_record("Trigger", "type,user_id,stock_id,amount,trigger", "'buy','%s','%s',%d,%d" % (user,stock_id,amount,0))
+                        response = "Buy trigger amount set."
                 else:
                     response = "Insufficient funds to set trigger."
                     audit_error_event(
@@ -817,8 +818,7 @@ def process_request(data, conn):
 # -- SET SELL AMOUNT REQUEST
 # --------------------------
             elif command == SET_SELL_AMOUNT:
-                
-                if conn.select_record("amount", "Stock", "user_id='%s' AND stock_id='%s'")[0] >= amount:
+                if conn.select_record("amount", "Stock", "user_id='%s' AND stock_id='%s'" % (user, stock_id))[0] >= amount:
                     sell_trigger = conn.select_record("amount,trigger", "Trigger", "type='sell' AND user_id='%s' AND stock_id='%s'" % (user, stock_id))
                     if sell_trigger:
                         if sell_trigger[1] > 0:
@@ -849,7 +849,7 @@ def process_request(data, conn):
                             amount
                         )
                         conn.insert_record("Trigger", "type,user_id,stock_id,amount,trigger", "'sell','%s','%s',%d,%d" % (user,stock_id,amount,0))
-                        response = "Sell trigger initilaised."
+                        response = "Sell trigger initilaised.g"
                 else:
                     response = "Insufficient stock to set trigger."
                     audit_error_event(
