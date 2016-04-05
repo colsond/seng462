@@ -29,6 +29,9 @@ audit_server_port = 44421
 cache_server_address = ['b143.seng.uvic.ca', 'b144.seng.uvic.ca', 'b145.seng.uvic.ca']
 cache_server_port = 44420
 
+trigger_server_address = 'b131.seng.uvic.ca'
+trigger_server_port = 44429
+
 SELF_HOST = ''
 SELF_PORT = 44422
 
@@ -63,6 +66,23 @@ def send_audit_entry(message):
     # Connect the socket to the port where the server is listening
     server_address = (audit_server_address, audit_server_port)
     sock.connect(server_address)
+
+    try:
+        sock.sendall(message)
+        response = sock.recv(1024)
+
+    finally:
+        sock.close()
+
+    return
+
+def send_trigger(data):
+    #stock_id, user, transactionNum, command, trigger, amount
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    # Connect the socket to the port where the server is listening
+    server_address = (trigger_server_address, trigger_server_port)
+    sock.connect(trigger_server_address)
 
     try:
         sock.sendall(message)
@@ -276,6 +296,9 @@ def audit_debug(
 def valid_input(strg, search=re.compile(r'[^a-zA-Z0-9._]').search):
     return not bool(search(strg))
 
+def string_format_money(money):
+    return str(int(float(money)/100)) + '.' + "{:02d}".format(int(money%100))
+
 def process_request(data, conn):
     # Convert Data to Dict
     data_dict = ast.literal_eval(data)
@@ -408,7 +431,7 @@ def process_request(data, conn):
                     )
                 else:
                     conn.update_record("Users", "balance=balance+%d" % amount, "user_id='%s'" % user)
-                    response = "Added %d to %s's account." % (amount, user)
+                    response = "Added %s to %s's account." % (string_format_money(amount), user)
 
                     audit_transaction_event(
                         now(),
@@ -614,7 +637,7 @@ def process_request(data, conn):
                 
                         response = "Sell committed."
                     else:
-                        response = "TIME WINDOW ELAPSED"
+                        response = "Sell time window has expired."
                         audit_error_event(
                             now(),
                             server_name,
@@ -652,7 +675,7 @@ def process_request(data, conn):
             
                 # Check user balance\
                 if conn.select_record("balance", "Users", "user_id='%s'" % user)[0] >= amount:
-                    if conn.select_record("*", "Trigger", "type='buy' AND user_id='%s' AND stock_id='%s'" % (user, stock_id)):
+                    if conn.select_record("amount", "Trigger", "type='buy' AND user_id='%s' AND stock_id='%s'" % (user, stock_id)):
                         response = "Trigger already set for stock."
                         audit_error_event(
                             now(),
