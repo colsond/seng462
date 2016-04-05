@@ -57,7 +57,7 @@ def now():
     return int(time.time() * 1000)
 
 def send_audit_entry(message):
-
+    return
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     # Connect the socket to the port where the server is listening
@@ -978,7 +978,6 @@ def process_request(data, conn):
 #returns price of stock, doesnt do any checking.
 # target_server_address and target_server_port need to be set globally or the function must be modified to recieve these values
 def get_quote(data):
-
     #pull out stock ID to send to a given cache server
     stock_id = data.get('stock_id')
 

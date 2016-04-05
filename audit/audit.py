@@ -6,7 +6,6 @@ import time
 import threading
 
 from thread import *
- 
 
 if(len(sys.argv)==2):
     audit_id = sys.argv[1]
@@ -356,13 +355,18 @@ start_new_thread(writerthread,())
 '''
 while 1:
     try:
-        #wait to accept a connection - blocking call
-        conn, addr = s.accept()
-        print 'Connected with ' + addr[0] + ':' + str(addr[1])
+        active_count = len(threading.enumerate())
+	print "AC:%d\n" % active_count
+	threads_free = active_count < 100
+        if(threads_free):
+	    #wait to accept a connection - blocking call
+            conn, addr = s.accept()
+            print 'Connected with ' + addr[0] + ':' + str(addr[1])
          
-        #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
-        start_new_thread(clientthread ,(conn,))
+            #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
+            start_new_thread(clientthread ,(conn,))
     except:
+	print 'Done.'
         if(audit_id==0):
             '''
             f = open(logfile, 'a')
