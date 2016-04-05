@@ -472,7 +472,7 @@ def process_request(data, conn):
                     current_quote = get_quote(data_dict)
 
                     price = current_quote["price"]
-                    buy_amount = int(int(amount) / int(price)) * price
+                    buy_amount = int(int(amount) / float(price)) * float(price)
                     timestamp = int(current_quote["timestamp"])
             
                     # Set pending buy to new values (should overwrite existing entry)
@@ -575,7 +575,7 @@ def process_request(data, conn):
 
                         current_quote = get_quote(data_dict)
                         price = current_quote["price"]
-                        sell_amount = int(int(amount) / int(price)) * price
+                        sell_amount = int(int(amount) / float(price)) * float(price)
                         timestamp = int(current_quote["timestamp"])
                         
                         if conn.select_record("amount", "PendingTrans", "type='sell' AND user_id='%s'" % user)[0]:
