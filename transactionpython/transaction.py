@@ -872,7 +872,7 @@ def process_request(data, conn):
                 if sell_trigger[0] != None:
                     if sell_trigger[0] > 0:
                         if amount > 0:
-                            conn.update_record("Trigger", "amount=%d" % amount, "user_id='%s' AND stock_id='%s' AND type='sell'" % (user,stock_id))
+                            conn.update_record("Trigger", "trigger=%d" % amount, "user_id='%s' AND stock_id='%s' AND type='sell'" % (user,stock_id))
                             response = "Sell trigger set."
                         else:
                             response = "Sell trigger amount is not a positive value; Trigger not enabled."
