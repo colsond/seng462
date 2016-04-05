@@ -447,7 +447,7 @@ def process_request(data, conn):
 # ----------------
             elif command == QUOTE:
                 current_quote = get_quote(data_dict)
-                response = str(stock_id) + ':' + str(current_quote['price'])
+                response = "Quote for " + str(stock_id) + ':' + str(current_quote['price'])
 
 # --------------
 # -- BUY REQUEST
@@ -480,7 +480,7 @@ def process_request(data, conn):
                     else:
                         conn.insert_record("PendingTrans", "type,user_id,stock_id,amount,timestamp", "'%s','%s','%s',%d,%d" % ('buy',user,stock_id,amount,timestamp))
                     
-                    response = str(stock_id) + ":" + str(price)
+                    response = "Buy request for " + str(stock_id) + ":" + str(price)
 
                 else:
                     response = "Insufficient funds in account to place buy order."
@@ -580,7 +580,7 @@ def process_request(data, conn):
                             conn.update_record("PendingTrans", "stock_id,amount,timestamp", "'%s',%d,'%s'" % (stock_id, amount, timestamp), "user_id='%s' AND type='sell'" % user)
                         else:
                             conn.insert_record("PendingTrans", "type,user_id,stock_id,amount,timestamp", "'sell','%s','%s',%d,'%s'" % (user,stock_id,amount,timestamp))
-                        response = str(stock_id) + ":" + str(price)
+                        response = "Sell requested for stock " + str(stock_id) + ":" + str(price)
 
                     else:
                         response = "Insufficient stock owned."
