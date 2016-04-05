@@ -950,7 +950,7 @@ def process_request(data, conn):
 
                 if pending_transactions:
                     for transaction in pending_transactions:
-                        amount = str(int(stock[2]/100)) + '.' + "{:02d}".format(int(stock[2]%100))
+                        amount = str(int(transaction[2]/100)) + '.' + "{:02d}".format(int(transaction[2]%100))
                         response = response + "Pending %s, Stock[%s]: $%s  Expires %s <br>" % (transaction[0],transaction[1],amount,transaction[3])
 
                 if triggers:
