@@ -919,7 +919,7 @@ def process_request(data, conn):
                 sell_trigger = conn.select_record("trigger", "Trigger", "user_id='%s' AND stock_id='%s' AND type='sell'" % (user,stock_id))
                 if sell_trigger[0] != None:
                     if sell_trigger[0] > 0:
-                        conn.update_record("Stock", "amount=amount+%d" % amount, "stock_id='%s' AND user_id='%s'" % (stock_id,user))
+                        conn.update_record("Stock", "amount=amount+%d" % sell_trigger[0], "stock_id='%s' AND user_id='%s'" % (stock_id,user))
                         conn.delete_record("Trigger", "type='sell' AND user_id='%s' AND stock_id='%s'" % (user,stock_id))
                         
                         response = "Sell trigger cancelled."
