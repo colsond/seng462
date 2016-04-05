@@ -873,7 +873,6 @@ def process_request(data, conn):
                     if sell_trigger[0] > 0:
                         if amount > 0:
                             conn.update_record("Trigger", "amount=%d" % amount, "user_id='%s' AND stock_id='%s' AND type='sell'" % (user,stock_id))
-                            cache["users"][user]["sell_trigger"][stock_id]["trigger"] = amount
                             response = "Sell trigger set."
                         else:
                             response = "Sell trigger amount is not a positive value; Trigger not enabled."
@@ -965,7 +964,7 @@ def process_request(data, conn):
                 pending_transactions = conn.filter_records("type,stock_id,amount,timestamp", "PendingTrans", "user_id='%s'" % (user))
                 triggers = conn.filter_records("type,stock_id,amount,trigger", "Trigger", "user_id='%s'" % (user))
                 user_balance = str(int(user_balance/100)) + '.' + "{:02d}".format(int(user_balance%100))
-                response = "Display Summary for %s <br> Current Balance: %s <br>" % (user, user_balance)
+                response = "Display Summary for %s <br> Current Balance: $%s <br>" % (user, user_balance)
 
                 if stocks:
                     for stock in stocks:
