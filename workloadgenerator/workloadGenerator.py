@@ -22,13 +22,13 @@ tx_server_port = 44422
 AUDIT_SERVER_ADDRESS = 'b149.seng.uvic.ca'
 AUDIT_SERVER_PORT = 44421
 
-NUM_WORKER_THREADS = 100
+NUM_WORKER_THREADS = 50
 
 web_server_port = 44422
 
 MY_NAME = "Workload"
 
-workload_file = '1000User_testWorkLoad.txt'
+workload_file = '100User_testWorkLoad.txt'
 working_dir = './separatedWorkload/'
 user_count = 0
 
@@ -84,11 +84,11 @@ def make_request(pid, transactionNum, command, user=None, stock_id=None, amount=
 	#this should at least reduce the amount we collide with other peoples ports
 
 	workloadport = 44500 + pid
-	src_address = (workloadadress, workloadport)
-	try:
-	    sock.bind(src_address)
-	except:
-		print "port %d in use, reverting to default behaviour", workloadport
+	#src_address = (workloadadress, workloadport)
+	#try:
+	#    sock.bind(src_address)
+	#except:
+#		print "port %d in use, reverting to default behaviour", workloadport
 
 	# Connect the socket to the port where the server is listening
 	server_address = (tx_server_address[pid%len(tx_server_address)], tx_server_port)
@@ -314,6 +314,7 @@ def sendWorkload(user, pid):
 #
 def worker(id):
 	while True:
+	    print "Process %d starting" % id
 	    user = q.get()
 	    process = id
 	    sendWorkload(user, process)
@@ -402,8 +403,10 @@ def audit_event(
 	else:
 		pass
 
-	if message.get('logtype') != 'invalid':
-		while threading.active_count() > MAX_THREADS:
+	if message.get('logType') != 'invalid':
+		active_count = threading.active_count()
+		print "AC:%d\n" % active_count
+		while active_count > MAX_THREADS:
 			pass
 		t = threading.Thread(target=send_audit, args=(message,))
 		t.start()
@@ -422,6 +425,7 @@ def main():
 
 	i=0
 	for item in userList:
+		print "Current item: %d" % i
 		if workload_id == 0 and i<int(user_count/2):
 			q.put(item)
 		elif workload_id == 1 and i>=int(user_count/2):
