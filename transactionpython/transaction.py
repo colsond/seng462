@@ -57,7 +57,6 @@ def now():
     return int(time.time() * 1000)
 
 def send_audit_entry(message):
-    return
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     # Connect the socket to the port where the server is listening
@@ -1042,7 +1041,7 @@ def transactionWorkerthread(conn, db):
             break
     conn.close()
     #active_threads -= 1 
-    #sys.exit(1)
+    sys.exit(1)
 
 
 

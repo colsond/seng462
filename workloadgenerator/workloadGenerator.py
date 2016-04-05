@@ -22,7 +22,7 @@ tx_server_port = 44422
 AUDIT_SERVER_ADDRESS = 'b149.seng.uvic.ca'
 AUDIT_SERVER_PORT = 44421
 
-NUM_WORKER_THREADS = 50
+NUM_WORKER_THREADS = 500
 
 web_server_port = 44422
 

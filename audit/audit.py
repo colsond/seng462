@@ -333,7 +333,7 @@ def clientthread(conn):
     #came out of loop
     print "Ending transmission"
     conn.close()
-    #sys.exit(0) 
+    sys.exit(0) 
 
 
 def dumpLog():
